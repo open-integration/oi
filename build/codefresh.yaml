@@ -3,7 +3,7 @@ version: '1.0'
 steps:
   main_clone:
     type: git-clone
-    repo: olegsu/openc
+    repo: open-integration/core
     git: cf_github
     revision: ${{CF_REVISION}}
 

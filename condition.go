@@ -1,4 +1,4 @@
-package openc
+package core
 
 type (
 	// Condition determine whenever run a task

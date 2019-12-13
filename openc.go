@@ -1,4 +1,4 @@
-package openc
+package core
 
 import (
 	"fmt"
@@ -28,13 +28,13 @@ func NewEngine(opt *EngineOptions) Engine {
 	var loggerOptions *logger.Options
 
 	loggerOptions = &logger.Options{
-		FilePath: path.Join(wd, "logs", "openc.log"),
+		FilePath: path.Join(wd, "logs", "log"),
 	}
 
 	home, err := os.UserHomeDir()
 	dieOnError(err)
 
-	servicesDir := path.Join(home, ".openc", "services")
+	servicesDir := path.Join(home, ".open-integration", "services")
 	dieOnError(createDir(servicesDir))
 
 	serviceDownloader := downloader.New(downloader.Options{

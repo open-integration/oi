@@ -1,4 +1,4 @@
-package openc
+package core
 
 type (
 	// Task is a task a pipeline should execute
