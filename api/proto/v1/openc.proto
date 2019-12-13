@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package v1;
+
+enum Status {
+    OK = 0;
+    Error = 1;
+}
+message InitRequest {}
+message InitResponse {
+    map<string,string> jsonSchemas = 1;
+}
+
+message CallRequest {
+    string endpoint = 1; // name of the endpoint
+    map<string,string> arguments = 2;  // arguments
+    string fd = 3; // file descriptor where to write call logs
+}
+message CallResponse {
+    Status status = 1; // call flow status
+    string error = 2; // error message
+    string payload = 3; // response payload encoded json
+}
+
+
+service Service {
+    rpc init(InitRequest) returns (InitResponse);
+    rpc call(CallRequest) returns (CallResponse);
+}
