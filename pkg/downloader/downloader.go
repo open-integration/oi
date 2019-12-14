@@ -39,8 +39,8 @@ func New(opt Options) Downloader {
 }
 
 func (d *downloader) Download(name string, version string) error {
-	url := fmt.Sprintf("https://github.com/open-integration/core-services/releases/download/%s/%s-%s-%s-%s", version, name, version, runtime.GOOS, runtime.GOARCH)
-	d.logger.Debug("Downloading", "url", url)
+	url := fmt.Sprintf("https://storage.googleapis.com/open-integration-service-catalog/%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
+	d.logger.Debug("Downloading", "name", name, "url", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -68,7 +68,11 @@ func (d *downloader) Download(name string, version string) error {
 
 	// Add prmission to exec file
 	err = os.Chmod(fileName, os.ModePerm)
-	return err
+	if err != nil {
+		return err
+	}
+	d.logger.Debug("Downloaded", "name", name, "code", resp.StatusCode)
+	return nil
 }
 
 func (d *downloader) Store() string {
