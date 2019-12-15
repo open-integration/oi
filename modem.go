@@ -132,13 +132,13 @@ func (m *modem) Call(spec TaskSpec, fd string) (string, error) {
 	}
 	if resp.Status == v1.Status_Error {
 		log.Debug("Call return with error", "service", spec.Service, "endpoint", spec.Endpoint, "err", resp.Error)
-		return "", fmt.Errorf(resp.Error)
+		return resp.Payload, fmt.Errorf(resp.Error)
 	}
 
 	log.Debug("Call ended", "service", spec.Service, "endpoint", spec.Endpoint, "response", resp.Status)
 	err = m.isResponsePayloadValid(resp.Payload, m.services[spec.Service].tasksSchemas[fmt.Sprintf("%s/%s", spec.Endpoint, "returns.json")])
 	if err != nil {
-		return "", err
+		return resp.Payload, err
 	}
 
 	return resp.Payload, nil

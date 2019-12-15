@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/open-integration/core/internal/commands"
@@ -35,6 +36,7 @@ type (
 		eventChan        chan *Event
 		taskLogsDirctory string
 		modem            Modem
+		wg               sync.WaitGroup
 	}
 )
 
@@ -46,13 +48,15 @@ func (e *engine) Run() error {
 		return err
 	}
 	defer e.modem.Destory()
-	e.state.send(commands.StartEngine, func() *State {
+	e.wg.Add(1)
+	go e.state.send(commands.StartEngine, &e.wg, func() *State {
 		return &State{
 			Metadata: StateMetadata{
 				State: EngineStateInProgress,
 			},
 		}
 	})
+	go e.waitForFinish()
 	e.handleStateEvents()
 	return nil
 }
@@ -69,15 +73,19 @@ func (e *engine) handleStateEvents() {
 }
 
 func (e *engine) handleEvent(ev Event) {
+	e.wg.Add(1)
 	e.logger.Debug("Recieved event", "name", ev.Metadata.Name)
 	for _, t := range e.pipeline.Spec.Tasks {
 		taskLogger := e.logger.New("task", t.Metadata.Name)
 		if !e.shouldRunTask(t, &ev, taskLogger) {
 			continue
 		}
-		e.runTask(t, &ev, taskLogger)
+		err := e.runTask(t, &ev, taskLogger)
+		if err != nil {
+			e.logger.Error("Error running task", "err", err.Error(), "task", t.Metadata.Name)
+		}
 	}
-	e.reportOnFinish()
+	e.wg.Done()
 }
 
 func (e *engine) shouldRunTask(t Task, ev *Event, logger logger.Logger) bool {
@@ -101,7 +109,6 @@ func (e *engine) shouldRunTask(t Task, ev *Event, logger logger.Logger) bool {
 			return false
 		}
 	}
-	return true
 }
 
 func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
@@ -117,7 +124,8 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 		spec = t.Spec
 	}
 	id := generateID()
-	e.state.send(commands.StartTask, func() *State {
+	e.wg.Add(1)
+	go e.state.send(commands.StartTask, &e.wg, func() *State {
 		return &State{
 			Tasks: map[ID]TaskState{
 				id: TaskState{
@@ -151,7 +159,8 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 		status = TaskStatusFailed
 		msg = err.Error()
 	}
-	e.state.send(commands.FinishTask, func() *State {
+	e.wg.Add(1)
+	go e.state.send(commands.FinishTask, &e.wg, func() *State {
 		return &State{
 			Tasks: map[ID]TaskState{
 				id: TaskState{
@@ -168,9 +177,10 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 	return nil
 }
 
-// reportOnFinish watch all events and send finish command once there are no more tasks in in-progress state
-func (e *engine) reportOnFinish() {
-	time.Sleep(time.Second * 3)
+// waitForFinish watch all events and send finish command once there are no more tasks in in-progress state
+func (e *engine) waitForFinish() {
+	time.Sleep(5 * time.Second)
+	e.wg.Wait()
 
 	for id, t := range e.state.Tasks {
 		e.logger.Debug("Testing task", "name", t.Task, "id", id, "state", t.State)
@@ -180,7 +190,8 @@ func (e *engine) reportOnFinish() {
 	}
 
 	e.logger.Debug("All tasks seems to be finished, sending finish command")
-	go e.state.send(commands.FinishEngine, func() *State {
+	e.wg.Add(1)
+	go e.state.send(commands.FinishEngine, &e.wg, func() *State {
 		return &State{
 			Metadata: StateMetadata{
 				State: EngineStateFinished,

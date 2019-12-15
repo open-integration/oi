@@ -3,6 +3,7 @@ package core
 import (
 	"io/ioutil"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/imdario/mergo"
@@ -85,9 +86,8 @@ func NewState(opt *StateOptions) *State {
 	}
 }
 
-func (s *State) send(cmd commands.Command, update func() *State) error {
+func (s *State) send(cmd commands.Command, wg *sync.WaitGroup, update func() *State) error {
 	s.logger.Debug("Received command", "command", cmd.String())
-
 	var ev Event
 	switch cmd {
 	case commands.StartEngine:
@@ -143,6 +143,7 @@ func (s *State) send(cmd commands.Command, update func() *State) error {
 			return err
 		}
 	}
+	wg.Done()
 	return s.printStore()
 }
 
