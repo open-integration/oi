@@ -109,6 +109,7 @@ func (e *engine) shouldRunTask(t Task, ev *Event, logger logger.Logger) bool {
 			return false
 		}
 	}
+	return true
 }
 
 func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
