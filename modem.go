@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -102,29 +103,39 @@ func (m *modem) Init() error {
 	return nil
 }
 func (m *modem) Call(spec TaskSpec, fd string) (string, error) {
-	m.logger.Debug("Calling", "service", spec.Service, "endpoint", spec.Endpoint)
+	log := m.logger.New("service", spec.Service, "endpoint", spec.Endpoint)
+	log.Debug("Call service request")
 
 	req := &v1.CallRequest{
 		Endpoint: spec.Endpoint,
 		Fd:       fd,
 	}
-	arguments := map[string]string{}
+	arguments := map[string]interface{}{}
 	for _, arg := range spec.Arguments {
 		arguments[arg.Key] = arg.Value
 	}
-	err := m.isArgumentsValid(arguments, m.services[spec.Service].tasksSchemas[fmt.Sprintf("%s/%s", spec.Endpoint, "arguments.json")])
+	args, err := json.Marshal(arguments)
 	if err != nil {
 		return "", err
 	}
-	req.Arguments = arguments
+	log.Debug("Validating arguments", "service", spec.Service, "endpoint", spec.Endpoint)
+	err = m.isArgumentsValid(args, m.services[spec.Service].tasksSchemas[fmt.Sprintf("%s/%s", spec.Endpoint, "arguments.json")])
+	if err != nil {
+		return "", err
+	}
+	log.Debug("Arguments are valid", "service", spec.Service, "endpoint", spec.Endpoint)
+	req.Arguments = string(args)
 	resp, err := m.services[spec.Service].client.Call(context.Background(), req)
 	if err != nil {
+		log.Debug("Call return with error", "service", spec.Service, "endpoint", spec.Endpoint, "err", err.Error())
 		return "", err
 	}
 	if resp.Status == v1.Status_Error {
+		log.Debug("Call return with error", "service", spec.Service, "endpoint", spec.Endpoint, "err", resp.Error)
 		return "", fmt.Errorf(resp.Error)
 	}
 
+	log.Debug("Call ended", "service", spec.Service, "endpoint", spec.Endpoint, "response", resp.Status)
 	err = m.isResponsePayloadValid(resp.Payload, m.services[spec.Service].tasksSchemas[fmt.Sprintf("%s/%s", spec.Endpoint, "returns.json")])
 	if err != nil {
 		return "", err
@@ -161,13 +172,13 @@ func (m *modem) AddService(name string, port string, path string) error {
 	return nil
 }
 
-func (m *modem) isArgumentsValid(json map[string]string, schema string) error {
+func (m *modem) isArgumentsValid(json []byte, schema string) error {
 	if schema == "" {
 		return nil // no schema given, no assertion required
 	}
 	schemaLoader := gojsonschema.NewStringLoader(schema)
-	jsonLoader := gojsonschema.NewGoLoader(json)
-	return m.isJsonValid(jsonLoader, schemaLoader)
+	jsonLoader := gojsonschema.NewBytesLoader(json)
+	return m.isJSONValid(jsonLoader, schemaLoader)
 }
 
 func (m *modem) isResponsePayloadValid(json string, schema string) error {
@@ -176,10 +187,10 @@ func (m *modem) isResponsePayloadValid(json string, schema string) error {
 	}
 	schemaLoader := gojsonschema.NewStringLoader(schema)
 	jsonLoader := gojsonschema.NewStringLoader(json)
-	return m.isJsonValid(jsonLoader, schemaLoader)
+	return m.isJSONValid(jsonLoader, schemaLoader)
 }
 
-func (m *modem) isJsonValid(json gojsonschema.JSONLoader, schema gojsonschema.JSONLoader) error {
+func (m *modem) isJSONValid(json gojsonschema.JSONLoader, schema gojsonschema.JSONLoader) error {
 	result, err := gojsonschema.Validate(schema, json)
 	if err != nil {
 		return err

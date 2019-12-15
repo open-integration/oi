@@ -13,7 +13,7 @@ message InitResponse {
 
 message CallRequest {
     string endpoint = 1; // name of the endpoint
-    map<string,string> arguments = 2;  // arguments
+    string arguments = 2;  // arguments as json string
     string fd = 3; // file descriptor where to write call logs
 }
 message CallResponse {

@@ -42,7 +42,7 @@ func NewEngine(opt *EngineOptions) Engine {
 		Logger: logger.New(loggerOptions).New("module", "service-downloader"),
 	})
 
-	servicesLogDir := path.Join(wd, "logs", "tasks")
+	servicesLogDir := path.Join(wd, "logs", "services")
 	dieOnError(createDir(servicesLogDir))
 
 	if opt.Logger == nil {
@@ -66,12 +66,16 @@ func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.D
 		serviceLogDirectory: servicesLogDir,
 	}
 	for _, p := range pipeline.Spec.Services {
-		err := downloader.Download(p.Name, p.Version)
-		dieOnError(err)
+		location := p.Path
+		if p.Name != "" && p.Version != "" {
+			err := downloader.Download(p.Name, p.Version)
+			dieOnError(err)
+			location = path.Join(downloader.Store(), p.Name)
+		}
 		port, err := utils.GetAvailablePort()
 		dieOnError(err)
-		logger.Debug("Adding service", "path", path.Join(downloader.Store(), p.Name))
-		m.AddService(p.As, port, path.Join(downloader.Store(), p.Name))
+		logger.Debug("Adding service", "path", location)
+		m.AddService(p.As, port, location)
 	}
 	return m
 }
