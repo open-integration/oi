@@ -63,12 +63,14 @@ func (m *modem) Init() error {
 		envs := []string{
 			fmt.Sprintf("PORT=%s", s.server.port),
 		}
-		file, err := utils.CreateLogFile(m.serviceLogDirectory, fmt.Sprintf("%s-%d", name, time.Now().Unix()))
+		id := generateID()
+		name := fmt.Sprintf("%s-%s.log", name, string(id))
+		file, err := utils.CreateLogFile(m.serviceLogDirectory, name)
 		if err != nil {
 			log.Error("Failed to create log file", "error", err.Error())
 			return err
 		}
-		log.Debug("Logging file created")
+		log.Debug("Logging file created", "file", name)
 		logger := file
 		detached := true
 		pid, err := shell.Execute(s.server.binPath, []string{""}, envs, detached, "", "", logger)

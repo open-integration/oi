@@ -1,8 +1,10 @@
 package logger
 
 import (
-	log "github.com/inconshreveable/log15"
 	"io"
+	"os"
+
+	log "github.com/inconshreveable/log15"
 )
 
 type (
@@ -33,4 +35,15 @@ func New(opt *Options) Logger {
 
 	l.SetHandler(log.MultiHandler(handlers...))
 	return l
+}
+
+func NewFromFilePath(path string) Logger {
+	return New(&Options{
+		FilePath: path,
+	})
+}
+
+func NewWriter(path string) (io.WriteCloser, error) {
+	file, err := os.Open(path)
+	return file, err
 }
