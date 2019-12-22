@@ -51,6 +51,5 @@ func NewFromFilePath(path string) Logger {
 
 // NewWriter creates no io.WriteCloser , it is caller responsibility to close the writer
 func NewWriter(path string) (io.WriteCloser, error) {
-	file, err := os.Open(path)
-	return file, err
+	return os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 }
