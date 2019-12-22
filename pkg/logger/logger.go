@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -9,18 +10,32 @@ import (
 
 type (
 	Logger interface {
-		log.Logger
+		FD() io.WriteCloser
+		Debug(msg string, ctx ...interface{})
+		Info(msg string, ctx ...interface{})
+		Warn(msg string, ctx ...interface{})
+		Error(msg string, ctx ...interface{})
+		Crit(msg string, ctx ...interface{})
+		New(ctx ...interface{}) Logger
 	}
 
 	Options struct {
 		LogToStdOut bool
 		FilePath    string
 	}
+
+	logger struct {
+		logger log.Logger
+		fd     io.WriteCloser
+	}
 )
 
 // New creates new logger based on logger.Options
 func New(opt *Options) Logger {
-	l := log.New()
+	l := &logger{
+		logger: log.New(),
+		fd:     nil,
+	}
 	handlers := []log.Handler{}
 
 	lvl := log.LvlDebug
@@ -35,22 +50,40 @@ func New(opt *Options) Logger {
 			if err == nil {
 				handlers = append(handlers, log.LvlFilterHandler(lvl, h))
 			}
+			f, err := os.OpenFile(opt.FilePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+			if err != nil {
+				fmt.Printf("Failed to open file %s, writer is not avaliable\n", opt.FilePath)
+			}
+			l.fd = f
 		}
 	}
 
-	l.SetHandler(log.MultiHandler(handlers...))
+	l.logger.SetHandler(log.MultiHandler(handlers...))
 	return l
 }
 
-// NewFromFilePath creates new logger that writes to given file
-func NewFromFilePath(path string) Logger {
-	return New(&Options{
-		FilePath: path,
-	})
+func (l *logger) FD() io.WriteCloser {
+	return l.fd
 }
 
-// NewWriter creates no io.WriteCloser , it is caller responsibility to close the writer
-func NewWriter(path string) (io.WriteCloser, error) {
-	file, err := os.Open(path)
-	return file, err
+func (l *logger) New(ctx ...interface{}) Logger {
+	return &logger{
+		logger: l.logger.New(ctx),
+		fd:     l.FD(),
+	}
+}
+func (l *logger) Debug(msg string, ctx ...interface{}) {
+	l.logger.Debug(msg, ctx)
+}
+func (l *logger) Info(msg string, ctx ...interface{}) {
+	l.logger.Info(msg, ctx)
+}
+func (l *logger) Warn(msg string, ctx ...interface{}) {
+	l.logger.Warn(msg, ctx)
+}
+func (l *logger) Error(msg string, ctx ...interface{}) {
+	l.logger.Error(msg, ctx)
+}
+func (l *logger) Crit(msg string, ctx ...interface{}) {
+	l.logger.Crit(msg, ctx)
 }

@@ -7,6 +7,15 @@ steps:
     git: cf_github
     revision: ${{CF_REVISION}}
 
+  test:
+    image: golang:1.13.5-alpine3.11
+    commands:
+    - apk update
+    - apk add --no-cache git mak ca-certificates
+    - apk upgrade
+    - make test
+
+
   version:
     image: codefresh/cli
     commands:
