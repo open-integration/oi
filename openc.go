@@ -29,7 +29,8 @@ func NewEngine(opt *EngineOptions) Engine {
 	var loggerOptions *logger.Options
 
 	loggerOptions = &logger.Options{
-		FilePath: path.Join(wd, "logs", "log"),
+		FilePath:    path.Join(wd, "logs", "log"),
+		LogToStdOut: true,
 	}
 
 	home, err := os.UserHomeDir()
