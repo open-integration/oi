@@ -19,13 +19,8 @@ type (
 
 	// TaskSpec is the spec of a task
 	TaskSpec struct {
-		Command              string
-		EnvironmentVariables []string
-		Detached             bool
-		WorkingDirectory     string
-		Path                 string
-		Service              string
-		Endpoint             string
-		Arguments            []Argument
+		Service   string
+		Endpoint  string
+		Arguments []Argument
 	}
 )

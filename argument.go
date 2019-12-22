@@ -10,3 +10,14 @@ type (
 		Func func() interface{}
 	}
 )
+
+func (a *Argument) GetKey() string {
+	return a.Key
+}
+
+func (a *Argument) GetValue() interface{} {
+	if a.Func != nil {
+		return a.Func()
+	}
+	return a.Value
+}

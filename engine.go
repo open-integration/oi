@@ -2,15 +2,13 @@ package core
 
 import (
 	"fmt"
-	"os"
 	"path"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/open-integration/core/internal/commands"
 	"github.com/open-integration/core/pkg/logger"
-	"github.com/open-integration/core/pkg/shell"
+	"github.com/open-integration/core/pkg/modem"
 	"github.com/open-integration/core/pkg/utils"
 )
 
@@ -35,7 +33,7 @@ type (
 		state            *State
 		eventChan        chan *Event
 		taskLogsDirctory string
-		modem            Modem
+		modem            modem.Modem
 		wg               sync.WaitGroup
 	}
 )
@@ -138,8 +136,9 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 		}
 	})
 
-	fileDescriptor := path.Join(e.taskLogsDirctory, fmt.Sprintf("%s-%s.log", t.Metadata.Name, string(id)))
-	tl, err := utils.CreateLogFile(e.taskLogsDirctory, fmt.Sprintf("%s-%s.log", t.Metadata.Name, string(id)))
+	fileName := fmt.Sprintf("%s-%s.log", t.Metadata.Name, string(id))
+	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
+	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
 		logger.Error("Failed to create log file for task")
 	}
@@ -147,10 +146,11 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 	payload := ""
 	if spec.Service != "" {
 		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
-		payload, err = e.modem.Call(spec, fileDescriptor)
-	} else {
-		cmd := strings.Split(spec.Command, " ")
-		_, err = shell.Execute(cmd[0], cmd[1:], append(spec.EnvironmentVariables, os.Environ()...), spec.Detached, spec.WorkingDirectory, spec.Path, tl)
+		arguments := map[string]interface{}{}
+		for _, arg := range spec.Arguments {
+			arguments[arg.GetKey()] = arg.GetValue()
+		}
+		payload, err = e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
 	}
 
 	status := TaskStatusSuccess

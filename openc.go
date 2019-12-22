@@ -7,6 +7,7 @@ import (
 
 	"github.com/open-integration/core/pkg/downloader"
 	"github.com/open-integration/core/pkg/logger"
+	"github.com/open-integration/core/pkg/modem"
 	"github.com/open-integration/core/pkg/utils"
 )
 
@@ -58,13 +59,11 @@ func NewEngine(opt *EngineOptions) Engine {
 	return e
 }
 
-func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.Downloader, logger logger.Logger) Modem {
-
-	m := &modem{
-		logger:              logger,
-		services:            map[string]*service{},
-		serviceLogDirectory: servicesLogDir,
-	}
+func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.Downloader, logger logger.Logger) modem.Modem {
+	m := modem.New(&modem.ModemOptions{
+		Logger:              logger,
+		ServiceLogDirectory: servicesLogDir,
+	})
 	for _, p := range pipeline.Spec.Services {
 		location := p.Path
 		if p.Name != "" && p.Version != "" {
@@ -75,7 +74,7 @@ func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.D
 		port, err := utils.GetAvailablePort()
 		dieOnError(err)
 		logger.Debug("Adding service", "path", location)
-		m.AddService(p.As, port, location)
+		m.AddService(string(generateID()), p.As, port, location)
 	}
 	return m
 }
