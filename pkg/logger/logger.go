@@ -13,7 +13,8 @@ type (
 	}
 
 	Options struct {
-		FilePath string
+		LogToStdOut bool
+		FilePath    string
 	}
 )
 
@@ -21,10 +22,19 @@ type (
 func New(opt *Options) Logger {
 	l := log.New()
 	handlers := []log.Handler{}
-	if opt != nil && opt.FilePath != "" {
-		h, err := log.FileHandler(opt.FilePath, log.LogfmtFormat())
-		if err == nil {
-			handlers = append(handlers, log.LvlFilterHandler(log.LvlDebug, h))
+
+	lvl := log.LvlDebug
+	if opt != nil {
+		if opt.LogToStdOut {
+			stdoutHandler := log.LvlFilterHandler(lvl, log.StdoutHandler)
+			handlers = append(handlers, stdoutHandler)
+		}
+
+		if opt.FilePath != "" {
+			h, err := log.FileHandler(opt.FilePath, log.LogfmtFormat())
+			if err == nil {
+				handlers = append(handlers, log.LvlFilterHandler(lvl, h))
+			}
 		}
 	}
 
