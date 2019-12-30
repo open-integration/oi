@@ -1,5 +1,7 @@
 # Open Integration - a pipeline execution engine
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/open-integration/core)](https://goreportcard.com/report/github.com/open-integration/core)
+
 ## stop using YAMLs
 
 ## This is not production ready stuff
