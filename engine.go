@@ -45,7 +45,7 @@ func (e *engine) Run() error {
 	if err != nil {
 		return err
 	}
-	defer e.modem.Destory()
+	defer e.modem.Destroy()
 	e.wg.Add(1)
 	go e.state.send(commands.StartEngine, &e.wg, func() *State {
 		return &State{
@@ -72,7 +72,7 @@ func (e *engine) handleStateEvents() {
 
 func (e *engine) handleEvent(ev Event) {
 	e.wg.Add(1)
-	e.logger.Debug("Recieved event", "name", ev.Metadata.Name)
+	e.logger.Debug("Received event", "name", ev.Metadata.Name)
 	for _, t := range e.pipeline.Spec.Tasks {
 		taskLogger := e.logger.New("task", t.Metadata.Name)
 		if !e.shouldRunTask(t, &ev, taskLogger) {
@@ -90,7 +90,7 @@ func (e *engine) shouldRunTask(t Task, ev *Event, logger logger.Logger) bool {
 	if !t.Metadata.Reusable {
 		for _, tt := range e.state.Tasks {
 			if tt.Task == t.Metadata.Name {
-				// Skip tasks that are nnot resuable
+				// Skip tasks that are nnot reusable
 				return false
 			}
 		}
@@ -100,12 +100,11 @@ func (e *engine) shouldRunTask(t Task, ev *Event, logger logger.Logger) bool {
 	if t.Condition == nil {
 		logger.Debug("No condition set, skipping...")
 		return false
-	} else {
-		logger.Debug("Running condition", "condition", t.Condition.Name)
-		if !t.Condition.Func(ev, e.state) {
-			logger.Debug("Condition evaludated to false, skipping...")
-			return false
-		}
+	}
+	logger.Debug("Running condition", "condition", t.Condition.Name)
+	if !t.Condition.Func(ev, e.state) {
+		logger.Debug("Condition evaludated to false, skipping...")
+		return false
 	}
 	return true
 }
@@ -127,7 +126,7 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 	go e.state.send(commands.StartTask, &e.wg, func() *State {
 		return &State{
 			Tasks: map[ID]TaskState{
-				id: TaskState{
+				id: {
 					State:   TaskStateInProgress,
 					Task:    t.Metadata.Name,
 					EventID: ev.Metadata.ID,
@@ -164,7 +163,7 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 	go e.state.send(commands.FinishTask, &e.wg, func() *State {
 		return &State{
 			Tasks: map[ID]TaskState{
-				id: TaskState{
+				id: {
 					State:   TaskStateFinished,
 					Status:  status,
 					Task:    t.Metadata.Name,

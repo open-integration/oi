@@ -52,7 +52,7 @@ func New(opt *Options) Logger {
 			}
 			f, err := os.OpenFile(opt.FilePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 			if err != nil {
-				fmt.Printf("Failed to open file %s, writer is not avaliable\n", opt.FilePath)
+				fmt.Printf("Failed to open file %s, writer is not available\n", opt.FilePath)
 			}
 			l.fd = f
 		}

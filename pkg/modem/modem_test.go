@@ -72,7 +72,7 @@ func Test_modem_Init(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Succesfully initialized service, no error",
+			name: "Successfully initialized service, no error",
 			fields: fields{
 				wg:                  &sync.WaitGroup{},
 				serviceLogDirectory: testingServiceDirectory,

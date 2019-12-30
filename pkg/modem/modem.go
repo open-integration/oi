@@ -21,7 +21,7 @@ type (
 	Modem interface {
 		Init() error
 		Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error)
-		Destory() error
+		Destroy() error
 		AddService(id string, name string, port string, path string) error
 	}
 
@@ -149,7 +149,7 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 	return resp.Payload, nil
 }
 
-func (m *modem) Destory() error {
+func (m *modem) Destroy() error {
 	m.logger.Debug("Stopping all services")
 	for name, service := range m.services {
 		if err := service.conn.Close(); err != nil {
