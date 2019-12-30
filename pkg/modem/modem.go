@@ -84,6 +84,8 @@ func New(opt *ModemOptions) Modem {
 		serviceStarter:       opt.ServiceStarter,
 		dialer:               opt.Dialer,
 		serviceClientCreator: opt.ServiceClientCreator,
+		wg:                   &sync.WaitGroup{},
+		logFileCreator:       opt.FileCreator,
 	}
 	return m
 }

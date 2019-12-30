@@ -62,11 +62,12 @@ func NewEngine(opt *EngineOptions) Engine {
 
 func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.Downloader, log logger.Logger) modem.Modem {
 	m := modem.New(&modem.ModemOptions{
-		Logger:              log,
-		ServiceLogDirectory: servicesLogDir,
-		FileCreator:         &utils.FileCreator{},
-		ServiceStarter:      &utils.Executor{},
-		Dialer:              &utils.GRPC{},
+		Logger:               log,
+		ServiceLogDirectory:  servicesLogDir,
+		FileCreator:          &utils.FileCreator{},
+		ServiceStarter:       &utils.Executor{},
+		Dialer:               &utils.GRPC{},
+		ServiceClientCreator: utils.Proto{},
 	})
 	for _, p := range pipeline.Spec.Services {
 		location := p.Path

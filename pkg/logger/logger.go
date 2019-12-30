@@ -68,22 +68,22 @@ func (l *logger) FD() io.WriteCloser {
 
 func (l *logger) New(ctx ...interface{}) Logger {
 	return &logger{
-		logger: l.logger.New(ctx),
+		logger: l.logger.New(ctx...),
 		fd:     l.FD(),
 	}
 }
 func (l *logger) Debug(msg string, ctx ...interface{}) {
-	l.logger.Debug(msg, ctx)
+	l.logger.Debug(msg)
 }
 func (l *logger) Info(msg string, ctx ...interface{}) {
-	l.logger.Info(msg, ctx)
+	l.logger.Info(msg, ctx...)
 }
 func (l *logger) Warn(msg string, ctx ...interface{}) {
-	l.logger.Warn(msg, ctx)
+	l.logger.Warn(msg, ctx...)
 }
 func (l *logger) Error(msg string, ctx ...interface{}) {
-	l.logger.Error(msg, ctx)
+	l.logger.Error(msg, ctx...)
 }
 func (l *logger) Crit(msg string, ctx ...interface{}) {
-	l.logger.Crit(msg, ctx)
+	l.logger.Crit(msg, ctx...)
 }
