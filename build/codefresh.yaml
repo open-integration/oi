@@ -11,7 +11,7 @@ steps:
     image: golang:1.13.5-alpine3.11
     commands:
     - apk update
-    - apk add --no-cache git make ca-certificates
+    - apk add --no-cache git make ca-certificates gcc g++
     - apk upgrade
     - make test
 
