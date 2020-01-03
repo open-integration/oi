@@ -17,7 +17,7 @@ steps:
     - CI_BUILD_URL=${{CF_BUILD_URL}}
     commands:
     - apk update
-    - apk add --no-cache git make ca-certificates gcc g++
+    - apk add --no-cache git make ca-certificates gcc g++ curl
     - apk upgrade
     - make test
     - curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
