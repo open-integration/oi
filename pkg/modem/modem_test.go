@@ -2,7 +2,6 @@ package modem
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"testing"
 
@@ -15,28 +14,30 @@ import (
 const (
 	testingServiceDirectory               = "testing-service-directory"
 	testingServiceID                      = "service-id"
-	testingServiceBinaryPath              = "/path/to/bin"
 	testingServicePort                    = "9090"
-	testingServicePid                     = 1
 	testingErrorFailedToCreateLogFile     = "FailedToCreateLogFile"
-	testingErrorFailedToStartService      = "FailedToStartService"
 	testingErrorFailedToDialToService     = "FailedToDialToService"
 	testingErrorFailedToCallInitOnService = "FailedToCallInitOnService"
+	testingErrorFailedRunService          = "FailedToRunService"
 )
 
-func buildMockService() *service {
-	return &service{
+func buildMockService(runnerMockProbider func() *mocks.Runner) *service {
+	svc := &service{
 		id: testingServiceID,
 		server: struct {
-			binPath string
-			port    string
-			pid     int
+			port string
 		}{
-			binPath: testingServiceBinaryPath,
-			port:    testingServicePort,
-			pid:     testingServicePid,
+			port: testingServicePort,
 		},
 	}
+	if runnerMockProbider != nil {
+		svc.runner = runnerMockProbider()
+	} else {
+		r := &mocks.Runner{}
+		r.On("Run", mock.Anything).Return(nil)
+		svc.runner = r
+	}
+	return svc
 }
 
 func buildBasicLoggerMock(m *mocks.Logger) *mocks.Logger {
@@ -54,7 +55,6 @@ func Test_modem_Init(t *testing.T) {
 		wg                   *sync.WaitGroup
 		logFileCreator       func(m *mockFileCreator) *mockFileCreator
 		dialer               func(m *mockDialer) *mockDialer
-		serviceStarter       func(m *mockServiceStarter) *mockServiceStarter
 		serviceClientCreator func(m *mockServiceClientCreator) *mockServiceClientCreator
 	}
 	tests := []struct {
@@ -85,10 +85,6 @@ func Test_modem_Init(t *testing.T) {
 					m.On("Create", testingServiceDirectory, "svc-service-id.log").Return(nil, nil)
 					return m
 				},
-				serviceStarter: func(m *mockServiceStarter) *mockServiceStarter {
-					m.On("Exec", testingServiceBinaryPath, []string{""}, []string{fmt.Sprintf("PORT=%s", testingServicePort)}, true, "", "", nil).Return(0, nil)
-					return m
-				},
 				serviceClientCreator: func(m *mockServiceClientCreator) *mockServiceClientCreator {
 					client := mocks.ServiceClient{}
 					client.On("Init", mock.Anything, mock.Anything).Return(&v1.InitResponse{}, nil)
@@ -96,7 +92,7 @@ func Test_modem_Init(t *testing.T) {
 					return m
 				},
 				services: map[string]*service{
-					"svc": buildMockService(),
+					"svc": buildMockService(nil),
 				},
 			},
 			wantErr: false,
@@ -112,7 +108,7 @@ func Test_modem_Init(t *testing.T) {
 					return m
 				},
 				services: map[string]*service{
-					"svc": buildMockService(),
+					"svc": buildMockService(nil),
 				},
 			},
 			wantErr: true,
@@ -128,16 +124,16 @@ func Test_modem_Init(t *testing.T) {
 					m.On("Create", testingServiceDirectory, "svc-service-id.log").Return(nil, nil)
 					return m
 				},
-				serviceStarter: func(m *mockServiceStarter) *mockServiceStarter {
-					m.On("Exec", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(0, errors.New(testingErrorFailedToStartService))
-					return m
-				},
 				services: map[string]*service{
-					"svc": buildMockService(),
+					"svc": buildMockService(func() *mocks.Runner {
+						m := &mocks.Runner{}
+						m.On("Run", mock.Anything).Return(errors.New(testingErrorFailedRunService))
+						return m
+					}),
 				},
 			},
 			wantErr: true,
-			err:     "Serive: svc - Error: FailedToStartService\n",
+			err:     "Serive: svc - Error: FailedToRunService\n",
 		},
 		{
 			name: "Failed to dial service, exit with error",
@@ -149,16 +145,12 @@ func Test_modem_Init(t *testing.T) {
 					m.On("Create", testingServiceDirectory, "svc-service-id.log").Return(nil, nil)
 					return m
 				},
-				serviceStarter: func(m *mockServiceStarter) *mockServiceStarter {
-					m.On("Exec", testingServiceBinaryPath, []string{""}, []string{fmt.Sprintf("PORT=%s", testingServicePort)}, true, "", "", nil).Return(0, nil)
-					return m
-				},
 				dialer: func(m *mockDialer) *mockDialer {
 					m.On("Dial", "localhost:9090", mock.Anything).Return(nil, errors.New(testingErrorFailedToDialToService))
 					return m
 				},
 				services: map[string]*service{
-					"svc": buildMockService(),
+					"svc": buildMockService(nil),
 				},
 			},
 			wantErr: true,
@@ -174,16 +166,12 @@ func Test_modem_Init(t *testing.T) {
 					m.On("Create", testingServiceDirectory, "svc-service-id.log").Return(nil, nil)
 					return m
 				},
-				serviceStarter: func(m *mockServiceStarter) *mockServiceStarter {
-					m.On("Exec", testingServiceBinaryPath, []string{""}, []string{fmt.Sprintf("PORT=%s", testingServicePort)}, true, "", "", nil).Return(0, nil)
-					return m
-				},
 				dialer: func(m *mockDialer) *mockDialer {
 					m.On("Dial", "localhost:9090", mock.Anything).Return(nil, nil)
 					return m
 				},
 				services: map[string]*service{
-					"svc": buildMockService(),
+					"svc": buildMockService(nil),
 				},
 				serviceClientCreator: func(m *mockServiceClientCreator) *mockServiceClientCreator {
 					client := mocks.ServiceClient{}
@@ -212,9 +200,6 @@ func Test_modem_Init(t *testing.T) {
 			}
 			if tt.fields.dialer != nil {
 				m.dialer = tt.fields.dialer(&mockDialer{})
-			}
-			if tt.fields.serviceStarter != nil {
-				m.serviceStarter = tt.fields.serviceStarter(&mockServiceStarter{})
 			}
 			if tt.fields.serviceClientCreator != nil {
 				m.serviceClientCreator = tt.fields.serviceClientCreator(&mockServiceClientCreator{})

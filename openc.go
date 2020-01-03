@@ -3,11 +3,14 @@ package core
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
+	"syscall"
 
 	"github.com/open-integration/core/pkg/downloader"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
+	"github.com/open-integration/core/pkg/runner"
 	"github.com/open-integration/core/pkg/utils"
 )
 
@@ -65,21 +68,24 @@ func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.D
 		Logger:               log,
 		ServiceLogDirectory:  servicesLogDir,
 		FileCreator:          &utils.FileCreator{},
-		ServiceStarter:       &utils.Executor{},
 		Dialer:               &utils.GRPC{},
 		ServiceClientCreator: utils.Proto{},
 	})
-	for _, p := range pipeline.Spec.Services {
-		location := p.Path
-		if p.Name != "" && p.Version != "" {
-			err := downloader.Download(p.Name, p.Version)
+	for _, s := range pipeline.Spec.Services {
+		location := s.Path
+		if s.Name != "" && s.Version != "" {
+			err := downloader.Download(s.Name, s.Version)
 			dieOnError(err)
-			location = path.Join(downloader.Store(), p.Name)
+			location = path.Join(downloader.Store(), s.Name)
 		}
 		port, err := utils.GetAvailablePort()
 		dieOnError(err)
 		log.Debug("Adding service", "path", location)
-		m.AddService(string(generateID()), p.As, port, location)
+		m.AddService(string(generateID()), s.As, port, runner.New(&runner.Options{
+			Type:           runner.LocalRunner,
+			Logger:         log.New("service-runner", s.Name),
+			LocalRunnerCmd: buildServiceCmd(s, port, location),
+		}))
 	}
 	return m
 }
@@ -93,4 +99,15 @@ func dieOnError(err error) {
 
 func createDir(path string) error {
 	return os.MkdirAll(path, os.ModePerm)
+}
+
+func buildServiceCmd(svc Service, port string, location string) *exec.Cmd {
+	cmd := exec.Command(location)
+	envs := []string{
+		fmt.Sprintf("PORT=%s", port),
+	}
+	cmd.Env = envs
+	cmd.Dir = ""
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	return cmd
 }
