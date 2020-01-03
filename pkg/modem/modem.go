@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	v1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/logger"
+	"github.com/open-integration/core/pkg/runner"
 	"github.com/xeipuuv/gojsonschema"
 	"google.golang.org/grpc"
 )
@@ -22,7 +22,7 @@ type (
 		Init() error
 		Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error)
 		Destroy() error
-		AddService(id string, name string, port string, path string) error
+		AddService(id string, name string, port string, runner runner.Runner) error
 	}
 
 	modem struct {
@@ -32,16 +32,11 @@ type (
 		wg                   *sync.WaitGroup
 		logFileCreator       fileCreator
 		dialer               dialer
-		serviceStarter       serviceStarter
 		serviceClientCreator serviceClientCreator
 	}
 
 	dialer interface {
 		Dial(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
-	}
-
-	serviceStarter interface {
-		Exec(command string, args []string, environ []string, detached bool, workingDir string, binpath string, logger io.Writer) (int, error)
 	}
 
 	fileCreator interface {
@@ -57,10 +52,9 @@ type (
 		client v1.ServiceClient
 		ready  bool
 		id     string
+		runner runner.Runner
 		server struct {
-			binPath string
-			port    string
-			pid     int
+			port string
 		}
 		err          error
 		tasksSchemas map[string]string
@@ -70,7 +64,6 @@ type (
 		Logger               logger.Logger
 		ServiceLogDirectory  string
 		FileCreator          fileCreator
-		ServiceStarter       serviceStarter
 		Dialer               dialer
 		ServiceClientCreator serviceClientCreator
 	}
@@ -81,7 +74,6 @@ func New(opt *ModemOptions) Modem {
 		logger:               opt.Logger,
 		services:             make(map[string]*service),
 		serviceLogDirectory:  opt.ServiceLogDirectory,
-		serviceStarter:       opt.ServiceStarter,
 		dialer:               opt.Dialer,
 		serviceClientCreator: opt.ServiceClientCreator,
 		wg:                   &sync.WaitGroup{},
@@ -157,34 +149,28 @@ func (m *modem) Destroy() error {
 		if err := service.conn.Close(); err != nil {
 			m.logger.Debug("Failed to close connection to service", "service", name)
 		}
-		process, err := os.FindProcess(service.server.pid)
+		err := service.runner.Kill()
 		if err != nil {
-			m.logger.Debug("Failed to find process of service", "service", name)
-		}
-		if err := process.Signal(os.Interrupt); err != nil {
-			m.logger.Debug("Failed to send kill signal to service process", "service", name)
+			m.logger.Debug("Failed to kill service", "service", name)
 		}
 		m.logger.Debug("Service stopped", "service", name)
 	}
 	return nil
 }
 
-func (m *modem) AddService(id string, name string, port string, path string) error {
+func (m *modem) AddService(id string, name string, port string, runner runner.Runner) error {
 	s := &service{
 		ready: false,
 		id:    id,
 	}
-	s.server.binPath = path
 	s.server.port = port
+	s.runner = runner
 	m.services[name] = s
 	return nil
 }
 
 func (m *modem) initService(name string, svc *service, log logger.Logger) {
 	log.Debug("Starting service", "port", svc.server.port)
-	envs := []string{
-		fmt.Sprintf("PORT=%s", svc.server.port),
-	}
 	logFile := fmt.Sprintf("%s-%s.log", name, svc.id)
 	file, err := m.logFileCreator.Create(m.serviceLogDirectory, logFile)
 	if err != nil {
@@ -194,16 +180,13 @@ func (m *modem) initService(name string, svc *service, log logger.Logger) {
 		return
 	}
 	log.Debug("Logging file created", "file", name)
-	logger := file
-	detached := true
-	pid, err := m.serviceStarter.Exec(svc.server.binPath, []string{""}, envs, detached, "", "", logger)
+	err = svc.runner.Run(file)
 	if err != nil {
 		log.Error("Serivce startup failed", "error", err.Error())
 		svc.err = err
 		m.wg.Done()
 		return
 	}
-	svc.server.pid = pid
 	log.Debug("Server started")
 
 	log.Debug("Dialing service")

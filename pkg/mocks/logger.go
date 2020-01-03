@@ -84,7 +84,3 @@ func (_m *Logger) Warn(msg string, ctx ...interface{}) {
 	_ca = append(_ca, ctx...)
 	_m.Called(_ca...)
 }
-
-func NewBasicMockLogger() *Logger {
-	return &Logger{}
-}
