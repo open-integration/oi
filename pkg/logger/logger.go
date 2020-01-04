@@ -73,7 +73,7 @@ func (l *logger) New(ctx ...interface{}) Logger {
 	}
 }
 func (l *logger) Debug(msg string, ctx ...interface{}) {
-	l.logger.Debug(msg)
+	l.logger.Debug(msg, ctx...)
 }
 func (l *logger) Info(msg string, ctx ...interface{}) {
 	l.logger.Info(msg, ctx...)

@@ -1,9 +1,12 @@
 package runner
 
 import (
-	"github.com/open-integration/core/pkg/logger"
+	"context"
 	"io"
-	"os/exec"
+
+	v1 "github.com/open-integration/core/pkg/api/v1"
+	"github.com/open-integration/core/pkg/logger"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -17,15 +20,36 @@ const (
 type (
 	// Runner expose an interface to run services
 	Runner interface {
-		Run(log io.Writer) error
+		Run() error
 		Kill() error
+		Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error)
 	}
 
 	// Options shows all the available options to build runner
 	Options struct {
-		Type           string
-		Logger         logger.Logger
-		LocalRunnerCmd *exec.Cmd
+		Type                      string
+		Name                      string
+		ID                        string
+		Logger                    logger.Logger
+		LocalDailer               dialer
+		LocalLogFileCreator       logFileCreator
+		LocalServiceClientCreator serviceClientCreator
+		LocalPortGenerator        portGenerator
+		LocalLogsDirectory        string
+		LocalCommandCreator       cmdCreator
+		LocalPathToBinary         string
+	}
+
+	dialer interface {
+		Dial(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
+	}
+
+	logFileCreator interface {
+		Create(dir string, name string) (io.Writer, error)
+	}
+
+	serviceClientCreator interface {
+		New(cc *grpc.ClientConn) v1.ServiceClient
 	}
 )
 
@@ -33,8 +57,16 @@ type (
 func New(opt *Options) Runner {
 	if opt.Type == LocalRunner {
 		return &localRunner{
-			Logger:  opt.Logger,
-			Command: opt.LocalRunnerCmd,
+			Logger:               opt.Logger,
+			name:                 opt.Name,
+			id:                   opt.ID,
+			logFileCreator:       opt.LocalLogFileCreator,
+			logsFileDirectory:    opt.LocalLogsDirectory,
+			serviceClientCreator: opt.LocalServiceClientCreator,
+			portGenerator:        opt.LocalPortGenerator,
+			dialer:               opt.LocalDailer,
+			cmdCreator:           opt.LocalCommandCreator,
+			path:                 opt.LocalPathToBinary,
 		}
 	}
 

@@ -65,11 +65,7 @@ func NewEngine(opt *EngineOptions) Engine {
 
 func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.Downloader, log logger.Logger) modem.Modem {
 	m := modem.New(&modem.ModemOptions{
-		Logger:               log,
-		ServiceLogDirectory:  servicesLogDir,
-		FileCreator:          &utils.FileCreator{},
-		Dialer:               &utils.GRPC{},
-		ServiceClientCreator: utils.Proto{},
+		Logger: log,
 	})
 	for _, s := range pipeline.Spec.Services {
 		location := s.Path
@@ -78,13 +74,21 @@ func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.D
 			dieOnError(err)
 			location = path.Join(downloader.Store(), s.Name)
 		}
-		port, err := utils.GetAvailablePort()
-		dieOnError(err)
 		log.Debug("Adding service", "path", location)
-		m.AddService(string(generateID()), s.As, port, runner.New(&runner.Options{
-			Type:           runner.LocalRunner,
-			Logger:         log.New("service-runner", s.Name),
-			LocalRunnerCmd: buildServiceCmd(s, port, location),
+		svcID := string(generateID())
+		m.AddService(svcID, s.As, runner.New(&runner.Options{
+			Type: runner.LocalRunner,
+			// TODO: remove module=modem
+			Logger:                    log.New("service-runner", s.Name),
+			Name:                      s.Name,
+			ID:                        svcID,
+			LocalDailer:               &utils.GRPC{},
+			LocalLogFileCreator:       &utils.FileCreator{},
+			LocalLogsDirectory:        servicesLogDir,
+			LocalServiceClientCreator: utils.Proto{},
+			LocalPortGenerator:        utils.Port{},
+			LocalCommandCreator:       utils.Command{},
+			LocalPathToBinary:         location,
 		}))
 	}
 	return m

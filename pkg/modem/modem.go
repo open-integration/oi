@@ -5,16 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"strings"
 	"sync"
-	"time"
 
 	v1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/runner"
 	"github.com/xeipuuv/gojsonschema"
-	"google.golang.org/grpc"
 )
 
 type (
@@ -22,62 +19,33 @@ type (
 		Init() error
 		Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error)
 		Destroy() error
-		AddService(id string, name string, port string, runner runner.Runner) error
+		AddService(id string, name string, runner runner.Runner) error
 	}
 
 	modem struct {
-		services             map[string]*service
-		logger               logger.Logger
-		serviceLogDirectory  string
-		wg                   *sync.WaitGroup
-		logFileCreator       fileCreator
-		dialer               dialer
-		serviceClientCreator serviceClientCreator
-	}
-
-	dialer interface {
-		Dial(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
-	}
-
-	fileCreator interface {
-		Create(dir string, name string) (io.Writer, error)
-	}
-
-	serviceClientCreator interface {
-		New(cc *grpc.ClientConn) v1.ServiceClient
+		services map[string]*service
+		logger   logger.Logger
+		wg       *sync.WaitGroup
 	}
 
 	service struct {
-		conn   *grpc.ClientConn
-		client v1.ServiceClient
-		ready  bool
-		id     string
-		runner runner.Runner
-		server struct {
-			port string
-		}
+		ready        bool
+		id           string
+		runner       runner.Runner
 		err          error
 		tasksSchemas map[string]string
 	}
 
 	ModemOptions struct {
-		Logger               logger.Logger
-		ServiceLogDirectory  string
-		FileCreator          fileCreator
-		Dialer               dialer
-		ServiceClientCreator serviceClientCreator
+		Logger logger.Logger
 	}
 )
 
 func New(opt *ModemOptions) Modem {
 	m := &modem{
-		logger:               opt.Logger,
-		services:             make(map[string]*service),
-		serviceLogDirectory:  opt.ServiceLogDirectory,
-		dialer:               opt.Dialer,
-		serviceClientCreator: opt.ServiceClientCreator,
-		wg:                   &sync.WaitGroup{},
-		logFileCreator:       opt.FileCreator,
+		logger:   opt.Logger,
+		services: make(map[string]*service),
+		wg:       &sync.WaitGroup{},
 	}
 	return m
 }
@@ -124,7 +92,7 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 	}
 	log.Debug("Arguments are valid")
 	req.Arguments = string(argsJSON)
-	resp, err := m.services[service].client.Call(context.Background(), req)
+	resp, err := m.services[service].runner.Call(context.Background(), req)
 	if err != nil {
 		log.Debug("Call return with error", "err", err.Error())
 		return "", err
@@ -146,9 +114,6 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 func (m *modem) Destroy() error {
 	m.logger.Debug("Stopping all services")
 	for name, service := range m.services {
-		if err := service.conn.Close(); err != nil {
-			m.logger.Debug("Failed to close connection to service", "service", name)
-		}
 		err := service.runner.Kill()
 		if err != nil {
 			m.logger.Debug("Failed to kill service", "service", name)
@@ -158,60 +123,24 @@ func (m *modem) Destroy() error {
 	return nil
 }
 
-func (m *modem) AddService(id string, name string, port string, runner runner.Runner) error {
+func (m *modem) AddService(id string, name string, runner runner.Runner) error {
 	s := &service{
 		ready: false,
 		id:    id,
 	}
-	s.server.port = port
 	s.runner = runner
 	m.services[name] = s
 	return nil
 }
 
 func (m *modem) initService(name string, svc *service, log logger.Logger) {
-	log.Debug("Starting service", "port", svc.server.port)
-	logFile := fmt.Sprintf("%s-%s.log", name, svc.id)
-	file, err := m.logFileCreator.Create(m.serviceLogDirectory, logFile)
-	if err != nil {
-		log.Error("Failed to create log file", "error", err.Error())
-		svc.err = err
-		m.wg.Done()
-		return
-	}
-	log.Debug("Logging file created", "file", name)
-	err = svc.runner.Run(file)
-	if err != nil {
+	defer m.wg.Done()
+	if err := svc.runner.Run(); err != nil {
 		log.Error("Serivce startup failed", "error", err.Error())
 		svc.err = err
-		m.wg.Done()
 		return
 	}
-	log.Debug("Server started")
-
-	log.Debug("Dialing service")
-	conn, err := m.dialer.Dial(fmt.Sprintf("localhost:%s", svc.server.port), grpc.WithInsecure())
-	if err != nil {
-		log.Error("Serivce dial failed", "error", err.Error())
-		svc.err = err
-		m.wg.Done()
-		return
-	}
-	log.Debug("Connection established")
-	svc.conn = conn
-	client := m.serviceClientCreator.New(conn)
-	svc.client = client
-	time.Sleep(2 * time.Second)
-	log.Debug("Initializing service")
-	resp, err := client.Init(context.Background(), &v1.InitRequest{})
-	if err != nil {
-		log.Error("Serivce init call failed", "error", err.Error())
-		svc.err = err
-		m.wg.Done()
-		return
-	}
-	svc.tasksSchemas = resp.JsonSchemas
-	m.wg.Done()
+	svc.ready = true
 	return
 }
 
