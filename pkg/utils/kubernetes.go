@@ -30,7 +30,10 @@ func (_k *Kubernetes) BuildClient(kubeconfigPath string) (*kubernetes.Clientset,
 	return clientset, nil
 }
 
-func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, id string, port string) (*v1.Pod, error) {
+func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version string, id string, port string) (*v1.Pod, error) {
+	if version == "" {
+		version = "latest"
+	}
 	portInt, err := strconv.Atoi(port)
 	if err != nil {
 		return nil, err
@@ -46,9 +49,9 @@ func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, id strin
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
 				v1.Container{
-					Name:  name,
-					Image: fmt.Sprintf("openintegration/service_catalog-%s", name),
-					// ImagePullPolicy: v1.PullAlways,
+					Name:            fmt.Sprintf("%s:%s", name, version),
+					Image:           fmt.Sprintf("openintegration/service_catalog-%s", name),
+					ImagePullPolicy: v1.PullAlways,
 					Ports: []v1.ContainerPort{
 						v1.ContainerPort{
 							Name:          "http",

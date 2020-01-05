@@ -30,6 +30,7 @@ type (
 		Type                 string
 		Name                 string
 		ID                   string
+		Version              string
 		Logger               logger.Logger
 		Dailer               dialer
 		PortGenerator        portGenerator
@@ -86,6 +87,7 @@ func New(opt *Options) Runner {
 		return &kubernetesRunner{
 			Logger:               opt.Logger,
 			name:                 opt.Name,
+			version:              opt.Version,
 			id:                   opt.ID,
 			kubeconfigPath:       opt.KubernetesKubeConfigPath,
 			kubeconfigNamespace:  opt.KubernetesNamespace,

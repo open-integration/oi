@@ -92,6 +92,7 @@ func NewEngine(opt *EngineOptions) Engine {
 					Logger:                   log.New("service-runner", s.Name),
 					Name:                     s.Name,
 					ID:                       svcID,
+					Version:                  s.Version,
 					PortGenerator:            utils.Port{},
 					KubernetesKubeConfigPath: opt.Kubeconfig.Path,
 					KubernetesContext:        opt.Kubeconfig.Context,

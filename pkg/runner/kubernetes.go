@@ -17,6 +17,7 @@ type (
 		Logger               logger.Logger
 		name                 string
 		id                   string
+		version              string
 		kubeconfigPath       string
 		kubeconfigContext    string
 		kubeconfigNamespace  string
@@ -33,7 +34,7 @@ type (
 
 	kube interface {
 		BuildClient(kubeconfigPath string) (*kubernetes.Clientset, error)
-		BuildPodDefinition(namespace string, name string, id string, port string) (*apiv1.Pod, error)
+		BuildPodDefinition(namespace string, name string, version string, id string, port string) (*apiv1.Pod, error)
 		BuildServiceDefinition(namespace string, name string, id string, port string, serviceType string) (*apiv1.Service, error)
 		CreatePod(client *kubernetes.Clientset, def *apiv1.Pod) (*apiv1.Pod, error)
 		WaitForPod(client *kubernetes.Clientset, pod *apiv1.Pod, phase string) error
@@ -107,7 +108,7 @@ func (_k *kubernetesRunner) startService() error {
 }
 
 func (_k *kubernetesRunner) startPod() error {
-	podDef, err := _k.kube.BuildPodDefinition(_k.kubeconfigNamespace, _k.name, _k.id, "8080")
+	podDef, err := _k.kube.BuildPodDefinition(_k.kubeconfigNamespace, _k.name, _k.version, _k.id, "8080")
 	if err != nil {
 		return err
 	}
