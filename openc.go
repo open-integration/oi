@@ -42,18 +42,69 @@ func NewEngine(opt *EngineOptions) Engine {
 	servicesDir := path.Join(home, ".open-integration", "services")
 	dieOnError(createDir(servicesDir))
 
+	var log logger.Logger
+	{
+		log = logger.New(loggerOptions)
+	}
+
 	serviceDownloader := downloader.New(downloader.Options{
 		Store:  servicesDir,
-		Logger: logger.New(loggerOptions).New("module", "service-downloader"),
+		Logger: log.New("module", "service-downloader"),
 	})
 
 	servicesLogDir := path.Join(wd, "logs", "services")
 	dieOnError(createDir(servicesLogDir))
 
-	if opt.Logger == nil {
-		e.logger = logger.New(loggerOptions).New("module", "engine")
-		e.modem = newModem(&opt.Pipeline, servicesLogDir, serviceDownloader, logger.New(loggerOptions).New("module", "modem"))
+	e.logger = log.New("module", "engine")
+
+	// Init modem
+	{
+		e.modem = modem.New(&modem.ModemOptions{
+			Logger: log.New("module", "modem"),
+		})
+		for _, s := range opt.Pipeline.Spec.Services {
+			svcID := string(generateID())
+			if opt.Kubeconfig == nil {
+				location := s.Path
+				if s.Name != "" && s.Version != "" {
+					err := serviceDownloader.Download(s.Name, s.Version)
+					dieOnError(err)
+					location = path.Join(serviceDownloader.Store(), s.Name)
+				}
+				log.Debug("Adding service", "path", location)
+				e.modem.AddService(svcID, s.As, runner.New(&runner.Options{
+					Type:                 runner.LocalRunner,
+					Logger:               log.New("service-runner", s.Name),
+					Name:                 s.Name,
+					ID:                   svcID,
+					Dailer:               &utils.GRPC{},
+					PortGenerator:        utils.Port{},
+					LocalLogFileCreator:  &utils.FileCreator{},
+					LocalLogsDirectory:   servicesLogDir,
+					ServiceClientCreator: utils.Proto{},
+					LocalCommandCreator:  utils.Command{},
+					LocalPathToBinary:    location,
+				}))
+			} else {
+				log.Debug("Adding service")
+				e.modem.AddService(svcID, s.As, runner.New(&runner.Options{
+					Type:                     runner.KubernetesRunner,
+					Logger:                   log.New("service-runner", s.Name),
+					Name:                     s.Name,
+					ID:                       svcID,
+					Version:                  s.Version,
+					PortGenerator:            utils.Port{},
+					KubernetesKubeConfigPath: opt.Kubeconfig.Path,
+					KubernetesContext:        opt.Kubeconfig.Context,
+					KubernetesNamespace:      opt.Kubeconfig.Namespace,
+					Kube:                     &utils.Kubernetes{},
+					Dailer:                   &utils.GRPC{},
+					ServiceClientCreator:     utils.Proto{},
+				}))
+			}
+		}
 	}
+
 	e.state = NewState(&StateOptions{
 		Logger:           e.logger.New("sub-module", "state-store"),
 		EventCn:          eventCn,
@@ -61,37 +112,6 @@ func NewEngine(opt *EngineOptions) Engine {
 		EventHistoryFile: "./logs/history.yaml",
 	})
 	return e
-}
-
-func newModem(pipeline *Pipeline, servicesLogDir string, downloader downloader.Downloader, log logger.Logger) modem.Modem {
-	m := modem.New(&modem.ModemOptions{
-		Logger: log,
-	})
-	for _, s := range pipeline.Spec.Services {
-		location := s.Path
-		if s.Name != "" && s.Version != "" {
-			err := downloader.Download(s.Name, s.Version)
-			dieOnError(err)
-			location = path.Join(downloader.Store(), s.Name)
-		}
-		log.Debug("Adding service", "path", location)
-		svcID := string(generateID())
-		m.AddService(svcID, s.As, runner.New(&runner.Options{
-			Type: runner.LocalRunner,
-			// TODO: remove module=modem
-			Logger:                    log.New("service-runner", s.Name),
-			Name:                      s.Name,
-			ID:                        svcID,
-			LocalDailer:               &utils.GRPC{},
-			LocalLogFileCreator:       &utils.FileCreator{},
-			LocalLogsDirectory:        servicesLogDir,
-			LocalServiceClientCreator: utils.Proto{},
-			LocalPortGenerator:        utils.Port{},
-			LocalCommandCreator:       utils.Command{},
-			LocalPathToBinary:         location,
-		}))
-	}
-	return m
 }
 
 func dieOnError(err error) {

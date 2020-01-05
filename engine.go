@@ -21,10 +21,12 @@ type (
 
 	// EngineOptions to create new engine
 	EngineOptions struct {
-		Logger    logger.Logger
-		Pipeline  Pipeline
-		State     *State
-		EventChan chan *Event
+		Pipeline   Pipeline
+		Kubeconfig *struct {
+			Path      string
+			Context   string
+			Namespace string
+		}
 	}
 
 	engine struct {
