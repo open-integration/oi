@@ -33,10 +33,6 @@ type (
 		cmdCreator           cmdCreator
 	}
 
-	portGenerator interface {
-		GetAvailable() (string, error)
-	}
-
 	cmdCreator interface {
 		Create(port string, path string) *exec.Cmd
 	}
@@ -124,7 +120,6 @@ func (_l *localRunner) run() error {
 }
 
 func (_l *localRunner) dail() error {
-	// conn, err := m.dialer.Dial(fmt.Sprintf("localhost:%s", svc.server.port), grpc.WithInsecure())
 	url := fmt.Sprintf("localhost:%s", _l.port)
 	_l.Logger.Debug("Dial to service", "URL", url)
 	conn, err := _l.dialer.Dial(url, grpc.WithInsecure())

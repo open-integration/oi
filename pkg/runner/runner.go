@@ -27,17 +27,25 @@ type (
 
 	// Options shows all the available options to build runner
 	Options struct {
-		Type                      string
-		Name                      string
-		ID                        string
-		Logger                    logger.Logger
-		LocalDailer               dialer
-		LocalLogFileCreator       logFileCreator
-		LocalServiceClientCreator serviceClientCreator
-		LocalPortGenerator        portGenerator
-		LocalLogsDirectory        string
-		LocalCommandCreator       cmdCreator
-		LocalPathToBinary         string
+		Type                 string
+		Name                 string
+		ID                   string
+		Logger               logger.Logger
+		Dailer               dialer
+		PortGenerator        portGenerator
+		ServiceClientCreator serviceClientCreator
+
+		// Local runner options
+		LocalLogFileCreator logFileCreator
+		LocalLogsDirectory  string
+		LocalCommandCreator cmdCreator
+		LocalPathToBinary   string
+
+		// Kubernetes runner options
+		KubernetesKubeConfigPath string
+		KubernetesContext        string
+		KubernetesNamespace      string
+		Kube                     kube
 	}
 
 	dialer interface {
@@ -51,6 +59,10 @@ type (
 	serviceClientCreator interface {
 		New(cc *grpc.ClientConn) v1.ServiceClient
 	}
+
+	portGenerator interface {
+		GetAvailable() (string, error)
+	}
 )
 
 // New builds new runner based on Options.Type
@@ -62,16 +74,27 @@ func New(opt *Options) Runner {
 			id:                   opt.ID,
 			logFileCreator:       opt.LocalLogFileCreator,
 			logsFileDirectory:    opt.LocalLogsDirectory,
-			serviceClientCreator: opt.LocalServiceClientCreator,
-			portGenerator:        opt.LocalPortGenerator,
-			dialer:               opt.LocalDailer,
+			serviceClientCreator: opt.ServiceClientCreator,
+			portGenerator:        opt.PortGenerator,
+			dialer:               opt.Dailer,
 			cmdCreator:           opt.LocalCommandCreator,
 			path:                 opt.LocalPathToBinary,
 		}
 	}
 
 	if opt.Type == KubernetesRunner {
-		return &kubernetesRunner{}
+		return &kubernetesRunner{
+			Logger:               opt.Logger,
+			name:                 opt.Name,
+			id:                   opt.ID,
+			kubeconfigPath:       opt.KubernetesKubeConfigPath,
+			kubeconfigNamespace:  opt.KubernetesNamespace,
+			kubeconfigContext:    opt.KubernetesContext,
+			kube:                 opt.Kube,
+			dialer:               opt.Dailer,
+			portGenerator:        opt.PortGenerator,
+			serviceClientCreator: opt.ServiceClientCreator,
+		}
 	}
 	return nil
 }
