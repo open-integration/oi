@@ -6,6 +6,7 @@ import (
 )
 
 type (
+	// Proto expose abilities to create new service client
 	Proto struct{}
 )
 

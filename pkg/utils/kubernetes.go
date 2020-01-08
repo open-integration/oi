@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	// Kubernetes expose abilities on run on kube cluster
 	Kubernetes struct{}
 )
 
@@ -49,8 +50,8 @@ func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version 
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
 				v1.Container{
-					Name:            fmt.Sprintf("%s:%s", name, version),
-					Image:           fmt.Sprintf("openintegration/service_catalog-%s", name),
+					Name:            name,
+					Image:           fmt.Sprintf("openintegration/service_catalog-%s:%s", name, version),
 					ImagePullPolicy: v1.PullAlways,
 					Ports: []v1.ContainerPort{
 						v1.ContainerPort{

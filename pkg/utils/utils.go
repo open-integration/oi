@@ -3,23 +3,8 @@ package utils
 import (
 	"fmt"
 	"io"
-	"net"
 	"os"
 )
-
-func GetAvailablePort() (string, error) {
-	l, err := net.Listen("tcp", ":0")
-	if err != nil {
-		return "", err
-	}
-	defer l.Close()
-
-	_, p, err := net.SplitHostPort(l.Addr().String())
-	if err != nil {
-		return "", err
-	}
-	return p, err
-}
 
 func CreateLogFile(dir string, name string) (io.Writer, error) {
 	if dir == "" {
