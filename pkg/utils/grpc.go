@@ -3,6 +3,7 @@ package utils
 import "google.golang.org/grpc"
 
 type (
+	// GRPC expose abilities on grpc connection
 	GRPC struct{}
 )
 

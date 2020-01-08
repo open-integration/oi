@@ -5,6 +5,7 @@ import (
 )
 
 type (
+	// Port expose ability to generate random available port on local machine
 	Port struct{}
 )
 
