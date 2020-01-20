@@ -22,12 +22,14 @@ type (
 	// EngineOptions to create new engine
 	EngineOptions struct {
 		Pipeline   Pipeline
-		Kubeconfig *struct {
-			Path      string
-			Context   string
-			Namespace string
-			InCluster bool
-		}
+		Kubeconfig *EngineKubernetesOptions
+	}
+
+	EngineKubernetesOptions struct {
+		Path      string
+		Context   string
+		Namespace string
+		InCluster bool
 	}
 
 	engine struct {
