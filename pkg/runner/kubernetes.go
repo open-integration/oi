@@ -57,13 +57,9 @@ func (_k *kubernetesRunner) Run() error {
 	}
 	_k.kubeclient = client
 
-	// if the communication is directly to the pod there
-	// there is no reasons to start service
-	if !_k.grpcDialViaPodIP {
-		_k.Logger.Debug("Starting Kuberentes runner service-less")
-		if err := _k.startService(); err != nil {
-			return err
-		}
+	_k.Logger.Debug("Starting Kuberentes runner service-less")
+	if err := _k.startService(); err != nil {
+		return err
 	}
 
 	if err := _k.startPod(); err != nil {
@@ -104,7 +100,11 @@ func (_k *kubernetesRunner) startService() error {
 		return err
 	}
 	_k.port = port
-	svcDef, err := _k.kube.BuildServiceDefinition(_k.kubeconfigNamespace, _k.name, _k.id, port, "LoadBalancer")
+	serviceType := ""
+	if !_k.grpcDialViaPodIP {
+		serviceType = "LoadBalancer"
+	}
+	svcDef, err := _k.kube.BuildServiceDefinition(_k.kubeconfigNamespace, _k.name, _k.id, port, serviceType)
 	if err != nil {
 		return err
 	}
@@ -137,9 +137,8 @@ func (_k *kubernetesRunner) startPod() error {
 
 	// the target port is the default that the pod was started with
 	if _k.grpcDialViaPodIP {
-		_k.Logger.Debug("Updating dial options", "name", createdPod.ObjectMeta.Name, "port", defaultPort, "hostname", createdPod.Status.PodIP)
-		_k.port = defaultPort
-		_k.hostname = createdPod.Status.PodIP
+		_k.Logger.Debug("Updating dial options", "name", createdPod.ObjectMeta.Name, "port", _k.port, "hostname", _k.name)
+		_k.hostname = _k.name
 	}
 	return nil
 }
