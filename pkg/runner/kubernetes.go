@@ -12,6 +12,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const (
+	defaultPort = "8080"
+)
+
 type (
 	kubernetesRunner struct {
 		Logger               logger.Logger
@@ -30,6 +34,8 @@ type (
 		tasksSchemas         map[string]string
 		portGenerator        portGenerator
 		port                 string
+		hostname             string
+		grpcDialViaPodIP     bool
 	}
 
 	kube interface {
@@ -51,8 +57,13 @@ func (_k *kubernetesRunner) Run() error {
 	}
 	_k.kubeclient = client
 
-	if err := _k.startService(); err != nil {
-		return err
+	// if the communication is directly to the pod there
+	// there is no reasons to start service
+	if !_k.grpcDialViaPodIP {
+		_k.Logger.Debug("Starting Kuberentes runner service-less")
+		if err := _k.startService(); err != nil {
+			return err
+		}
 	}
 
 	if err := _k.startPod(); err != nil {
@@ -108,7 +119,7 @@ func (_k *kubernetesRunner) startService() error {
 }
 
 func (_k *kubernetesRunner) startPod() error {
-	podDef, err := _k.kube.BuildPodDefinition(_k.kubeconfigNamespace, _k.name, _k.version, _k.id, "8080")
+	podDef, err := _k.kube.BuildPodDefinition(_k.kubeconfigNamespace, _k.name, _k.version, _k.id, defaultPort)
 	if err != nil {
 		return err
 	}
@@ -123,11 +134,18 @@ func (_k *kubernetesRunner) startPod() error {
 		return err
 	}
 	_k.Logger.Debug("Pod is ready", "name", createdPod.ObjectMeta.Name)
+
+	// the target port is the default that the pod was started with
+	if _k.grpcDialViaPodIP {
+		_k.Logger.Debug("Updating dial options", "name", createdPod.ObjectMeta.Name, "port", defaultPort, "hostname", createdPod.Status.PodIP)
+		_k.port = defaultPort
+		_k.hostname = createdPod.Status.PodIP
+	}
 	return nil
 }
 
 func (_k *kubernetesRunner) dail() error {
-	url := fmt.Sprintf("localhost:%s", _k.port)
+	url := fmt.Sprintf("%s:%s", _k.hostname, _k.port)
 	_k.Logger.Debug("Dial to service", "URL", url)
 	conn, err := _k.dialer.Dial(url, grpc.WithInsecure())
 	if err != nil {

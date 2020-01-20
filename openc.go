@@ -87,7 +87,7 @@ func NewEngine(opt *EngineOptions) Engine {
 				}))
 			} else {
 				log.Debug("Adding service")
-				e.modem.AddService(svcID, s.As, runner.New(&runner.Options{
+				runnerOpt := &runner.Options{
 					Type:                     runner.KubernetesRunner,
 					Logger:                   log.New("service-runner", s.Name),
 					Name:                     s.Name,
@@ -100,7 +100,11 @@ func NewEngine(opt *EngineOptions) Engine {
 					Kube:                     &utils.Kubernetes{},
 					Dailer:                   &utils.GRPC{},
 					ServiceClientCreator:     utils.Proto{},
-				}))
+				}
+				if opt.Kubeconfig.InCluster {
+					runnerOpt.KubernetesGrpcDialViaPodIP = true
+				}
+				e.modem.AddService(svcID, s.As, runner.New(runnerOpt))
 			}
 		}
 	}

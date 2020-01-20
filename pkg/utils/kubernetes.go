@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -19,9 +20,19 @@ type (
 
 // BuildClient returns a kubernetes client based on path to kubeconfig
 func (_k *Kubernetes) BuildClient(kubeconfigPath string) (*kubernetes.Clientset, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-	if err != nil {
-		return nil, err
+	var config *rest.Config
+	if kubeconfigPath == "" {
+		var err error
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)

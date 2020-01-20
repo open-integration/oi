@@ -43,10 +43,11 @@ type (
 		LocalPathToBinary   string
 
 		// Kubernetes runner options
-		KubernetesKubeConfigPath string
-		KubernetesContext        string
-		KubernetesNamespace      string
-		Kube                     kube
+		KubernetesKubeConfigPath   string
+		KubernetesContext          string
+		KubernetesNamespace        string
+		Kube                       kube
+		KubernetesGrpcDialViaPodIP bool
 	}
 
 	dialer interface {
@@ -84,7 +85,7 @@ func New(opt *Options) Runner {
 	}
 
 	if opt.Type == KubernetesRunner {
-		return &kubernetesRunner{
+		runner := &kubernetesRunner{
 			Logger:               opt.Logger,
 			name:                 opt.Name,
 			version:              opt.Version,
@@ -96,7 +97,11 @@ func New(opt *Options) Runner {
 			dialer:               opt.Dailer,
 			portGenerator:        opt.PortGenerator,
 			serviceClientCreator: opt.ServiceClientCreator,
+			hostname:             "localhost",
+			grpcDialViaPodIP:     opt.KubernetesGrpcDialViaPodIP,
 		}
+
+		return runner
 	}
 	return nil
 }

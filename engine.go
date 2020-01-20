@@ -26,6 +26,7 @@ type (
 			Path      string
 			Context   string
 			Namespace string
+			InCluster bool
 		}
 	}
 
