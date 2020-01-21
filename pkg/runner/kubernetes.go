@@ -80,11 +80,11 @@ func (_k *kubernetesRunner) Run() error {
 func (_k *kubernetesRunner) Kill() error {
 	name := fmt.Sprintf("%s-%s", _k.name, _k.id)
 	if err := _k.kube.KillService(_k.kubeclient, _k.kubeconfigNamespace, name); err != nil {
-		_k.Logger.Warn("Failed to delete kubernetes service", "service", name)
+		_k.Logger.Warn("Failed to delete kubernetes service", "service", name, "error", err.Error())
 	}
 
 	if err := _k.kube.KillPod(_k.kubeclient, _k.kubeconfigNamespace, name); err != nil {
-		_k.Logger.Warn("Failed to delete kubernetes pod", "pod", name)
+		_k.Logger.Warn("Failed to delete kubernetes pod", "pod", name, "error", err.Error())
 	}
 
 	return nil
