@@ -138,7 +138,7 @@ func (_k *kubernetesRunner) startPod() error {
 	// the target port is the default that the pod was started with
 	if _k.grpcDialViaPodIP {
 		_k.Logger.Debug("Updating dial options", "name", createdPod.ObjectMeta.Name, "port", _k.port, "hostname", _k.name)
-		_k.hostname = _k.name
+		_k.hostname = fmt.Sprintf("%s-%s", _k.name, _k.id)
 	}
 	return nil
 }
