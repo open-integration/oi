@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"syscall"
 
 	"github.com/open-integration/core/pkg/downloader"
 	"github.com/open-integration/core/pkg/logger"
