@@ -3,7 +3,6 @@ package core
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"syscall"
 
