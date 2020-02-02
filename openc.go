@@ -128,14 +128,3 @@ func dieOnError(err error) {
 func createDir(path string) error {
 	return os.MkdirAll(path, os.ModePerm)
 }
-
-func buildServiceCmd(svc Service, port string, location string) *exec.Cmd {
-	cmd := exec.Command(location)
-	envs := []string{
-		fmt.Sprintf("PORT=%s", port),
-	}
-	cmd.Env = envs
-	cmd.Dir = ""
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	return cmd
-}
