@@ -77,55 +77,42 @@ func (e *engine) handleStateEvents() {
 
 func (e *engine) handleEvent(ev Event) {
 	e.wg.Add(1)
-	e.logger.Debug("Received event", "name", ev.Metadata.Name)
-	for _, t := range e.pipeline.Spec.Tasks {
-		taskLogger := e.logger.New("task", t.Metadata.Name)
-		if !e.shouldRunTask(t, &ev, taskLogger) {
-			continue
-		}
-		err := e.runTask(t, &ev, taskLogger)
-		if err != nil {
-			e.logger.Error("Error running task", "err", err.Error(), "task", t.Metadata.Name)
+	log := e.logger.New("event", ev.Metadata.Name)
+	log.Debug("Received event", "total-reactions", len(e.pipeline.Spec.Reactions))
+	for _, reaction := range e.pipeline.Spec.Reactions {
+		log.Debug("Running reaction condition")
+		if reaction.Condition(ev, *e.state) {
+			log.Debug("Condition evaluated to true")
+			tasks := reaction.Reaction(ev, *e.state)
+			log.Debug("Received new tasks", "len", len(tasks))
+			for _, t := range tasks {
+				taskLogger := log.New("task", t.Metadata.Name)
+				if !t.Metadata.Reusable {
+					shouldSkip := false
+					for _, pastTask := range e.state.Tasks {
+						if pastTask.Task == t.Metadata.Name {
+							taskLogger.Debug("Task been executed in the past, skiping")
+							shouldSkip = true
+						}
+					}
+					if shouldSkip {
+						continue
+					}
+				}
+				err := e.runTask(t, &ev, taskLogger)
+				if err != nil {
+					log.Error("Error running task", "err", err.Error(), "task", t.Metadata.Name)
+				}
+			}
+		} else {
+			log.Debug("Reaction condition evaludated to false")
 		}
 	}
 	e.wg.Done()
 }
 
-func (e *engine) shouldRunTask(t Task, ev *Event, logger logger.Logger) bool {
-	if !t.Metadata.Reusable {
-		for _, tt := range e.state.Tasks {
-			if tt.Task == t.Metadata.Name {
-				// Skip tasks that are nnot reusable
-				return false
-			}
-		}
-	}
-
-	logger.Debug("Running task conditions")
-	if t.Condition == nil {
-		logger.Debug("No condition set, skipping...")
-		return false
-	}
-	logger.Debug("Running condition", "condition", t.Condition.Name)
-	if !t.Condition.Func(ev, e.state) {
-		logger.Debug("Condition evaludated to false, skipping...")
-		return false
-	}
-	return true
-}
-
 func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
-	var spec TaskSpec
-
-	if t.SpecFunc != nil {
-		s, err := t.SpecFunc(e.state)
-		if err != nil {
-			return err
-		}
-		spec = *s
-	} else {
-		spec = t.Spec
-	}
+	spec := t.Spec
 	id := generateID()
 	e.wg.Add(1)
 	go e.state.send(commands.StartTask, &e.wg, func() *State {

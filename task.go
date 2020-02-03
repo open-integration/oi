@@ -5,9 +5,6 @@ type (
 	Task struct {
 		Metadata TaskMetadata
 		Spec     TaskSpec
-		SpecFunc func(*State) (*TaskSpec, error)
-		// Condition a set of conditions to run before task execution
-		Condition *Condition
 	}
 
 	// TaskMetadata holds all the metadata of a pipeline

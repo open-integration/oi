@@ -16,7 +16,13 @@ type (
 
 	// PipelineSpec is the spec of a pipeline
 	PipelineSpec struct {
-		Tasks    []Task
-		Services []Service
+		Reactions []EventReaction
+		Services  []Service
+	}
+
+	// EventReaction is a binding of an event to a function that builds tasks
+	EventReaction struct {
+		Condition func(ev Event, state State) bool
+		Reaction  func(ev Event, state State) []Task
 	}
 )
