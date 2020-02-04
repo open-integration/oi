@@ -132,6 +132,8 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 	spec := t.Spec
 	id := generateID()
 	e.wg.Add(1)
+	fileName := fmt.Sprintf("%s-%s.log", t.Metadata.Name, string(id))
+	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
 	go e.state.send(commands.StartTask, &e.wg, func() *State {
 		return &State{
 			Tasks: map[ID]TaskState{
@@ -139,22 +141,20 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 					State:   TaskStateInProgress,
 					Task:    t.Metadata.Name,
 					EventID: ev.Metadata.ID,
+					Logger:  fileDescriptor,
 				},
 			},
 		}
 	})
-
-	fileName := fmt.Sprintf("%s-%s.log", t.Metadata.Name, string(id))
-	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
 	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
 		logger.Error("Failed to create log file for task")
 	}
 
 	payload := ""
+	arguments := map[string]interface{}{}
 	if spec.Service != "" {
 		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
-		arguments := map[string]interface{}{}
 		for _, arg := range spec.Arguments {
 			arguments[arg.GetKey()] = arg.GetValue()
 		}
@@ -173,12 +173,14 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 		return &State{
 			Tasks: map[ID]TaskState{
 				id: {
-					State:   TaskStateFinished,
-					Status:  status,
-					Task:    t.Metadata.Name,
-					Output:  payload,
-					EventID: ev.Metadata.ID,
-					Error:   msg,
+					State:     TaskStateFinished,
+					Status:    status,
+					Task:      t.Metadata.Name,
+					Output:    payload,
+					Arguments: fmt.Sprintf("%v", arguments),
+					EventID:   ev.Metadata.ID,
+					Error:     msg,
+					Logger:    fileDescriptor,
 				},
 			},
 		}

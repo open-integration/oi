@@ -67,12 +67,14 @@ type (
 
 	// TaskState state of single task
 	TaskState struct {
-		State   string `yaml:"state"`
-		Status  string `yaml:"status"`
-		Task    string `yaml:"task"`
-		Output  string `yaml:"output"`
-		Error   string `yaml:"error"`
-		EventID ID     `yaml:"event-id"`
+		State     string `yaml:"state"`
+		Status    string `yaml:"status"`
+		Task      string `yaml:"task"`
+		Output    string `yaml:"output"`
+		Arguments string `yaml:"arguments"`
+		Error     string `yaml:"error"`
+		EventID   ID     `yaml:"event-id"`
+		Logger    string `yaml:"logger"`
 	}
 )
 
