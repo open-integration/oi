@@ -65,7 +65,7 @@ type (
 		State string `yaml:"state"`
 	}
 
-	// TaskState state of singal task
+	// TaskState state of single task
 	TaskState struct {
 		State   string `yaml:"state"`
 		Status  string `yaml:"status"`
