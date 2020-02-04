@@ -75,37 +75,54 @@ func (e *engine) handleStateEvents() {
 	}
 }
 
+// handleEvent
+// Run over all event reactions and get the task candidates if the condition is passed
+// Run over all the candidates and get the task that actually should be executed
+// based on the .metadata.resuable prop
 func (e *engine) handleEvent(ev Event) {
 	e.wg.Add(1)
 	log := e.logger.New("event", ev.Metadata.Name)
 	log.Debug("Received event", "total-reactions", len(e.pipeline.Spec.Reactions))
+	tasksCandidates := []Task{}
 	for _, reaction := range e.pipeline.Spec.Reactions {
 		log.Debug("Running reaction condition")
 		if reaction.Condition(ev, *e.state) {
 			log.Debug("Condition evaluated to true")
-			tasks := reaction.Reaction(ev, *e.state)
-			log.Debug("Received new tasks", "len", len(tasks))
-			for _, t := range tasks {
-				taskLogger := log.New("task", t.Metadata.Name)
-				if !t.Metadata.Reusable {
-					shouldSkip := false
-					for _, pastTask := range e.state.Tasks {
-						if pastTask.Task == t.Metadata.Name {
-							taskLogger.Debug("Task been executed in the past, skiping")
-							shouldSkip = true
-						}
-					}
-					if shouldSkip {
-						continue
-					}
-				}
-				err := e.runTask(t, &ev, taskLogger)
-				if err != nil {
-					log.Error("Error running task", "err", err.Error(), "task", t.Metadata.Name)
-				}
-			}
+			tasksCandidates = append(tasksCandidates, reaction.Reaction(ev, *e.state)...)
 		} else {
 			log.Debug("Reaction condition evaludated to false")
+		}
+	}
+
+	paris := []struct {
+		task   Task
+		logger logger.Logger
+	}{}
+	for _, t := range tasksCandidates {
+		taskLogger := log.New("task", t.Metadata.Name)
+		if !t.Metadata.Reusable {
+			shouldSkip := false
+			for _, pastTask := range e.state.Tasks {
+				if pastTask.Task == t.Metadata.Name {
+					taskLogger.Debug("Task been executed in the past, skiping")
+					shouldSkip = true
+				}
+			}
+			if !shouldSkip {
+				paris = append(paris, struct {
+					task   Task
+					logger logger.Logger
+				}{
+					task:   t,
+					logger: taskLogger,
+				})
+			}
+		}
+	}
+	for _, pair := range paris {
+		err := e.runTask(pair.task, &ev, pair.logger)
+		if err != nil {
+			log.Error("Error running task", "err", err.Error(), "task", pair.task.Metadata.Name)
 		}
 	}
 	e.wg.Done()
