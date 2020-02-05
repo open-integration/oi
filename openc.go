@@ -67,7 +67,7 @@ func NewEngine(opt *EngineOptions) Engine {
 		log = logger.New(loggerOptions)
 	}
 
-	serviceDownloader := downloader.Nesupporw(downloader.Options{
+	serviceDownloader := downloader.New(downloader.Options{
 		Store:  servicesDir,
 		Logger: log.New("module", "service-downloader"),
 	})
