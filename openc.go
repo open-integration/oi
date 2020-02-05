@@ -12,12 +12,34 @@ import (
 	"github.com/open-integration/core/pkg/utils"
 )
 
+type (
+	// EngineOptions to create new engine
+	EngineOptions struct {
+		Pipeline Pipeline
+		// LogsDirectory path where to store logs
+		LogsDirectory string
+		Kubeconfig    *EngineKubernetesOptions
+	}
+
+	// EngineKubernetesOptions when running service on kubernetes cluster
+	EngineKubernetesOptions struct {
+		Path      string
+		Context   string
+		Namespace string
+		InCluster bool
+	}
+)
+
 // NewEngine create new engine
 func NewEngine(opt *EngineOptions) Engine {
-	wd, err := os.Getwd()
-	dieOnError(err)
 
-	tasksLogDir := path.Join(wd, "logs", "tasks")
+	if opt.LogsDirectory == "" {
+		wd, err := os.Getwd()
+		dieOnError(err)
+		opt.LogsDirectory = wd
+	}
+
+	tasksLogDir := path.Join(opt.LogsDirectory, "logs", "tasks")
 	dieOnError(createDir(tasksLogDir))
 
 	eventCn := make(chan *Event, 1)
@@ -30,7 +52,7 @@ func NewEngine(opt *EngineOptions) Engine {
 	var loggerOptions *logger.Options
 
 	loggerOptions = &logger.Options{
-		FilePath:    path.Join(wd, "logs", "log"),
+		FilePath:    path.Join(opt.LogsDirectory, "logs", "log"),
 		LogToStdOut: true,
 	}
 
@@ -45,12 +67,12 @@ func NewEngine(opt *EngineOptions) Engine {
 		log = logger.New(loggerOptions)
 	}
 
-	serviceDownloader := downloader.New(downloader.Options{
+	serviceDownloader := downloader.Nesupporw(downloader.Options{
 		Store:  servicesDir,
 		Logger: log.New("module", "service-downloader"),
 	})
 
-	servicesLogDir := path.Join(wd, "logs", "services")
+	servicesLogDir := path.Join(opt.LogsDirectory, "logs", "services")
 	dieOnError(createDir(servicesLogDir))
 
 	e.logger = log.New("module", "engine")

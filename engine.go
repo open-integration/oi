@@ -19,19 +19,6 @@ type (
 		Run() error
 	}
 
-	// EngineOptions to create new engine
-	EngineOptions struct {
-		Pipeline   Pipeline
-		Kubeconfig *EngineKubernetesOptions
-	}
-
-	EngineKubernetesOptions struct {
-		Path      string
-		Context   string
-		Namespace string
-		InCluster bool
-	}
-
 	engine struct {
 		pipeline         Pipeline
 		logger           logger.Logger
