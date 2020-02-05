@@ -42,6 +42,23 @@ func (_k *Kubernetes) BuildClient(kubeconfigPath string) (*kubernetes.Clientset,
 	return clientset, nil
 }
 
+// BuildClient returns a kubernetes client based on path to kubeconfig
+func (_k *Kubernetes) BuildClientWithToken(host string, ca string, token string) (*kubernetes.Clientset, error) {
+	config := &rest.Config{
+		Host: host,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: []byte(ca),
+		},
+		BearerToken: token,
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return clientset, nil
+}
+
 func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version string, id string, port string) (*v1.Pod, error) {
 	if version == "" {
 		version = "latest"
