@@ -3,6 +3,7 @@ package downloader
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -39,7 +40,15 @@ func New(opt Options) Downloader {
 }
 
 func (d *downloader) Download(name string, version string) error {
-	url := fmt.Sprintf("https://storage.googleapis.com/open-integration-service-catalog/%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
+	candidateFileName := fmt.Sprintf("%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
+	fullPath := path.Join(d.Store(), candidateFileName)
+	_, err := ioutil.ReadFile(fullPath)
+	if os.IsNotExist(err) {
+		d.logger.Debug("Skipping download, service exist", "path", fullPath)
+		return nil
+	}
+
+	url := fmt.Sprintf("https://storage.googleapis.com/open-integration-service-catalog/%s", candidateFileName)
 	d.logger.Debug("Downloading", "name", name, "url", url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -51,10 +60,8 @@ func (d *downloader) Download(name string, version string) error {
 		return fmt.Errorf("%s:%s not found", name, version)
 	}
 
-	fileName := path.Join(d.Store(), name)
-
 	// Create the file
-	out, err := os.Create(fileName)
+	out, err := os.Create(fullPath)
 	if err != nil {
 		return err
 	}
@@ -67,7 +74,7 @@ func (d *downloader) Download(name string, version string) error {
 	}
 
 	// Add prmission to exec file
-	err = os.Chmod(fileName, os.ModePerm)
+	err = os.Chmod(fullPath, os.ModePerm)
 	if err != nil {
 		return err
 	}
