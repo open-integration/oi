@@ -78,3 +78,44 @@ func TestConditionTaskFinishedWithStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestConditionEngineStarted(t *testing.T) {
+	type args struct {
+		ev    core.Event
+		state core.State
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		struct {
+			name string
+			args args
+			want bool
+		}{
+			name: "Should return true in case the event was engine.started",
+			want: true,
+			args: args{
+				ev: core.Event{
+					Metadata: core.EventMetadata{
+						Name: core.EventEngineStarted,
+					},
+				},
+			},
+		},
+		struct {
+			name string
+			args args
+			want bool
+		}{
+			name: "Should return false in case the event was not engine.started",
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, core.ConditionEngineStarted(tt.args.ev, tt.args.state))
+		})
+	}
+}
