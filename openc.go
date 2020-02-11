@@ -19,6 +19,7 @@ type (
 		// LogsDirectory path where to store logs
 		LogsDirectory string
 		Kubeconfig    *EngineKubernetesOptions
+		Logger        logger.Logger
 	}
 
 	// EngineKubernetesOptions when running service on kubernetes cluster
@@ -32,7 +33,9 @@ type (
 
 // NewEngine create new engine
 func NewEngine(opt *EngineOptions) Engine {
-
+	e := &engine{
+		pipeline: opt.Pipeline,
+	}
 	if opt.LogsDirectory == "" {
 		wd, err := os.Getwd()
 		dieOnError(err)
@@ -41,20 +44,7 @@ func NewEngine(opt *EngineOptions) Engine {
 
 	tasksLogDir := path.Join(opt.LogsDirectory, "logs", "tasks")
 	dieOnError(createDir(tasksLogDir))
-
-	eventCn := make(chan *Event, 1)
-	e := &engine{
-		pipeline:         opt.Pipeline,
-		eventChan:        eventCn,
-		taskLogsDirctory: tasksLogDir,
-	}
-
-	var loggerOptions *logger.Options
-
-	loggerOptions = &logger.Options{
-		FilePath:    path.Join(opt.LogsDirectory, "logs", "log"),
-		LogToStdOut: true,
-	}
+	e.taskLogsDirctory = tasksLogDir
 
 	home, err := os.UserHomeDir()
 	dieOnError(err)
@@ -62,10 +52,17 @@ func NewEngine(opt *EngineOptions) Engine {
 	servicesDir := path.Join(home, ".open-integration", "services")
 	dieOnError(createDir(servicesDir))
 
+	e.eventChan = make(chan *Event, 1)
+
 	var log logger.Logger
-	{
-		log = logger.New(loggerOptions)
+	if opt.Logger == nil {
+		loggerOptions := &logger.Options{
+			FilePath:    path.Join(opt.LogsDirectory, "logs", "log"),
+			LogToStdOut: true,
+		}
+		opt.Logger = logger.New(loggerOptions)
 	}
+	log = opt.Logger
 
 	serviceDownloader := downloader.New(downloader.Options{
 		Store:  servicesDir,
@@ -131,7 +128,7 @@ func NewEngine(opt *EngineOptions) Engine {
 
 	e.state = NewState(&StateOptions{
 		Logger:           e.logger.New("sub-module", "state-store"),
-		EventCn:          eventCn,
+		EventCn:          e.eventChan,
 		StateFile:        "./logs/state.yaml",
 		EventHistoryFile: "./logs/history.yaml",
 	})

@@ -17,6 +17,7 @@ type (
 	// Engine exposes the interface of the engine
 	Engine interface {
 		Run() error
+		Modem() modem.Modem
 	}
 
 	engine struct {
@@ -49,6 +50,11 @@ func (e *engine) Run() error {
 	go e.waitForFinish()
 	e.handleStateEvents()
 	return nil
+}
+
+// Modem returns the current modem
+func (e *engine) Modem() modem.Modem {
+	return e.modem
 }
 
 func (e *engine) handleStateEvents() {
