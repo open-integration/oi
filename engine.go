@@ -77,15 +77,11 @@ func (e *engine) handleStateEvents() {
 func (e *engine) handleEvent(ev state.Event) {
 	e.wg.Add(1)
 	log := e.logger.New("event", ev.Metadata.Name)
+	stateCpy, _ := e.statev1.Copy()
 	log.Debug("Received event", "total-reactions", len(e.pipeline.Spec.Reactions))
 	tasksCandidates := []Task{}
 	for _, reaction := range e.pipeline.Spec.Reactions {
 		log.Debug("Running reaction condition")
-		stateCpy, err := e.statev1.Copy()
-		if err != nil {
-			log.Error("Failed to get state, skipping evaluation")
-			continue
-		}
 		if reaction.Condition(ev, stateCpy) {
 			log.Debug("Condition evaluated to true")
 			tasksCandidates = append(tasksCandidates, reaction.Reaction(ev, stateCpy)...)
@@ -102,7 +98,7 @@ func (e *engine) handleEvent(ev state.Event) {
 		taskLogger := log.New("task", t.Metadata.Name)
 		if !t.Metadata.Reusable {
 			shouldSkip := false
-			for _, pastTask := range e.statev1.Tasks() {
+			for _, pastTask := range stateCpy.Tasks() {
 				if pastTask.Task == t.Metadata.Name {
 					taskLogger.Debug("Task been executed in the past, skiping")
 					shouldSkip = true
@@ -191,8 +187,8 @@ func (e *engine) runTask(t Task, ev *state.Event, logger logger.Logger) error {
 func (e *engine) waitForFinish() {
 	time.Sleep(5 * time.Second)
 	e.wg.Wait()
-
-	for id, t := range e.statev1.Tasks() {
+	stateCpy, _ := e.statev1.Copy()
+	for id, t := range stateCpy.Tasks() {
 		e.logger.Debug("Testing task", "name", t.Task, "id", id, "state", t.State)
 		if t.State != "finished" {
 			return

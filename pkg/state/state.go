@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jinzhu/copier"
 	"github.com/open-integration/core/pkg/logger"
 	"gopkg.in/yaml.v2"
 )
@@ -159,7 +160,9 @@ func (s *state) init() {
 			s.logger.Debug("Sending event", "event", ev)
 			s.eventChan <- ev
 		case _ = <-s.copyChanRequest:
-			s.copyChan <- *s
+			dest := &state{}
+			copier.Copy(dest, s)
+			s.copyChan <- *dest
 			continue
 		}
 	}

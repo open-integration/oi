@@ -153,6 +153,108 @@ func Test_engine_Run(t *testing.T) {
 				},
 			},
 		},
+		testEngineRun{
+			name:    "Should run succesfully multiple ",
+			wantErr: false,
+			middleware: []func(e core.Engine){
+				func(e core.Engine) {
+					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
+					e.Modem().AddService("service-id-1", "service1", runner)
+				},
+				func(e core.Engine) {
+					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
+					e.Modem().AddService("service-id-2", "service2", runner)
+				},
+			},
+			options: &core.EngineOptions{
+				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
+				Pipeline: core.Pipeline{
+					Metadata: pipelineTestMetadata,
+					Spec: core.PipelineSpec{
+						Services: []core.Service{
+							core.Service{
+								Name:    "service(task1)",
+								As:      "service1",
+								Version: "0.0.1",
+							},
+							core.Service{
+								Name:    "service(task2...5)",
+								As:      "service2",
+								Version: "0.0.1",
+							},
+						},
+						Reactions: []core.EventReaction{
+							core.EventReaction{
+								Condition: core.ConditionEngineStarted,
+								Reaction: func(ev state.Event, state state.State) []core.Task {
+									return []core.Task{
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-1",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service1",
+												Endpoint: "endpoint1",
+											},
+										},
+									}
+								},
+							},
+							core.EventReaction{
+								Condition: core.ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
+								Reaction: func(ev state.Event, state state.State) []core.Task {
+									return []core.Task{
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-2",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service2",
+												Endpoint: "endpoint1",
+											},
+										},
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-3",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service2",
+												Endpoint: "endpoint1",
+											},
+										},
+									}
+								},
+							},
+							core.EventReaction{
+								Condition: core.ConditionTaskFinishedWithStatus("task-2", state.TaskStatusSuccess),
+								Reaction: func(ev state.Event, state state.State) []core.Task {
+									return []core.Task{
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-4",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service2",
+												Endpoint: "endpoint1",
+											},
+										},
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-5",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service2",
+												Endpoint: "endpoint1",
+											},
+										},
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
