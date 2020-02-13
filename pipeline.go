@@ -1,5 +1,7 @@
 package core
 
+import "github.com/open-integration/core/pkg/state"
+
 type (
 	// Pipeline is the pipeline representation
 	Pipeline struct {
@@ -22,7 +24,7 @@ type (
 
 	// EventReaction is a binding of an event to a function that builds tasks
 	EventReaction struct {
-		Condition func(ev Event, state State) bool
-		Reaction  func(ev Event, state State) []Task
+		Condition func(ev state.Event, state state.State) bool
+		Reaction  func(ev state.Event, state state.State) []Task
 	}
 )

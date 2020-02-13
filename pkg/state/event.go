@@ -1,4 +1,4 @@
-package core
+package state
 
 import "time"
 
@@ -10,7 +10,6 @@ const (
 )
 
 type (
-	event int
 
 	// Event - means that something happen
 	Event struct {
@@ -20,7 +19,7 @@ type (
 
 	EventMetadata struct {
 		Name      string
-		ID        ID
+		ID        string
 		CreatedAt time.Time
 	}
 )

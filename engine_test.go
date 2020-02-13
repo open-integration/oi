@@ -6,6 +6,7 @@ import (
 	"github.com/open-integration/core"
 	apiv1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/mocks"
+	"github.com/open-integration/core/pkg/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -14,31 +15,25 @@ var pipelineTestMetadata = core.PipelineMetadata{
 	Name: "pipeline",
 }
 
-func Test_engine_Run(t *testing.T) {
-	tests := []struct {
+type (
+	testEngineRun struct {
 		name       string
 		options    *core.EngineOptions
 		wantErr    bool
 		middleware []func(e core.Engine)
-	}{
-		struct {
-			name       string
-			options    *core.EngineOptions
-			wantErr    bool
-			middleware []func(e core.Engine)
-		}{
+	}
+)
+
+func Test_engine_Run(t *testing.T) {
+	tests := []testEngineRun{
+		testEngineRun{
 			name:    "Should run zero tasks with no errors",
 			wantErr: false,
 			options: &core.EngineOptions{
 				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
 			},
 		},
-		struct {
-			name       string
-			options    *core.EngineOptions
-			wantErr    bool
-			middleware []func(e core.Engine)
-		}{
+		testEngineRun{
 			name:    "Should run one task once the engine started and exit succesfuly",
 			wantErr: false,
 			options: &core.EngineOptions{
@@ -56,7 +51,7 @@ func Test_engine_Run(t *testing.T) {
 						Reactions: []core.EventReaction{
 							core.EventReaction{
 								Condition: core.ConditionEngineStarted,
-								Reaction: func(ev core.Event, state core.State) []core.Task {
+								Reaction: func(ev state.Event, state state.State) []core.Task {
 									return []core.Task{
 										core.Task{
 											Metadata: core.TaskMetadata{
@@ -78,6 +73,83 @@ func Test_engine_Run(t *testing.T) {
 				func(e core.Engine) {
 					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
 					e.Modem().AddService("service-id", "service-name", runner)
+				},
+			},
+		},
+		testEngineRun{
+			name:    "Should create multiple tasks as a result of previous task",
+			wantErr: false,
+			options: &core.EngineOptions{
+				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
+				Pipeline: core.Pipeline{
+					Metadata: pipelineTestMetadata,
+					Spec: core.PipelineSpec{
+						Services: []core.Service{
+							core.Service{
+								Name:    "service(task1)",
+								As:      "service1",
+								Version: "0.0.1",
+							},
+							core.Service{
+								Name:    "service(task2...5)",
+								As:      "service2",
+								Version: "0.0.1",
+							},
+						},
+						Reactions: []core.EventReaction{
+							core.EventReaction{
+								Condition: core.ConditionEngineStarted,
+								Reaction: func(ev state.Event, state state.State) []core.Task {
+									return []core.Task{
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-1",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service1",
+												Endpoint: "endpoint1",
+											},
+										},
+									}
+								},
+							},
+							core.EventReaction{
+								Condition: core.ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
+								Reaction: func(ev state.Event, state state.State) []core.Task {
+									return []core.Task{
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-2",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service2",
+												Endpoint: "endpoint1",
+											},
+										},
+										core.Task{
+											Metadata: core.TaskMetadata{
+												Name: "task-3",
+											},
+											Spec: core.TaskSpec{
+												Service:  "service2",
+												Endpoint: "endpoint1",
+											},
+										},
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			middleware: []func(e core.Engine){
+				func(e core.Engine) {
+					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
+					e.Modem().AddService("service-id-1", "service1", runner)
+				},
+				func(e core.Engine) {
+					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
+					e.Modem().AddService("service-id-2", "service2", runner)
 				},
 			},
 		},

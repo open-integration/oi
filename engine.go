@@ -2,13 +2,15 @@ package core
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path"
 	"sync"
 	"time"
 
-	"github.com/open-integration/core/internal/commands"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
+	"github.com/open-integration/core/pkg/state"
 	"github.com/open-integration/core/pkg/utils"
 )
 
@@ -23,11 +25,11 @@ type (
 	engine struct {
 		pipeline         Pipeline
 		logger           logger.Logger
-		state            *State
-		eventChan        chan *Event
+		eventChan        chan *state.Event
 		taskLogsDirctory string
 		modem            modem.Modem
 		wg               sync.WaitGroup
+		statev1          state.State
 	}
 )
 
@@ -40,16 +42,16 @@ func (e *engine) Run() error {
 	}
 	defer e.modem.Destroy()
 	e.wg.Add(1)
-	go e.state.send(commands.StartEngine, &e.wg, func() *State {
-		return &State{
-			Metadata: StateMetadata{
-				State: EngineStateInProgress,
-			},
-		}
-	})
+	ch := e.statev1.Send(state.CmdStartEngine, &e.wg)
+	ch <- state.Change{
+		Cause: "Pipeline",
+		PipelineChange: state.PipelineChange{
+			States: state.EngineStateInProgress,
+		},
+	}
 	go e.waitForFinish()
 	e.handleStateEvents()
-	return nil
+	return e.printStateStore()
 }
 
 // Modem returns the current modem
@@ -60,7 +62,7 @@ func (e *engine) Modem() modem.Modem {
 func (e *engine) handleStateEvents() {
 	for {
 		ev := <-e.eventChan
-		if ev.Metadata.Name == EventEngineFinished {
+		if ev.Metadata.Name == state.EventEngineFinished {
 			e.logger.Debug("Received finish event, killing all services")
 			return
 		}
@@ -72,16 +74,21 @@ func (e *engine) handleStateEvents() {
 // Run over all event reactions and get the task candidates if the condition is passed
 // Run over all the candidates and get the task that actually should be executed
 // based on the .metadata.resuable prop
-func (e *engine) handleEvent(ev Event) {
+func (e *engine) handleEvent(ev state.Event) {
 	e.wg.Add(1)
 	log := e.logger.New("event", ev.Metadata.Name)
 	log.Debug("Received event", "total-reactions", len(e.pipeline.Spec.Reactions))
 	tasksCandidates := []Task{}
 	for _, reaction := range e.pipeline.Spec.Reactions {
 		log.Debug("Running reaction condition")
-		if reaction.Condition(ev, *e.state) {
+		stateCpy, err := e.statev1.Copy()
+		if err != nil {
+			log.Error("Failed to get state, skipping evaluation")
+			continue
+		}
+		if reaction.Condition(ev, stateCpy) {
 			log.Debug("Condition evaluated to true")
-			tasksCandidates = append(tasksCandidates, reaction.Reaction(ev, *e.state)...)
+			tasksCandidates = append(tasksCandidates, reaction.Reaction(ev, stateCpy)...)
 		} else {
 			log.Debug("Reaction condition evaludated to false")
 		}
@@ -95,7 +102,7 @@ func (e *engine) handleEvent(ev Event) {
 		taskLogger := log.New("task", t.Metadata.Name)
 		if !t.Metadata.Reusable {
 			shouldSkip := false
-			for _, pastTask := range e.state.Tasks {
+			for _, pastTask := range e.statev1.Tasks() {
 				if pastTask.Task == t.Metadata.Name {
 					taskLogger.Debug("Task been executed in the past, skiping")
 					shouldSkip = true
@@ -121,24 +128,24 @@ func (e *engine) handleEvent(ev Event) {
 	e.wg.Done()
 }
 
-func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
+func (e *engine) runTask(t Task, ev *state.Event, logger logger.Logger) error {
 	spec := t.Spec
 	id := generateID()
 	e.wg.Add(1)
 	fileName := fmt.Sprintf("%s-%s.log", t.Metadata.Name, string(id))
 	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
-	go e.state.send(commands.StartTask, &e.wg, func() *State {
-		return &State{
-			Tasks: map[ID]TaskState{
-				id: {
-					State:   TaskStateInProgress,
-					Task:    t.Metadata.Name,
-					EventID: ev.Metadata.ID,
-					Logger:  fileDescriptor,
-				},
-			},
-		}
-	})
+	ch := e.statev1.Send(state.CmdStartTask, &e.wg)
+	ch <- state.Change{
+		Cause: "Task started",
+		TaskChanges: state.TaskChanges{
+			ID:       string(id),
+			State:    state.TaskStateInProgress,
+			Name:     t.Metadata.Name,
+			EventID:  ev.Metadata.ID,
+			LoggerID: fileDescriptor,
+		},
+	}
+
 	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
 		logger.Error("Failed to create log file for task")
@@ -154,30 +161,29 @@ func (e *engine) runTask(t Task, ev *Event, logger logger.Logger) error {
 		payload, err = e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
 	}
 
-	status := TaskStatusSuccess
+	status := state.TaskStatusSuccess
 	msg := ""
 	if err != nil {
 		logger.Error("Task exited with error", "err", err.Error())
-		status = TaskStatusFailed
+		status = state.TaskStatusFailed
 		msg = err.Error()
 	}
 	e.wg.Add(1)
-	go e.state.send(commands.FinishTask, &e.wg, func() *State {
-		return &State{
-			Tasks: map[ID]TaskState{
-				id: {
-					State:     TaskStateFinished,
-					Status:    status,
-					Task:      t.Metadata.Name,
-					Output:    payload,
-					Arguments: fmt.Sprintf("%v", arguments),
-					EventID:   ev.Metadata.ID,
-					Error:     msg,
-					Logger:    fileDescriptor,
-				},
-			},
-		}
-	})
+	ch = e.statev1.Send(state.CmdFinishTask, &e.wg)
+	ch <- state.Change{
+		Cause: "Task finished",
+		TaskChanges: state.TaskChanges{
+			ID:        string(id),
+			State:     state.TaskStateFinished,
+			Status:    status,
+			Name:      t.Metadata.Name,
+			Output:    payload,
+			Arguments: fmt.Sprintf("%v", arguments),
+			EventID:   ev.Metadata.ID,
+			Error:     msg,
+			LoggerID:  fileDescriptor,
+		},
+	}
 	return nil
 }
 
@@ -186,7 +192,7 @@ func (e *engine) waitForFinish() {
 	time.Sleep(5 * time.Second)
 	e.wg.Wait()
 
-	for id, t := range e.state.Tasks {
+	for id, t := range e.statev1.Tasks() {
 		e.logger.Debug("Testing task", "name", t.Task, "id", id, "state", t.State)
 		if t.State != "finished" {
 			return
@@ -195,13 +201,25 @@ func (e *engine) waitForFinish() {
 
 	e.logger.Debug("All tasks seems to be finished, sending finish command")
 	e.wg.Add(1)
-	go e.state.send(commands.FinishEngine, &e.wg, func() *State {
-		return &State{
-			Metadata: StateMetadata{
-				State: EngineStateFinished,
-			},
-		}
-	})
+	ch := e.statev1.Send(state.CmdFinishEngine, &e.wg)
+	ch <- state.Change{
+		Cause: "Pipeline finished",
+		PipelineChange: state.PipelineChange{
+			States: state.EngineStateFinished,
+		},
+	}
 	return
+}
 
+func (e *engine) printStateStore() error {
+	bytes, err := e.statev1.Bytes()
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("./logs/state.yaml", bytes, os.ModePerm)
+	if err != nil {
+		e.logger.Error("Failed to store state to file")
+		return err
+	}
+	return nil
 }

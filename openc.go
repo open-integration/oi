@@ -9,6 +9,7 @@ import (
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
 	"github.com/open-integration/core/pkg/runner"
+	"github.com/open-integration/core/pkg/state"
 	"github.com/open-integration/core/pkg/utils"
 )
 
@@ -52,7 +53,7 @@ func NewEngine(opt *EngineOptions) Engine {
 	servicesDir := path.Join(home, ".open-integration", "services")
 	dieOnError(createDir(servicesDir))
 
-	e.eventChan = make(chan *Event, 1)
+	e.eventChan = make(chan *state.Event, 1)
 
 	var log logger.Logger
 	if opt.Logger == nil {
@@ -63,6 +64,7 @@ func NewEngine(opt *EngineOptions) Engine {
 		opt.Logger = logger.New(loggerOptions)
 	}
 	log = opt.Logger
+	e.logger = opt.Logger.New("module", "engine")
 
 	serviceDownloader := downloader.New(downloader.Options{
 		Store:  servicesDir,
@@ -71,8 +73,6 @@ func NewEngine(opt *EngineOptions) Engine {
 
 	servicesLogDir := path.Join(opt.LogsDirectory, "logs", "services")
 	dieOnError(createDir(servicesLogDir))
-
-	e.logger = log.New("module", "engine")
 
 	// Init modem
 	{
@@ -125,13 +125,13 @@ func NewEngine(opt *EngineOptions) Engine {
 			}
 		}
 	}
-
-	e.state = NewState(&StateOptions{
-		Logger:           e.logger.New("sub-module", "state-store"),
-		EventCn:          e.eventChan,
-		StateFile:        "./logs/state.yaml",
-		EventHistoryFile: "./logs/history.yaml",
+	s := state.New(&state.Options{
+		Logger:       opt.Logger.New("module", "state-store"),
+		EventChan:    e.eventChan,
+		CommandsChan: make(chan string, 1),
+		Name:         e.pipeline.Metadata.Name,
 	})
+	e.statev1 = s
 	return e
 }
 

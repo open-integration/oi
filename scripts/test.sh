@@ -9,7 +9,7 @@ mkdir .cover/ .test/
 trap "rm -rf .test/" EXIT
 
 for pkg in `go list ./... | grep -v /vendor/`; do
-    go test -v -covermode=atomic \
+    go test -race -v -covermode=atomic \
         -coverprofile=".cover/$(echo $pkg | sed 's/\//_/g').cover.out" $pkg
 done
 echo "mode: set" > .cover/cover.out && cat .cover/*.cover.out | grep -v mode: | sort -r | \
