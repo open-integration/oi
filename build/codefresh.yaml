@@ -8,7 +8,7 @@ steps:
     revision: ${{CF_REVISION}}
 
   test:
-    image: golang:1.13.5-alpine3.11
+    image: golang:1.13.5
     environment:
     - VCS_COMMIT_ID=${{CF_REVISION}}
     - VCS_BRANCH_NAME=${{CF_BRANCH}}
@@ -16,9 +16,9 @@ steps:
     - CI_BUILD_ID=${{CF_BUILD_ID}}
     - CI_BUILD_URL=${{CF_BUILD_URL}}
     commands:
-    - apk update
-    - apk add --no-cache git make ca-certificates gcc g++ curl bash
-    - apk upgrade
+    - apt-get update
+    - apt-get install build-essential
+    - apt-get install make
     - make test
     - curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
     - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL

@@ -2,7 +2,6 @@
 #!/bin/bash
 
 set -e
-set -o pipefail
 
 rm -rf .cover/ .test/
 mkdir .cover/ .test/
