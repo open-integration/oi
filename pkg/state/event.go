@@ -13,8 +13,9 @@ type (
 
 	// Event - means that something happen
 	Event struct {
-		Metadata EventMetadata
-		Payload  map[string]interface{}
+		Metadata     EventMetadata          `yaml:"metadata"`
+		RelatedTasks []string               `yaml:"related-tasks"`
+		Payload      map[string]interface{} `yaml:"payload"`
 	}
 
 	EventMetadata struct {

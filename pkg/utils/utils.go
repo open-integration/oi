@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/gofrs/uuid"
 )
 
 func CreateLogFile(dir string, name string) (io.Writer, error) {
@@ -17,4 +19,8 @@ func CreateLogFile(dir string, name string) (io.Writer, error) {
 		return nil, err
 	}
 	return f, nil
+}
+
+func GenerateID() string {
+	return uuid.Must(uuid.NewV4()).String()
 }

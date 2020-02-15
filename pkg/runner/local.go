@@ -85,25 +85,21 @@ func (_l *localRunner) Call(context context.Context, req *v1.CallRequest) (*v1.C
 }
 
 func (_l *localRunner) generatePort() error {
-	_l.Logger.Debug("Generating available port on machine")
 	port, err := _l.portGenerator.GetAvailable()
 	if err != nil {
 		return err
 	}
 	_l.port = port
-	_l.Logger.Debug("Port generated", "port", port)
 	return nil
 }
 
 func (_l *localRunner) generateLogFile() error {
 	name := fmt.Sprintf("%s-%s.log", _l.name, _l.id)
-	_l.Logger.Debug("Creating log file", "file", name)
 	writer, err := _l.logFileCreator.Create(_l.logsFileDirectory, name)
 	if err != nil {
 		return err
 	}
 	_l.logWriter = writer
-	_l.Logger.Debug("Log file created", "file", name)
 	return nil
 }
 
@@ -113,7 +109,6 @@ func (_l *localRunner) createCommand() error {
 }
 
 func (_l *localRunner) run() error {
-	_l.Logger.Debug("Starting service binary")
 	_l.command.Stdout = _l.logWriter
 	_l.command.Stderr = _l.logWriter
 	return _l.command.Start()
@@ -121,7 +116,6 @@ func (_l *localRunner) run() error {
 
 func (_l *localRunner) dail() error {
 	url := fmt.Sprintf("localhost:%s", _l.port)
-	_l.Logger.Debug("Dial to service", "URL", url)
 	conn, err := _l.dialer.Dial(url, grpc.WithInsecure())
 	if err != nil {
 		return err
@@ -133,7 +127,6 @@ func (_l *localRunner) dail() error {
 }
 
 func (_l *localRunner) init() error {
-	_l.Logger.Debug("Calling service init endpoint one time")
 	resp, err := _l.client.Init(context.Background(), &v1.InitRequest{})
 	if err != nil {
 		return err

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sync"
 
 	"github.com/open-integration/core/pkg/downloader"
 	"github.com/open-integration/core/pkg/logger"
@@ -36,6 +37,7 @@ type (
 func NewEngine(opt *EngineOptions) Engine {
 	e := &engine{
 		pipeline: opt.Pipeline,
+		wg:       &sync.WaitGroup{},
 	}
 	if opt.LogsDirectory == "" {
 		wd, err := os.Getwd()
@@ -53,7 +55,8 @@ func NewEngine(opt *EngineOptions) Engine {
 	servicesDir := path.Join(home, ".open-integration", "services")
 	dieOnError(createDir(servicesDir))
 
-	e.eventChan = make(chan *state.Event, 1)
+	e.eventChan = make(chan *state.Event, 10)
+	e.stateUpdateRequest = make(chan state.StateUpdateRequest, 1)
 
 	var log logger.Logger
 	if opt.Logger == nil {
@@ -80,7 +83,7 @@ func NewEngine(opt *EngineOptions) Engine {
 			Logger: log.New("module", "modem"),
 		})
 		for _, s := range opt.Pipeline.Spec.Services {
-			svcID := string(generateID())
+			svcID := utils.GenerateID()
 			if opt.Kubeconfig == nil {
 				location := s.Path
 				if s.Name != "" && s.Version != "" {
@@ -126,12 +129,15 @@ func NewEngine(opt *EngineOptions) Engine {
 		}
 	}
 	s := state.New(&state.Options{
-		Logger:       opt.Logger.New("module", "state-store"),
-		EventChan:    e.eventChan,
-		CommandsChan: make(chan string, 1),
-		Name:         e.pipeline.Metadata.Name,
+		Logger:             opt.Logger.New("module", "state-store"),
+		EventChan:          e.eventChan,
+		CommandsChan:       make(chan string, 1),
+		Name:               e.pipeline.Metadata.Name,
+		StateUpdateRequest: e.stateUpdateRequest,
+		WG:                 e.wg,
 	})
 	e.statev1 = s
+	go s.StartProcess()
 	return e
 }
 

@@ -75,7 +75,6 @@ func (m *modem) Init() error {
 
 func (m *modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error) {
 	log := m.logger.New("service", service, "endpoint", endpoint)
-	log.Debug("Call service request")
 
 	req := &v1.CallRequest{
 		Endpoint: endpoint,
@@ -85,12 +84,10 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 	if err != nil {
 		return "", err
 	}
-	log.Debug("Validating arguments")
 	err = m.isArgumentsValid(argsJSON, m.services[service].tasksSchemas[fmt.Sprintf("%s/%s", endpoint, "arguments.json")])
 	if err != nil {
 		return "", err
 	}
-	log.Debug("Arguments are valid")
 	req.Arguments = string(argsJSON)
 	resp, err := m.services[service].runner.Call(context.Background(), req)
 	if err != nil {
@@ -102,7 +99,6 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 		return resp.Payload, fmt.Errorf(resp.Error)
 	}
 
-	log.Debug("Call ended", "response", resp.Status)
 	err = m.isResponsePayloadValid(resp.Payload, m.services[service].tasksSchemas[fmt.Sprintf("%s/%s", endpoint, "returns.json")])
 	if err != nil {
 		return resp.Payload, err
@@ -112,7 +108,6 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 }
 
 func (m *modem) Destroy() error {
-	m.logger.Debug("Stopping all services")
 	for name, service := range m.services {
 		err := service.runner.Kill()
 		if err != nil {

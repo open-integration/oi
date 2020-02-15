@@ -14,7 +14,7 @@ func ConditionTaskFinishedWithStatus(task string, status string) func(ev state.E
 			return false
 		}
 		for _, t := range s.Tasks() {
-			if t.Status == status && t.State == "finished" && t.Task == task {
+			if t.Status == status && t.State == state.TaskStateFinished && t.Task == task {
 				return true
 			}
 		}

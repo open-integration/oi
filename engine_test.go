@@ -154,7 +154,7 @@ func Test_engine_Run(t *testing.T) {
 			},
 		},
 		testEngineRun{
-			name:    "Should run succesfully multiple ",
+			name:    "Should run succesfully multiple tasks",
 			wantErr: false,
 			middleware: []func(e core.Engine){
 				func(e core.Engine) {

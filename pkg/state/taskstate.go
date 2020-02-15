@@ -3,7 +3,6 @@ package state
 type (
 	// TaskState is a representation of a state of one task
 	TaskState struct {
-		ID        string `yaml:"id"`
 		State     string `yaml:"state"`
 		Status    string `yaml:"status"`
 		Task      string `yaml:"task"`
