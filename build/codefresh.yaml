@@ -24,7 +24,7 @@ steps:
     - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
 
   security:
-    image: snyk/snyk-cli
+    image: snyk/snyk-cli:npm
     commands:
     - snyk auth ${{SNYK_TOKEN}}
     - snyk monitor
