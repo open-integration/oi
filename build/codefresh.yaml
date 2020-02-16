@@ -20,6 +20,7 @@ steps:
     - apt-get install build-essential -y
     - apt-get install make -y
     - make test
+    - make test-fmt
     - curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
     - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
 

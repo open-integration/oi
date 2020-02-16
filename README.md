@@ -1,7 +1,6 @@
 # Open Integration - a pipeline execution engine
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/open-integration/core)](https://goreportcard.com/report/github.com/open-integration/core)
-
 [![codecov](https://codecov.io/gh/open-integration/core/branch/master/graph/badge.svg)](https://codecov.io/gh/open-integration/core)
 
 ## stop using YAMLs
