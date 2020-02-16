@@ -7,6 +7,7 @@
 ## stop using YAMLs
 
 ## This is not production ready stuff
+Until the project has not reached version > 1.x.x it may have breaking changes in the API, please use the latest version before opening issue.
 
 ## Concepts
 * A compiled, binray pipeline
