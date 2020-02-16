@@ -8,19 +8,13 @@ steps:
     revision: ${{CF_REVISION}}
 
   security:
-    image: snyk/snyk-cli:npm
+    image: openintegration/testing
     commands:
-    - apt-get update
-    - apt-get -y upgrade
-    - apt-get install wget 
-    - wget https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
-    - tar -xvf go1.13.3.linux-amd64.tar.gz
-    - mv go /usr/local/bin
     - snyk auth ${{SNYK_TOKEN}}
     - snyk monitor
 
   test:
-    image: golang:1.13.5
+    image: openintegration/testing
     environment:
     - VCS_COMMIT_ID=${{CF_REVISION}}
     - VCS_BRANCH_NAME=${{CF_BRANCH}}
@@ -28,13 +22,14 @@ steps:
     - CI_BUILD_ID=${{CF_BUILD_ID}}
     - CI_BUILD_URL=${{CF_BUILD_URL}}
     commands:
-    - apt-get update
-    - apt-get install build-essential -y
-    - apt-get install make -y
     - make test
-    - make test-fmt
     - curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
     - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
+
+  test-fmt:
+    image: openintegration/testing
+    commands:
+    - make test-fmt
 
   version:
     image: codefresh/cli
