@@ -3,7 +3,7 @@
 
 set -e
 
-fmtcmd="gofmt -s -l . | wc -l"
+fmtcmd="gofmt -l . | wc -l"
 if [ $(eval $fmtcmd) -gt 0 ]
 then
     echo "cmd: \"$fmtcmd\" failed"
