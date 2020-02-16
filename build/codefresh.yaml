@@ -2,7 +2,7 @@ version: '1.0'
 
 mode: parallel
 
-stage:
+stages:
 - prepare
 - test
 - push
