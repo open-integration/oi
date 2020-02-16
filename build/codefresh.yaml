@@ -2,14 +2,21 @@ version: '1.0'
 
 mode: parallel
 
+stage:
+- prepare
+- test
+- push
+
 steps:
   main_clone:
+    stage: prepare
     type: git-clone
     repo: open-integration/core
     git: cf_github
     revision: ${{CF_REVISION}}
 
   security:
+    stage: test
     image: openintegration/testing
     commands:
     - snyk auth ${{SNYK_TOKEN}}
@@ -20,8 +27,8 @@ steps:
         on:
         - success
           
-
   test:
+    stage: test
     image: openintegration/testing
     environment:
     - VCS_COMMIT_ID=${{CF_REVISION}}
@@ -36,18 +43,21 @@ steps:
     when: *clone
 
   test-fmt:
+    stage: test
     image: openintegration/testing
     commands:
     - make test-fmt
     when: *clone
 
   version:
+    stage: prepare
     image: codefresh/cli
     commands:
     - cf_export VERSION=$(cat VERSION)
     when: *clone    
 
   git-tag:
+    stage: push
     title: Push tag to git
     image: codefresh/cli
     commands:
