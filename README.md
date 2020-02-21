@@ -18,5 +18,51 @@ Until the project has not reached version > 1.x.x it may have breaking changes i
 * Endpoint of a service defined by 2 files of JSON schema, `arguments.json` and `returns.json`, the engine will enforce the arguments given by a task and the output created to match the schema.
 
 ## Example
+### Hello World
+* Copy
+* `go mod init ...`
+* `go mod tidy`
+* `go run main.go`
+```golang
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/open-integration/core"
+	"github.com/open-integration/core/pkg/state"
+)
+
+func main() {
+	pipe := core.Pipeline{
+		Metadata: core.PipelineMetadata{
+			Name: "hello-world",
+		},
+		Spec: core.PipelineSpec{
+			Reactions: []core.EventReaction{
+				core.EventReaction{
+					Condition: core.ConditionEngineStarted,
+					Reaction: func(ev state.Event, state state.State) []core.Task {
+						fmt.Println("Hello world")
+						return []core.Task{}
+					},
+				},
+			},
+		},
+	}
+	e := core.NewEngine(&core.EngineOptions{
+		Pipeline: pipe,
+	})
+	err := e.Run()
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+}
+
+```
+
+### Real world examples
 * [JIRA](https://github.com/olegsu/jira-sync)
 * [Trello](https://github.com/olegsu/trello-sync)
