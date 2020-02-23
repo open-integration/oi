@@ -14,6 +14,8 @@ import (
 	"github.com/open-integration/core/pkg/utils"
 )
 
+var exit = func(code int) { os.Exit(code) }
+
 type (
 	// EngineOptions to create new engine
 	EngineOptions struct {
@@ -150,4 +152,12 @@ func dieOnError(err error) {
 
 func createDir(path string) error {
 	return os.MkdirAll(path, os.ModePerm)
+}
+
+// HandleEngineError prints the error in case the engine.Run was failed and exit
+func HandleEngineError(err error) {
+	if err != nil {
+		fmt.Printf("Failed to execute pipeline\nError: %v", err)
+		exit(1)
+	}
 }
