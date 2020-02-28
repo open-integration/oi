@@ -162,11 +162,20 @@ func (s *state) addRealtedTaskToEventReuqest(req *AddRealtedTaskToEventReuqest) 
 }
 
 func (s *state) electTasksRequest(req *ElectTasksRequest) {
-	for _, id := range req.Tasks {
-		s.tasks[id] = TaskState{
-			State: TaskStateInProgress,
+	for _, t := range req.Tasks {
+		s.tasks[t.Metadata.Name] = TaskState{
+			State: TaskStateElected,
+			Task:  t,
 		}
 	}
+	ev := &Event{
+		Metadata: EventMetadata{
+			CreatedAt: time.Now(),
+			ID:        utils.GenerateID(),
+			Name:      EventTaskElected,
+		},
+	}
+	s.eventChan <- ev
 }
 func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
 	ev := &Event{
@@ -175,16 +184,16 @@ func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
 			ID:        utils.GenerateID(),
 		},
 	}
-	id := req.State.Task
+	task := req.State.Task
 	if req.State.State == TaskStateInProgress {
 		ev.Metadata.Name = EventTaskStarted
 	} else if req.State.State == TaskStateFinished {
 		ev.Metadata.Name = EventTaskFinished
 	}
 	newstate := &TaskState{}
-	mergo.MergeWithOverwrite(newstate, s.tasks[id])
+	mergo.MergeWithOverwrite(newstate, s.tasks[task.Metadata.Name])
 	mergo.MergeWithOverwrite(newstate, req.State)
-	s.tasks[id] = *newstate
+	s.tasks[task.Metadata.Name] = *newstate
 	s.events = append(s.events, *ev)
 	s.eventChan <- ev
 	s.wg.Done()

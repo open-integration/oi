@@ -1,6 +1,10 @@
 package state
 
-import "time"
+import (
+	"time"
+
+	"github.com/open-integration/core/pkg/task"
+)
 
 type (
 	StateUpdateRequest struct {
@@ -16,7 +20,7 @@ type (
 	}
 
 	ElectTasksRequest struct {
-		Tasks []string
+		Tasks []task.Task
 	}
 
 	UpdateTaskStateRequest struct {
