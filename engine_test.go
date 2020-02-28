@@ -7,6 +7,7 @@ import (
 	apiv1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/mocks"
 	"github.com/open-integration/core/pkg/state"
+	"github.com/open-integration/core/pkg/task"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -51,13 +52,13 @@ func Test_engine_Run(t *testing.T) {
 						Reactions: []core.EventReaction{
 							core.EventReaction{
 								Condition: core.ConditionEngineStarted,
-								Reaction: func(ev state.Event, state state.State) []core.Task {
-									return []core.Task{
-										core.Task{
-											Metadata: core.TaskMetadata{
+								Reaction: func(ev state.Event, state state.State) []task.Task {
+									return []task.Task{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-name",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Endpoint: "endpoint",
 												Service:  "service-name",
 											},
@@ -99,13 +100,13 @@ func Test_engine_Run(t *testing.T) {
 						Reactions: []core.EventReaction{
 							core.EventReaction{
 								Condition: core.ConditionEngineStarted,
-								Reaction: func(ev state.Event, state state.State) []core.Task {
-									return []core.Task{
-										core.Task{
-											Metadata: core.TaskMetadata{
+								Reaction: func(ev state.Event, state state.State) []task.Task {
+									return []task.Task{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-1",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service1",
 												Endpoint: "endpoint1",
 											},
@@ -115,22 +116,22 @@ func Test_engine_Run(t *testing.T) {
 							},
 							core.EventReaction{
 								Condition: core.ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
-								Reaction: func(ev state.Event, state state.State) []core.Task {
-									return []core.Task{
-										core.Task{
-											Metadata: core.TaskMetadata{
+								Reaction: func(ev state.Event, state state.State) []task.Task {
+									return []task.Task{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-2",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service2",
 												Endpoint: "endpoint1",
 											},
 										},
-										core.Task{
-											Metadata: core.TaskMetadata{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-3",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service2",
 												Endpoint: "endpoint1",
 											},
@@ -186,13 +187,13 @@ func Test_engine_Run(t *testing.T) {
 						Reactions: []core.EventReaction{
 							core.EventReaction{
 								Condition: core.ConditionEngineStarted,
-								Reaction: func(ev state.Event, state state.State) []core.Task {
-									return []core.Task{
-										core.Task{
-											Metadata: core.TaskMetadata{
+								Reaction: func(ev state.Event, state state.State) []task.Task {
+									return []task.Task{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-1",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service1",
 												Endpoint: "endpoint1",
 											},
@@ -202,22 +203,22 @@ func Test_engine_Run(t *testing.T) {
 							},
 							core.EventReaction{
 								Condition: core.ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
-								Reaction: func(ev state.Event, state state.State) []core.Task {
-									return []core.Task{
-										core.Task{
-											Metadata: core.TaskMetadata{
+								Reaction: func(ev state.Event, state state.State) []task.Task {
+									return []task.Task{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-2",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service2",
 												Endpoint: "endpoint1",
 											},
 										},
-										core.Task{
-											Metadata: core.TaskMetadata{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-3",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service2",
 												Endpoint: "endpoint1",
 											},
@@ -227,22 +228,22 @@ func Test_engine_Run(t *testing.T) {
 							},
 							core.EventReaction{
 								Condition: core.ConditionTaskFinishedWithStatus("task-2", state.TaskStatusSuccess),
-								Reaction: func(ev state.Event, state state.State) []core.Task {
-									return []core.Task{
-										core.Task{
-											Metadata: core.TaskMetadata{
+								Reaction: func(ev state.Event, state state.State) []task.Task {
+									return []task.Task{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-4",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service2",
 												Endpoint: "endpoint1",
 											},
 										},
-										core.Task{
-											Metadata: core.TaskMetadata{
+										task.Task{
+											Metadata: task.Metadata{
 												Name: "task-5",
 											},
-											Spec: core.TaskSpec{
+											Spec: task.Spec{
 												Service:  "service2",
 												Endpoint: "endpoint1",
 											},

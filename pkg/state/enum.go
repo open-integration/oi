@@ -7,6 +7,9 @@ const (
 	// EngineStateFinished pipeline is finished execution
 	EngineStateFinished string = "finished"
 
+	// TaskStateElected task is in progress
+	TaskStateElected string = "elected"
+
 	// TaskStateInProgress task is in progress
 	TaskStateInProgress string = EngineStateInProgress
 

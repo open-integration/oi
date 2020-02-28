@@ -11,6 +11,7 @@ import (
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
 	"github.com/open-integration/core/pkg/state"
+	"github.com/open-integration/core/pkg/task"
 	"github.com/open-integration/core/pkg/utils"
 )
 
@@ -66,24 +67,28 @@ func (e *engine) Modem() modem.Modem {
 	return e.modem
 }
 
+// handleStateEvents watch the event channel and act on each evnt
+// state.EventEngineFinished - finished watching, execution finished
+// state.EventEngineStarted OR state.EventTaskStarted OR state.EventTaskFinished - elect next tasks
+// state.EventTaskElected - execute tasks
 func (e *engine) handleStateEvents() {
 	for {
 		ev := <-e.eventChan
-		if ev.Metadata.Name == state.EventEngineFinished {
+		switch ev.Metadata.Name {
+		case state.EventEngineFinished:
 			return
+		case state.EventEngineStarted, state.EventTaskStarted, state.EventTaskFinished:
+			go e.electNextTasks(*ev)
+		case state.EventTaskElected:
+			go e.executeElectedTasks(*ev)
 		}
-		go e.handleEvent(*ev)
 	}
 }
 
-// handleEvent
-// Run over all event reactions and get the task candidates if the condition is passed
-// Run over all the candidates and get the task that actually should be executed
-// based on the .metadata.reusable prop
-func (e *engine) handleEvent(ev state.Event) {
-
+// electNextTasks - running all reactions on the event and sending request to elect matched tasks
+func (e *engine) electNextTasks(ev state.Event) {
 	log := e.logger.New("event", ev.Metadata.Name)
-	log.Debug("Received event")
+	log.Debug("Received event, electing next tasks")
 	stateCpy, err := e.statev1.Copy()
 	if err != nil {
 		e.logger.Error("Failed to copy state")
@@ -91,55 +96,59 @@ func (e *engine) handleEvent(ev state.Event) {
 	}
 
 	// candidate is the tasks results of all reactions
-	tasksCandidates := []Task{}
+	tasksCandidates := []task.Task{}
 	for _, reaction := range e.pipeline.Spec.Reactions {
 		if reaction.Condition(ev, stateCpy) {
 			tasksCandidates = append(tasksCandidates, reaction.Reaction(ev, stateCpy)...)
 		}
 	}
 
-	pairs := []struct {
-		task   Task
-		logger logger.Logger
-	}{}
-	tasksToElect := []string{}
+	tasksToElect := []task.Task{}
 	for _, t := range tasksCandidates {
-		taskLogger := log.New("task", t.Metadata.Name)
 		_, exist := stateCpy.Tasks()[t.Metadata.Name]
 		if !exist {
-			pairs = append(pairs, struct {
-				task   Task
-				logger logger.Logger
-			}{
-				task:   t,
-				logger: taskLogger,
-			})
-			tasksToElect = append(tasksToElect, t.Metadata.Name)
+			e.logger.Debug("Adding task to elected set", "task", t.Metadata.Name)
+			tasksToElect = append(tasksToElect, t)
 		}
-
 	}
-	e.logger.Debug("Electing tasks", "total", len(tasksToElect))
-	e.electTasks(tasksToElect)
-	for _, pair := range pairs {
-		err := e.runTask(pair.task, ev, pair.logger)
-		if err != nil {
-			log.Error("Error running task", "err", err.Error(), "task", pair.task.Metadata.Name)
+	if len(tasksToElect) > 0 {
+		e.logger.Debug("Electing tasks", "total", len(tasksToElect))
+		e.stateUpdateRequest <- state.StateUpdateRequest{
+			Metadata: state.StateUpdateRequestMetadata{
+				CreatedAt: now(),
+			},
+			ElectTasksRequest: &state.ElectTasksRequest{
+				Tasks: tasksToElect,
+			},
 		}
 	}
 }
 
-func (e *engine) electTasks(tasks []string) {
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
-			CreatedAt: now(),
-		},
-		ElectTasksRequest: &state.ElectTasksRequest{
-			Tasks: tasks,
-		},
+// executeElectedTasks - execute all elected tasks in parallel
+func (e *engine) executeElectedTasks(ev state.Event) {
+	log := e.logger.New("event", ev.Metadata.Name)
+	stateCpy, err := e.statev1.Copy()
+	if err != nil {
+		e.logger.Error("Failed to copy state")
+		return
 	}
+	elected := []task.Task{}
+	for _, t := range stateCpy.Tasks() {
+		if t.State == state.TaskStateElected {
+			elected = append(elected, t.Task)
+		}
+	}
+	wg := &sync.WaitGroup{}
+	for _, t := range elected {
+		wg.Add(1)
+		log.Debug("Running task", "task", t.Metadata.Name)
+		go e.runTask(t, ev, log.New("task", t.Metadata.Name))
+		wg.Done()
+	}
+	wg.Wait()
 }
 
-func (e *engine) runTask(t Task, ev state.Event, logger logger.Logger) error {
+func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 	spec := t.Spec
 
 	e.stateUpdateRequest <- state.StateUpdateRequest{
@@ -161,7 +170,7 @@ func (e *engine) runTask(t Task, ev state.Event, logger logger.Logger) error {
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
 				State:   state.TaskStateInProgress,
-				Task:    t.Metadata.Name,
+				Task:    t,
 				EventID: ev.Metadata.ID,
 				Logger:  fileDescriptor,
 			},
@@ -178,7 +187,7 @@ func (e *engine) runTask(t Task, ev state.Event, logger logger.Logger) error {
 	if spec.Service != "" {
 		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
 		for _, arg := range spec.Arguments {
-			arguments[arg.GetKey()] = arg.GetValue()
+			arguments[arg.Key] = arg.Value
 		}
 		payload, err = e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
 	}
@@ -197,19 +206,17 @@ func (e *engine) runTask(t Task, ev state.Event, logger logger.Logger) error {
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
-				State:     state.TaskStateFinished,
-				Status:    status,
-				Task:      t.Metadata.Name,
-				Output:    payload,
-				Arguments: fmt.Sprintf("%v", arguments),
-				EventID:   ev.Metadata.ID,
-				Error:     msg,
-				Logger:    fileDescriptor,
+				State:   state.TaskStateFinished,
+				Status:  status,
+				Task:    t,
+				Output:  payload,
+				EventID: ev.Metadata.ID,
+				Error:   msg,
+				Logger:  fileDescriptor,
 			},
 		},
 	}
 
-	return nil
 }
 
 // waitForFinish watch all events and send finish command once there are no more tasks in in-progress state
