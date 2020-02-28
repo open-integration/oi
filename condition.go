@@ -21,3 +21,18 @@ func ConditionTaskFinishedWithStatus(task string, status string) func(ev state.E
 		return false
 	}
 }
+
+// ConditionTaskFinished returns true once a task reached finished state
+func ConditionTaskFinished(task string) func(ev state.Event, s state.State) bool {
+	return func(ev state.Event, s state.State) bool {
+		if ev.Metadata.Name != state.EventTaskFinished {
+			return false
+		}
+		for _, t := range s.Tasks() {
+			if t.State == state.TaskStateFinished && t.Task.Metadata.Name == task {
+				return true
+			}
+		}
+		return false
+	}
+}
