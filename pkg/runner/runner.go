@@ -46,6 +46,9 @@ type (
 		KubernetesKubeConfigPath   string
 		KubernetesContext          string
 		KubernetesNamespace        string
+		KubeconfigHost             string
+		KubeconfigB64Crt           string
+		KubeconfigToken            string
 		Kube                       kube
 		KubernetesGrpcDialViaPodIP bool
 	}
@@ -93,6 +96,9 @@ func New(opt *Options) Runner {
 			kubeconfigPath:       opt.KubernetesKubeConfigPath,
 			kubeconfigNamespace:  opt.KubernetesNamespace,
 			kubeconfigContext:    opt.KubernetesContext,
+			kubeconfigHost:       opt.KubeconfigHost,
+			kubeconfigToken:      opt.KubeconfigToken,
+			kubeconfigB64Crt:     opt.KubeconfigB64Crt,
 			kube:                 opt.Kube,
 			dialer:               opt.Dailer,
 			portGenerator:        opt.PortGenerator,

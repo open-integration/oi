@@ -1,6 +1,7 @@
 package utils
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"strconv"
 	"time"
@@ -16,12 +17,32 @@ import (
 type (
 	// Kubernetes expose abilities on run on kube cluster
 	Kubernetes struct{}
+
+	BuildKubeClientOptions struct {
+		KubeconfigPath string
+		Host           string
+		B64CRT         string
+		Token          string
+	}
 )
 
 // BuildClient returns a kubernetes client based on path to kubeconfig
-func (_k *Kubernetes) BuildClient(kubeconfigPath string) (*kubernetes.Clientset, error) {
+func (_k *Kubernetes) BuildClient(opt BuildKubeClientOptions) (*kubernetes.Clientset, error) {
+	if opt.Host != "" && opt.B64CRT != "" && opt.Token != "" {
+		ca, err := b64.StdEncoding.DecodeString(opt.B64CRT)
+		if err != nil {
+			return nil, err
+		}
+		return kubernetes.NewForConfig(&rest.Config{
+			Host:        opt.Host,
+			BearerToken: opt.Token,
+			TLSClientConfig: rest.TLSClientConfig{
+				CAData: ca,
+			},
+		})
+	}
 	var config *rest.Config
-	if kubeconfigPath == "" {
+	if opt.KubeconfigPath == "" {
 		var err error
 		config, err = rest.InClusterConfig()
 		if err != nil {
@@ -29,7 +50,7 @@ func (_k *Kubernetes) BuildClient(kubeconfigPath string) (*kubernetes.Clientset,
 		}
 	} else {
 		var err error
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+		config, err = clientcmd.BuildConfigFromFlags("", opt.KubeconfigPath)
 		if err != nil {
 			return nil, err
 		}

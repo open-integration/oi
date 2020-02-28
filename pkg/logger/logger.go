@@ -46,7 +46,7 @@ func New(opt *Options) Logger {
 		}
 
 		if opt.FilePath != "" {
-			h, err := log.FileHandler(opt.FilePath, log.LogfmtFormat())
+			h, err := log.FileHandler(opt.FilePath, log.JsonFormat())
 			if err == nil {
 				handlers = append(handlers, log.LvlFilterHandler(lvl, h))
 			}

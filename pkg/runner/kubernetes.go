@@ -6,6 +6,7 @@ import (
 
 	v1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/logger"
+	"github.com/open-integration/core/pkg/utils"
 	"google.golang.org/grpc"
 	apiv1 "k8s.io/api/core/v1"
 
@@ -25,6 +26,9 @@ type (
 		kubeconfigPath       string
 		kubeconfigContext    string
 		kubeconfigNamespace  string
+		kubeconfigHost       string
+		kubeconfigB64Crt     string
+		kubeconfigToken      string
 		kube                 kube
 		kubeclient           *kubernetes.Clientset
 		dialer               dialer
@@ -39,7 +43,7 @@ type (
 	}
 
 	kube interface {
-		BuildClient(kubeconfigPath string) (*kubernetes.Clientset, error)
+		BuildClient(utils.BuildKubeClientOptions) (*kubernetes.Clientset, error)
 		BuildPodDefinition(namespace string, name string, version string, id string, port string) (*apiv1.Pod, error)
 		BuildServiceDefinition(namespace string, name string, id string, port string, serviceType string) (*apiv1.Service, error)
 		CreatePod(client *kubernetes.Clientset, def *apiv1.Pod) (*apiv1.Pod, error)
@@ -51,7 +55,9 @@ type (
 )
 
 func (_k *kubernetesRunner) Run() error {
-	client, err := _k.kube.BuildClient(_k.kubeconfigPath)
+	client, err := _k.kube.BuildClient(utils.BuildKubeClientOptions{
+		KubeconfigPath: _k.kubeconfigPath,
+	})
 	if err != nil {
 		return err
 	}
