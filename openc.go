@@ -32,6 +32,9 @@ type (
 		Context   string
 		Namespace string
 		InCluster bool
+		Host      string
+		B64Crt    string
+		Token     string
 	}
 )
 
@@ -63,7 +66,7 @@ func NewEngine(opt *EngineOptions) Engine {
 	var log logger.Logger
 	if opt.Logger == nil {
 		loggerOptions := &logger.Options{
-			FilePath:    path.Join(opt.LogsDirectory, "logs", "log"),
+			FilePath:    path.Join(opt.LogsDirectory, "logs", "log.log"),
 			LogToStdOut: true,
 		}
 		opt.Logger = logger.New(loggerOptions)
@@ -119,6 +122,9 @@ func NewEngine(opt *EngineOptions) Engine {
 					KubernetesKubeConfigPath: opt.Kubeconfig.Path,
 					KubernetesContext:        opt.Kubeconfig.Context,
 					KubernetesNamespace:      opt.Kubeconfig.Namespace,
+					KubeconfigHost:           opt.Kubeconfig.Host,
+					KubeconfigToken:          opt.Kubeconfig.Token,
+					KubeconfigB64Crt:         opt.Kubeconfig.B64Crt,
 					Kube:                     &utils.Kubernetes{},
 					Dailer:                   &utils.GRPC{},
 					ServiceClientCreator:     utils.Proto{},
