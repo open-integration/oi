@@ -35,10 +35,10 @@ type (
 		Dailer               dialer
 		PortGenerator        portGenerator
 		ServiceClientCreator serviceClientCreator
+		LogsDirectory        string
 
 		// Local runner options
 		LocalLogFileCreator logFileCreator
-		LocalLogsDirectory  string
 		LocalCommandCreator cmdCreator
 		LocalPathToBinary   string
 
@@ -51,6 +51,8 @@ type (
 		KubeconfigToken            string
 		Kube                       kube
 		KubernetesGrpcDialViaPodIP bool
+		KubernetesVolumeClaimName  string
+		KubernetesVolumeName       string
 	}
 
 	dialer interface {
@@ -78,7 +80,7 @@ func New(opt *Options) Runner {
 			name:                 opt.Name,
 			id:                   opt.ID,
 			logFileCreator:       opt.LocalLogFileCreator,
-			logsFileDirectory:    opt.LocalLogsDirectory,
+			logsFileDirectory:    opt.LogsDirectory,
 			serviceClientCreator: opt.ServiceClientCreator,
 			portGenerator:        opt.PortGenerator,
 			dialer:               opt.Dailer,
@@ -105,6 +107,9 @@ func New(opt *Options) Runner {
 			serviceClientCreator: opt.ServiceClientCreator,
 			hostname:             "localhost",
 			grpcDialViaPodIP:     opt.KubernetesGrpcDialViaPodIP,
+			logsDirectory:        opt.LogsDirectory,
+			kubeVolumeClaimName:  opt.KubernetesVolumeClaimName,
+			kubeVolumeName:       opt.KubernetesVolumeName,
 		}
 
 		return runner

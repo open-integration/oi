@@ -80,7 +80,7 @@ func (_k *Kubernetes) BuildClientWithToken(host string, ca string, token string)
 	return clientset, nil
 }
 
-func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version string, id string, port string) (*v1.Pod, error) {
+func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version string, id string, port string, volume string, volumeClaimName string, volumeMoutnPath string) (*v1.Pod, error) {
 	if version == "" {
 		version = "latest"
 	}
@@ -118,6 +118,24 @@ func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version 
 				},
 			},
 		},
+	}
+	if volume != "" {
+		p.Spec.Volumes = []v1.Volume{
+			v1.Volume{
+				Name: volume,
+				VolumeSource: v1.VolumeSource{
+					PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+						ClaimName: volumeClaimName,
+					},
+				},
+			},
+		}
+		p.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{
+			v1.VolumeMount{
+				Name:      volume,
+				MountPath: volumeMoutnPath,
+			},
+		}
 	}
 	return p, nil
 }
