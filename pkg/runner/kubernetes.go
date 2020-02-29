@@ -29,6 +29,8 @@ type (
 		kubeconfigHost       string
 		kubeconfigB64Crt     string
 		kubeconfigToken      string
+		kubeVolumeName       string
+		kubeVolumeClaimName  string
 		kube                 kube
 		kubeclient           *kubernetes.Clientset
 		dialer               dialer
@@ -40,11 +42,12 @@ type (
 		port                 string
 		hostname             string
 		grpcDialViaPodIP     bool
+		logsDirectory        string
 	}
 
 	kube interface {
 		BuildClient(utils.BuildKubeClientOptions) (*kubernetes.Clientset, error)
-		BuildPodDefinition(namespace string, name string, version string, id string, port string) (*apiv1.Pod, error)
+		BuildPodDefinition(namespace string, name string, version string, id string, port string, volume string, volumeClaimName string, volumeMoutnPath string) (*apiv1.Pod, error)
 		BuildServiceDefinition(namespace string, name string, id string, port string, serviceType string) (*apiv1.Service, error)
 		CreatePod(client *kubernetes.Clientset, def *apiv1.Pod) (*apiv1.Pod, error)
 		WaitForPod(client *kubernetes.Clientset, pod *apiv1.Pod, phase string) error
@@ -125,7 +128,7 @@ func (_k *kubernetesRunner) startService() error {
 }
 
 func (_k *kubernetesRunner) startPod() error {
-	podDef, err := _k.kube.BuildPodDefinition(_k.kubeconfigNamespace, _k.name, _k.version, _k.id, defaultPort)
+	podDef, err := _k.kube.BuildPodDefinition(_k.kubeconfigNamespace, _k.name, _k.version, _k.id, defaultPort, _k.kubeVolumeName, _k.kubeVolumeClaimName, _k.logsDirectory)
 	if err != nil {
 		return err
 	}

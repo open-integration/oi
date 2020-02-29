@@ -28,13 +28,15 @@ type (
 
 	// EngineKubernetesOptions when running service on kubernetes cluster
 	EngineKubernetesOptions struct {
-		Path      string
-		Context   string
-		Namespace string
-		InCluster bool
-		Host      string
-		B64Crt    string
-		Token     string
+		Path                string
+		Context             string
+		Namespace           string
+		InCluster           bool
+		Host                string
+		B64Crt              string
+		Token               string
+		LogsVolumeClaimName string
+		LogsVolumeName      string
 	}
 )
 
@@ -105,7 +107,7 @@ func NewEngine(opt *EngineOptions) Engine {
 					Dailer:               &utils.GRPC{},
 					PortGenerator:        utils.Port{},
 					LocalLogFileCreator:  &utils.FileCreator{},
-					LocalLogsDirectory:   servicesLogDir,
+					LogsDirectory:        servicesLogDir,
 					ServiceClientCreator: utils.Proto{},
 					LocalCommandCreator:  utils.Command{},
 					LocalPathToBinary:    location,
@@ -113,21 +115,24 @@ func NewEngine(opt *EngineOptions) Engine {
 			} else {
 				log.Debug("Adding service")
 				runnerOpt := &runner.Options{
-					Type:                     runner.KubernetesRunner,
-					Logger:                   log.New("service-runner", s.Name),
-					Name:                     s.Name,
-					ID:                       svcID,
-					Version:                  s.Version,
-					PortGenerator:            utils.Port{},
-					KubernetesKubeConfigPath: opt.Kubeconfig.Path,
-					KubernetesContext:        opt.Kubeconfig.Context,
-					KubernetesNamespace:      opt.Kubeconfig.Namespace,
-					KubeconfigHost:           opt.Kubeconfig.Host,
-					KubeconfigToken:          opt.Kubeconfig.Token,
-					KubeconfigB64Crt:         opt.Kubeconfig.B64Crt,
-					Kube:                     &utils.Kubernetes{},
-					Dailer:                   &utils.GRPC{},
-					ServiceClientCreator:     utils.Proto{},
+					Type:                      runner.KubernetesRunner,
+					Logger:                    log.New("service-runner", s.Name),
+					Name:                      s.Name,
+					ID:                        svcID,
+					Version:                   s.Version,
+					PortGenerator:             utils.Port{},
+					KubernetesKubeConfigPath:  opt.Kubeconfig.Path,
+					KubernetesContext:         opt.Kubeconfig.Context,
+					KubernetesNamespace:       opt.Kubeconfig.Namespace,
+					KubeconfigHost:            opt.Kubeconfig.Host,
+					KubeconfigToken:           opt.Kubeconfig.Token,
+					KubeconfigB64Crt:          opt.Kubeconfig.B64Crt,
+					Kube:                      &utils.Kubernetes{},
+					Dailer:                    &utils.GRPC{},
+					ServiceClientCreator:      utils.Proto{},
+					LogsDirectory:             opt.LogsDirectory,
+					KubernetesVolumeClaimName: opt.Kubeconfig.LogsVolumeClaimName,
+					KubernetesVolumeName:      opt.Kubeconfig.LogsVolumeName,
 				}
 				if opt.Kubeconfig.InCluster {
 					runnerOpt.KubernetesGrpcDialViaPodIP = true
