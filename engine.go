@@ -29,6 +29,7 @@ type (
 		eventChan          chan *state.Event
 		stateUpdateRequest chan state.StateUpdateRequest
 		taskLogsDirctory   string
+		stateDir           string
 		modem              modem.Modem
 		statev1            state.State
 		wg                 *sync.WaitGroup
@@ -249,7 +250,7 @@ func (e *engine) printStateStore() error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path.Join(e.taskLogsDirctory, "state.yaml"), statebytes, os.ModePerm)
+	err = ioutil.WriteFile(path.Join(e.stateDir, "state.yaml"), statebytes, os.ModePerm)
 	if err != nil {
 		e.logger.Error("Failed to store state to file")
 		return err
@@ -259,7 +260,7 @@ func (e *engine) printStateStore() error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path.Join(e.taskLogsDirctory, "events.yaml"), eventbytes, os.ModePerm)
+	err = ioutil.WriteFile(path.Join(e.stateDir, "events.yaml"), eventbytes, os.ModePerm)
 	if err != nil {
 		e.logger.Error("Failed to store state to file")
 		return err
