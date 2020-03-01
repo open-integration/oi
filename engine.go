@@ -249,7 +249,7 @@ func (e *engine) printStateStore() error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile("./logs/state.yaml", statebytes, os.ModePerm)
+	err = ioutil.WriteFile(path.Join(e.taskLogsDirctory, "state.yaml"), statebytes, os.ModePerm)
 	if err != nil {
 		e.logger.Error("Failed to store state to file")
 		return err
@@ -259,7 +259,7 @@ func (e *engine) printStateStore() error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile("./logs/events.yaml", eventbytes, os.ModePerm)
+	err = ioutil.WriteFile(path.Join(e.taskLogsDirctory, "events.yaml"), eventbytes, os.ModePerm)
 	if err != nil {
 		e.logger.Error("Failed to store state to file")
 		return err
