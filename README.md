@@ -14,7 +14,10 @@ Til the project has not reached `version > 1.x.x` it may have breaking changes i
 * Endpoint of a service defined by 2 files of JSON schema, `arguments.json` and `returns.json`, the engine will enforce the arguments given by a task and the output created to match the schema.
 
 ## Architecture
-![Diagram](docs/diagram.png)
+![Diagram](docs/architecture.png)
+
+## Dataflow
+![Diagram](docs/flow-diagram.png)
 
 ## Example
 ### Hello World
