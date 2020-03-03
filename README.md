@@ -22,7 +22,7 @@ Til the project has not reached `version > 1.x.x` it may have breaking changes i
 ## Example
 ### Hello World
 * Copy
-* `go mod init ...`
+* `go mod init hello-world`
 * `go mod tidy`
 * `go run main.go`
 ```golang
@@ -34,6 +34,7 @@ import (
 
 	"github.com/open-integration/core"
 	"github.com/open-integration/core/pkg/state"
+	"github.com/open-integration/core/pkg/task"
 )
 
 func main() {
@@ -45,9 +46,9 @@ func main() {
 			Reactions: []core.EventReaction{
 				core.EventReaction{
 					Condition: core.ConditionEngineStarted,
-					Reaction: func(ev state.Event, state state.State) []core.Task {
+					Reaction: func(ev state.Event, state state.State) []task.Task {
 						fmt.Println("Hello world")
-						return []core.Task{}
+						return []task.Task{}
 					},
 				},
 			},
