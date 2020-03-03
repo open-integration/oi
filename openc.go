@@ -56,6 +56,8 @@ func NewEngine(opt *EngineOptions) Engine {
 	dieOnError(createDir(tasksLogDir))
 	e.taskLogsDirctory = tasksLogDir
 
+	e.stateDir = opt.LogsDirectory
+
 	home, err := os.UserHomeDir()
 	dieOnError(err)
 
