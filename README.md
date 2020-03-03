@@ -14,8 +14,10 @@ Until the project has not reached version > 1.x.x it may have breaking changes i
 * State - the engine holds the state of all the tasks
 * Service - a standalone binary exposing API over http2 (gRPC) that the engine can trigger, called endpoint.
 * Task - a request from a service to run some logic.
-
 * Endpoint of a service defined by 2 files of JSON schema, `arguments.json` and `returns.json`, the engine will enforce the arguments given by a task and the output created to match the schema.
+
+## Architecture
+![Diagram](docs/diagram.png)
 
 ## Example
 ### Hello World
