@@ -7,3 +7,6 @@ test-fmt:
 
 fmt:
 	go fmt ./...
+
+export-vars:
+	@sh ./scripts/export-vars.sh
