@@ -15,7 +15,7 @@ import (
 type (
 	// Downloader to use to fetch services from catalog
 	Downloader interface {
-		Download(name string, version string) error
+		Download(name string, version string) (string, error)
 		Store() string
 	}
 
@@ -39,47 +39,47 @@ func New(opt Options) Downloader {
 	}
 }
 
-func (d *downloader) Download(name string, version string) error {
+func (d *downloader) Download(name string, version string) (string, error) {
 	candidateFileName := fmt.Sprintf("%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
 	fullPath := path.Join(d.Store(), candidateFileName)
 	_, err := ioutil.ReadFile(fullPath)
-	if os.IsNotExist(err) {
+	if os.IsExist(err) {
 		d.logger.Debug("Skipping download, service exist", "path", fullPath)
-		return nil
+		return fullPath, nil
 	}
 
 	url := fmt.Sprintf("https://storage.googleapis.com/open-integration-service-catalog/%s", candidateFileName)
 	d.logger.Debug("Downloading", "name", name, "url", url)
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("%s:%s not found", name, version)
+		return "", fmt.Errorf("%s:%s not found", name, version)
 	}
 
 	// Create the file
 	out, err := os.Create(fullPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer out.Close()
 
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Add prmission to exec file
 	err = os.Chmod(fullPath, os.ModePerm)
 	if err != nil {
-		return err
+		return "", err
 	}
 	d.logger.Debug("Downloaded", "name", name, "code", resp.StatusCode)
-	return nil
+	return fullPath, nil
 }
 
 func (d *downloader) Store() string {

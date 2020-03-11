@@ -96,9 +96,8 @@ func NewEngine(opt *EngineOptions) Engine {
 			if opt.Kubeconfig == nil {
 				location := s.Path
 				if s.Name != "" && s.Version != "" {
-					err := serviceDownloader.Download(s.Name, s.Version)
+					location, err = serviceDownloader.Download(s.Name, s.Version)
 					dieOnError(err)
-					location = path.Join(serviceDownloader.Store(), s.Name)
 				}
 				log.Debug("Adding service", "path", location)
 				e.modem.AddService(svcID, s.As, runner.New(&runner.Options{
