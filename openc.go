@@ -24,6 +24,8 @@ type (
 		LogsDirectory string
 		Kubeconfig    *EngineKubernetesOptions
 		Logger        logger.Logger
+
+		serviceDownloader downloader.Downloader
 	}
 
 	// EngineKubernetesOptions when running service on kubernetes cluster
@@ -78,10 +80,12 @@ func NewEngine(opt *EngineOptions) Engine {
 	log = opt.Logger
 	e.logger = opt.Logger.New("module", "engine")
 
-	serviceDownloader := downloader.New(downloader.Options{
-		Store:  servicesDir,
-		Logger: log.New("module", "service-downloader"),
-	})
+	if opt.serviceDownloader == nil {
+		opt.serviceDownloader = downloader.New(downloader.Options{
+			Store:  servicesDir,
+			Logger: log.New("module", "service-downloader"),
+		})
+	}
 
 	servicesLogDir := path.Join(opt.LogsDirectory, "logs", "services")
 	dieOnError(createDir(servicesLogDir))
@@ -96,7 +100,7 @@ func NewEngine(opt *EngineOptions) Engine {
 			if opt.Kubeconfig == nil {
 				location := s.Path
 				if s.Name != "" && s.Version != "" {
-					location, err = serviceDownloader.Download(s.Name, s.Version)
+					location, err = opt.serviceDownloader.Download(s.Name, s.Version)
 					dieOnError(err)
 				}
 				log.Debug("Adding service", "path", location)

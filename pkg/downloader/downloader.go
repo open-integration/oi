@@ -16,7 +16,6 @@ type (
 	// Downloader to use to fetch services from catalog
 	Downloader interface {
 		Download(name string, version string) (string, error)
-		Store() string
 	}
 
 	// Options to create new Downloader
@@ -41,7 +40,7 @@ func New(opt Options) Downloader {
 
 func (d *downloader) Download(name string, version string) (string, error) {
 	candidateFileName := fmt.Sprintf("%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
-	fullPath := path.Join(d.Store(), candidateFileName)
+	fullPath := path.Join(d.store, candidateFileName)
 	_, err := ioutil.ReadFile(fullPath)
 	if os.IsExist(err) {
 		d.logger.Debug("Skipping download, service exist", "path", fullPath)
@@ -80,8 +79,4 @@ func (d *downloader) Download(name string, version string) (string, error) {
 	}
 	d.logger.Debug("Downloaded", "name", name, "code", resp.StatusCode)
 	return fullPath, nil
-}
-
-func (d *downloader) Store() string {
-	return d.store
 }

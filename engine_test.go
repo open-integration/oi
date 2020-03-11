@@ -1,9 +1,8 @@
-package core_test
+package core
 
 import (
 	"testing"
 
-	"github.com/open-integration/core"
 	apiv1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/mocks"
 	"github.com/open-integration/core/pkg/state"
@@ -12,16 +11,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var pipelineTestMetadata = core.PipelineMetadata{
+var pipelineTestMetadata = PipelineMetadata{
 	Name: "pipeline",
 }
 
 type (
 	testEngineRun struct {
 		name       string
-		options    *core.EngineOptions
+		options    *EngineOptions
 		wantErr    bool
-		middleware []func(e core.Engine)
+		middleware []func(e Engine)
 	}
 )
 
@@ -30,28 +29,29 @@ func Test_engine_Run(t *testing.T) {
 		testEngineRun{
 			name:    "Should run zero tasks with no errors",
 			wantErr: false,
-			options: &core.EngineOptions{
+			options: &EngineOptions{
 				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
 			},
 		},
 		testEngineRun{
 			name:    "Should run one task once the engine started and exit succesfuly",
 			wantErr: false,
-			options: &core.EngineOptions{
-				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
-				Pipeline: core.Pipeline{
+			options: &EngineOptions{
+				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
+				serviceDownloader: createFakeDownloader(),
+				Pipeline: Pipeline{
 					Metadata: pipelineTestMetadata,
-					Spec: core.PipelineSpec{
-						Services: []core.Service{
-							core.Service{
+					Spec: PipelineSpec{
+						Services: []Service{
+							Service{
 								Name:    "some-service",
 								As:      "service-name",
 								Version: "0.0.1",
 							},
 						},
-						Reactions: []core.EventReaction{
-							core.EventReaction{
-								Condition: core.ConditionEngineStarted,
+						Reactions: []EventReaction{
+							EventReaction{
+								Condition: ConditionEngineStarted,
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -70,8 +70,8 @@ func Test_engine_Run(t *testing.T) {
 					},
 				},
 			},
-			middleware: []func(e core.Engine){
-				func(e core.Engine) {
+			middleware: []func(e Engine){
+				func(e Engine) {
 					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
 					e.Modem().AddService("service-id", "service-name", runner)
 				},
@@ -80,26 +80,27 @@ func Test_engine_Run(t *testing.T) {
 		testEngineRun{
 			name:    "Should create multiple tasks as a result of previous task",
 			wantErr: false,
-			options: &core.EngineOptions{
-				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
-				Pipeline: core.Pipeline{
+			options: &EngineOptions{
+				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
+				serviceDownloader: createFakeDownloader(),
+				Pipeline: Pipeline{
 					Metadata: pipelineTestMetadata,
-					Spec: core.PipelineSpec{
-						Services: []core.Service{
-							core.Service{
+					Spec: PipelineSpec{
+						Services: []Service{
+							Service{
 								Name:    "service(task1)",
 								As:      "service1",
 								Version: "0.0.1",
 							},
-							core.Service{
+							Service{
 								Name:    "service(task2...5)",
 								As:      "service2",
 								Version: "0.0.1",
 							},
 						},
-						Reactions: []core.EventReaction{
-							core.EventReaction{
-								Condition: core.ConditionEngineStarted,
+						Reactions: []EventReaction{
+							EventReaction{
+								Condition: ConditionEngineStarted,
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -114,8 +115,8 @@ func Test_engine_Run(t *testing.T) {
 									}
 								},
 							},
-							core.EventReaction{
-								Condition: core.ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
+							EventReaction{
+								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -143,12 +144,12 @@ func Test_engine_Run(t *testing.T) {
 					},
 				},
 			},
-			middleware: []func(e core.Engine){
-				func(e core.Engine) {
+			middleware: []func(e Engine){
+				func(e Engine) {
 					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
 					e.Modem().AddService("service-id-1", "service1", runner)
 				},
-				func(e core.Engine) {
+				func(e Engine) {
 					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
 					e.Modem().AddService("service-id-2", "service2", runner)
 				},
@@ -157,36 +158,37 @@ func Test_engine_Run(t *testing.T) {
 		testEngineRun{
 			name:    "Should run succesfully multiple tasks",
 			wantErr: false,
-			middleware: []func(e core.Engine){
-				func(e core.Engine) {
+			middleware: []func(e Engine){
+				func(e Engine) {
 					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
 					e.Modem().AddService("service-id-1", "service1", runner)
 				},
-				func(e core.Engine) {
+				func(e Engine) {
 					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
 					e.Modem().AddService("service-id-2", "service2", runner)
 				},
 			},
-			options: &core.EngineOptions{
-				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
-				Pipeline: core.Pipeline{
+			options: &EngineOptions{
+				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
+				serviceDownloader: createFakeDownloader(),
+				Pipeline: Pipeline{
 					Metadata: pipelineTestMetadata,
-					Spec: core.PipelineSpec{
-						Services: []core.Service{
-							core.Service{
+					Spec: PipelineSpec{
+						Services: []Service{
+							Service{
 								Name:    "service(task1)",
 								As:      "service1",
 								Version: "0.0.1",
 							},
-							core.Service{
+							Service{
 								Name:    "service(task2...5)",
 								As:      "service2",
 								Version: "0.0.1",
 							},
 						},
-						Reactions: []core.EventReaction{
-							core.EventReaction{
-								Condition: core.ConditionEngineStarted,
+						Reactions: []EventReaction{
+							EventReaction{
+								Condition: ConditionEngineStarted,
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -201,8 +203,8 @@ func Test_engine_Run(t *testing.T) {
 									}
 								},
 							},
-							core.EventReaction{
-								Condition: core.ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
+							EventReaction{
+								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -226,8 +228,8 @@ func Test_engine_Run(t *testing.T) {
 									}
 								},
 							},
-							core.EventReaction{
-								Condition: core.ConditionTaskFinishedWithStatus("task-2", state.TaskStatusSuccess),
+							EventReaction{
+								Condition: ConditionTaskFinishedWithStatus("task-2", state.TaskStatusSuccess),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -259,7 +261,7 @@ func Test_engine_Run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := core.NewEngine(tt.options)
+			e := NewEngine(tt.options)
 			for _, m := range tt.middleware {
 				m(e)
 			}
@@ -295,4 +297,10 @@ func extendLoggerMockWithBasicMocks(m *mocks.Logger) *mocks.Logger {
 	m.On("Error", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	m.On("New", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(m)
 	return m
+}
+
+func createFakeDownloader() *mocks.Downloader {
+	d := &mocks.Downloader{}
+	d.On("Download", mock.Anything, mock.Anything).Return("", nil)
+	return d
 }
