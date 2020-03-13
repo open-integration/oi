@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/open-integration/core/pkg/graph"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
 	"github.com/open-integration/core/pkg/state"
@@ -33,6 +34,7 @@ type (
 		modem              modem.Modem
 		statev1            state.State
 		wg                 *sync.WaitGroup
+		graphBuilder       graph.Builder
 	}
 )
 
@@ -60,6 +62,9 @@ func (e *engine) Run() error {
 	}
 	go e.waitForFinish()
 	e.handleStateEvents()
+	s, _ := e.statev1.Copy()
+	g := e.graphBuilder.Build(s)
+	ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm)
 	return e.printStateStore()
 }
 
@@ -97,10 +102,12 @@ func (e *engine) electNextTasks(ev state.Event) {
 	}
 
 	// candidate is the tasks results of all reactions
-	tasksCandidates := []task.Task{}
+	tasksCandidates := map[string]task.Task{}
 	for _, reaction := range e.pipeline.Spec.Reactions {
 		if reaction.Condition(ev, stateCpy) {
-			tasksCandidates = append(tasksCandidates, reaction.Reaction(ev, stateCpy)...)
+			for _, t := range reaction.Reaction(ev, stateCpy) {
+				tasksCandidates[t.Metadata.Name] = t
+			}
 		}
 	}
 
@@ -114,12 +121,20 @@ func (e *engine) electNextTasks(ev state.Event) {
 	}
 	if len(tasksToElect) > 0 {
 		e.logger.Debug("Electing tasks", "total", len(tasksToElect))
+		ids := []string{}
+		for _, t := range tasksToElect {
+			ids = append(ids, t.Metadata.Name)
+		}
 		e.stateUpdateRequest <- state.StateUpdateRequest{
 			Metadata: state.StateUpdateRequestMetadata{
 				CreatedAt: now(),
 			},
 			ElectTasksRequest: &state.ElectTasksRequest{
 				Tasks: tasksToElect,
+			},
+			AddRealtedTaskToEventReuqest: &state.AddRealtedTaskToEventReuqest{
+				EventID: ev.Metadata.ID,
+				Task:    ids,
 			},
 		}
 	}
@@ -158,7 +173,6 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		},
 		AddRealtedTaskToEventReuqest: &state.AddRealtedTaskToEventReuqest{
 			EventID: ev.Metadata.ID,
-			Task:    t.Metadata.Name,
 		},
 	}
 	fileName := fmt.Sprintf("%s.log", t.Metadata.Name)
@@ -170,10 +184,9 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
-				State:   state.TaskStateInProgress,
-				Task:    t,
-				EventID: ev.Metadata.ID,
-				Logger:  fileDescriptor,
+				State:  state.TaskStateInProgress,
+				Task:   t,
+				Logger: fileDescriptor,
 			},
 		},
 	}
@@ -207,13 +220,12 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
-				State:   state.TaskStateFinished,
-				Status:  status,
-				Task:    t,
-				Output:  payload,
-				EventID: ev.Metadata.ID,
-				Error:   msg,
-				Logger:  fileDescriptor,
+				State:  state.TaskStateFinished,
+				Status: status,
+				Task:   t,
+				Output: payload,
+				Error:  msg,
+				Logger: fileDescriptor,
 			},
 		},
 	}
@@ -239,7 +251,8 @@ func (e *engine) waitForFinish() {
 			CreatedAt: now(),
 		},
 		UpdateStateMetadataRequest: &state.UpdateStateMetadataRequest{
-			State: state.EngineStateFinished,
+			State:  state.EngineStateFinished,
+			Status: state.EngineStatusSuccess,
 		},
 	}
 	return

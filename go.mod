@@ -3,6 +3,7 @@ module github.com/open-integration/core
 go 1.13
 
 require (
+	github.com/awalterschulze/gographviz v0.0.0-20190522210029-fa59802746ab
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/imdario/mergo v0.3.8

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/open-integration/core/pkg/downloader"
+	"github.com/open-integration/core/pkg/graph"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
 	"github.com/open-integration/core/pkg/runner"
@@ -45,8 +46,9 @@ type (
 // NewEngine create new engine
 func NewEngine(opt *EngineOptions) Engine {
 	e := &engine{
-		pipeline: opt.Pipeline,
-		wg:       &sync.WaitGroup{},
+		pipeline:     opt.Pipeline,
+		wg:           &sync.WaitGroup{},
+		graphBuilder: graph.New(),
 	}
 	if opt.LogsDirectory == "" {
 		wd, err := os.Getwd()

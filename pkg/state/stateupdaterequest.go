@@ -28,11 +28,12 @@ type (
 	}
 
 	UpdateStateMetadataRequest struct {
-		State string
+		State  string
+		Status string
 	}
 
 	AddRealtedTaskToEventReuqest struct {
 		EventID string
-		Task    string
+		Task    []string
 	}
 )
