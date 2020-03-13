@@ -23,5 +23,6 @@ type (
 		Name      string
 		ID        string
 		CreatedAt time.Time
+		Task      string
 	}
 )

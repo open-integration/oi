@@ -4,3 +4,6 @@ cp.out
 coverage.html
 .cover
 logs
+state.yaml
+events.yaml
+graph.dot

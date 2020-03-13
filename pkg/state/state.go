@@ -16,6 +16,7 @@ type (
 	State interface {
 		Copy() (State, error)
 		Tasks() map[string]TaskState
+		Events() []Event
 		Services() []ServiceState
 		StateBytes() ([]byte, error)
 		EventBytes() ([]byte, error)
@@ -96,6 +97,9 @@ func (s *state) EventBytes() ([]byte, error) {
 	}
 	return yaml.Marshal(res)
 }
+func (s *state) Events() []Event {
+	return s.events
+}
 func (s *state) Tasks() map[string]TaskState {
 	return s.tasks
 }
@@ -112,25 +116,21 @@ func (s *state) StartProcess() {
 			if updateRequest.AddRealtedTaskToEventReuqest != nil {
 				s.logger.Debug("Updating state", "request", "AddRealtedTaskToEventReuqest")
 				s.addRealtedTaskToEventReuqest(updateRequest.AddRealtedTaskToEventReuqest)
-				continue
 			}
 
 			if updateRequest.ElectTasksRequest != nil {
 				s.logger.Debug("Updating state", "request", "ElectTasksRequest")
 				s.electTasksRequest(updateRequest.ElectTasksRequest)
-				continue
 			}
 
 			if updateRequest.UpdateStateMetadataRequest != nil {
 				s.logger.Debug("Updating state", "request", "UpdateStateMetadataRequest")
 				s.updateStateMetadataRequest(updateRequest.UpdateStateMetadataRequest)
-				continue
 			}
 
 			if updateRequest.UpdateTaskStateRequest != nil {
 				s.logger.Debug("Updating state", "request", "UpdateTaskStateRequest")
 				s.updateTaskStateRequest(updateRequest.UpdateTaskStateRequest)
-				continue
 			}
 		}
 	}
@@ -153,8 +153,9 @@ func (s *state) addRealtedTaskToEventReuqest(req *AddRealtedTaskToEventReuqest) 
 			event := Event{
 				Metadata:     e.Metadata,
 				Payload:      e.Payload,
-				RelatedTasks: append(e.RelatedTasks, req.Task),
+				RelatedTasks: append(e.RelatedTasks, req.Task...),
 			}
+			// "update the event"
 			s.events = append(append(s.events[0:i], event), s.events[i+1:]...)
 			break
 		}
@@ -178,13 +179,14 @@ func (s *state) electTasksRequest(req *ElectTasksRequest) {
 	s.eventChan <- ev
 }
 func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
+	task := req.State.Task
 	ev := &Event{
 		Metadata: EventMetadata{
 			CreatedAt: time.Now(),
 			ID:        utils.GenerateID(),
+			Task:      task.Metadata.Name,
 		},
 	}
-	task := req.State.Task
 	if req.State.State == TaskStateInProgress {
 		ev.Metadata.Name = EventTaskStarted
 	} else if req.State.State == TaskStateFinished {

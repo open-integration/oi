@@ -7,6 +7,12 @@ const (
 	// EngineStateFinished pipeline is finished execution
 	EngineStateFinished string = "finished"
 
+	// EngineStatusSuccess marks the engine as finished successfully
+	EngineStatusSuccess = "Success"
+
+	// EngineStatusFailed marks the engine as finished with error
+	EngineStatusFailed = "failed"
+
 	// TaskStateElected task is in progress
 	TaskStateElected string = "elected"
 
@@ -16,8 +22,9 @@ const (
 	// TaskStateFinished task is finished
 	TaskStateFinished string = EngineStateFinished
 
-	// TaskStatusSuccess set one the task status in case task was finished successfully
+	// TaskStatusSuccess set on the task status in case task was finished successfully
 	TaskStatusSuccess = "Success"
-	// TaskStatusFailed set one the task status in case task was finished and failed
+
+	// TaskStatusFailed set on the task status in case task was finished with error
 	TaskStatusFailed = "failed"
 )
