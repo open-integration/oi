@@ -1,38 +1,28 @@
 package core
 
-import "github.com/open-integration/core/pkg/state"
+import (
+	"github.com/open-integration/core/pkg/condition"
+)
 
-// ConditionEngineStarted returns true once the engine emits started event
-func ConditionEngineStarted(ev state.Event, s state.State) bool {
-	return ev.Metadata.Name == state.EventEngineStarted
+// ConditionEngineStarted returns the condition that is evaluated to true on engine.started event
+func ConditionEngineStarted() condition.Condition {
+	return condition.EngineStarted()
 }
 
-// ConditionTaskFinishedWithStatus returns true once a task is finished with given status
-func ConditionTaskFinishedWithStatus(task string, status string) func(ev state.Event, s state.State) bool {
-	return func(ev state.Event, s state.State) bool {
-		if ev.Metadata.Name != state.EventTaskFinished {
-			return false
-		}
-		for _, t := range s.Tasks() {
-			if t.Status == status && t.State == state.TaskStateFinished && t.Task.Metadata.Name == task {
-				return true
-			}
-		}
-		return false
-	}
+// ConditionTaskFinished returns the condition that is evaluated to true on task.finished event
+// and the task is marked as finished in the state
+func ConditionTaskFinished(task string) condition.Condition {
+	return condition.TaskFinished(task)
 }
 
-// ConditionTaskFinished returns true once a task reached finished state
-func ConditionTaskFinished(task string) func(ev state.Event, s state.State) bool {
-	return func(ev state.Event, s state.State) bool {
-		if ev.Metadata.Name != state.EventTaskFinished {
-			return false
-		}
-		for _, t := range s.Tasks() {
-			if t.State == state.TaskStateFinished && t.Task.Metadata.Name == task {
-				return true
-			}
-		}
-		return false
-	}
+// ConditionTaskFinishedWithStatus returns the condition that is evaluated to true on task.finished event
+// and the task is marked as finished in the state
+// and the status is as given
+func ConditionTaskFinishedWithStatus(task string, status string) condition.Condition {
+	return condition.TaskFinishedWithStatus(task, status)
+}
+
+// ConditionCombined returns the condition that is evaluated to true when all the conditions are true
+func ConditionCombined(conditions ...condition.Condition) condition.Condition {
+	return condition.Combined(conditions...)
 }

@@ -51,7 +51,7 @@ func Test_engine_Run(t *testing.T) {
 						},
 						Reactions: []EventReaction{
 							EventReaction{
-								Condition: ConditionEngineStarted,
+								Condition: ConditionEngineStarted(),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -100,7 +100,7 @@ func Test_engine_Run(t *testing.T) {
 						},
 						Reactions: []EventReaction{
 							EventReaction{
-								Condition: ConditionEngineStarted,
+								Condition: ConditionEngineStarted(),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
@@ -188,7 +188,7 @@ func Test_engine_Run(t *testing.T) {
 						},
 						Reactions: []EventReaction{
 							EventReaction{
-								Condition: ConditionEngineStarted,
+								Condition: ConditionEngineStarted(),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
 										task.Task{
