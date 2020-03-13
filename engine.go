@@ -104,7 +104,7 @@ func (e *engine) electNextTasks(ev state.Event) {
 	// candidate is the tasks results of all reactions
 	tasksCandidates := map[string]task.Task{}
 	for _, reaction := range e.pipeline.Spec.Reactions {
-		if reaction.Condition(ev, stateCpy) {
+		if reaction.Condition.Met(ev, stateCpy) {
 			for _, t := range reaction.Reaction(ev, stateCpy) {
 				tasksCandidates[t.Metadata.Name] = t
 			}
