@@ -9,7 +9,7 @@ type conditionCombined struct {
 func (c *conditionCombined) Met(ev state.Event, s state.State) bool {
 	result := true
 	for _, c := range c.conditions {
-		if met := c.Met(ev, state); !met {
+		if met := c.Met(ev, s); !met {
 			result = false
 		}
 	}
