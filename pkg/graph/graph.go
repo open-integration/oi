@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/awalterschulze/gographviz"
 	"github.com/open-integration/core/pkg/state"
@@ -29,7 +30,7 @@ func (b *builder) Build(s state.State) []byte {
 		if e.Metadata.Name == state.EventEngineStarted {
 			graph.AddNode("G", "started", nil)
 			for _, rt := range e.RelatedTasks {
-				graph.AddNode("G", format(rt), node(s.Tasks()[rt].Status))
+				graph.AddNode("G", format(rt), node(s.Tasks()[rt]))
 				graph.AddEdge("started", format(rt), true, nil)
 			}
 			continue
@@ -37,7 +38,7 @@ func (b *builder) Build(s state.State) []byte {
 
 		if len(e.RelatedTasks) > 0 {
 			for _, rt := range e.RelatedTasks {
-				graph.AddNode("G", format(rt), node(s.Tasks()[rt].Status))
+				graph.AddNode("G", format(rt), node(s.Tasks()[rt]))
 				graph.AddEdge(format(e.Metadata.Task), format(rt), true, nil)
 			}
 		}
@@ -49,6 +50,10 @@ func format(name string) string {
 	return fmt.Sprintf("\"%s\"", name)
 }
 
+func formatDiff(t time.Duration) string {
+	return time.Time{}.Add(t).Format("15:04:05")
+}
+
 func statusToColor(status string) string {
 	if status == state.TaskStatusSuccess {
 		return "green"
@@ -56,12 +61,16 @@ func statusToColor(status string) string {
 	if status == state.TaskStatusFailed {
 		return "red"
 	}
-	return ""
+	return "\"\""
 }
 
-func node(status string) map[string]string {
+func node(taskstate state.TaskState) map[string]string {
+	name := taskstate.Task.Metadata.Name
+	times := taskstate.Task.Metadata.Time
 	return map[string]string{
-		"color": statusToColor(status),
+		"color": statusToColor(taskstate.Status),
+		"label": fmt.Sprintf("\"{ <start> | <%s> name:%s \\n total:%s  | <end> }\"", name, name, formatDiff(times.FinishedAt.Sub(times.StartedAt))),
+		"shape": "record",
 	}
 
 }

@@ -84,7 +84,7 @@ func (s *state) Copy() (State, error) {
 func (s *state) StateBytes() ([]byte, error) {
 	res := map[string]interface{}{
 		"metadata": map[string]interface{}{
-			"status": s.state,
+			"state": s.state,
 		},
 		"tasks":   s.tasks,
 		"service": s.services,
@@ -132,6 +132,7 @@ func (s *state) StartProcess() {
 				s.logger.Debug("Updating state", "request", "UpdateTaskStateRequest")
 				s.updateTaskStateRequest(updateRequest.UpdateTaskStateRequest)
 			}
+			s.wg.Done()
 		}
 	}
 }
@@ -144,6 +145,7 @@ func (s *state) copy() state {
 		dest.tasks[n] = t
 	}
 	dest.services = append([]ServiceState(nil), s.services...)
+	dest.events = append([]Event(nil), s.events...)
 	return dest
 }
 
@@ -198,7 +200,6 @@ func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
 	s.tasks[task.Metadata.Name] = *newstate
 	s.events = append(s.events, *ev)
 	s.eventChan <- ev
-	s.wg.Done()
 }
 func (s *state) updateStateMetadataRequest(req *UpdateStateMetadataRequest) {
 	ev := &Event{
@@ -217,5 +218,4 @@ func (s *state) updateStateMetadataRequest(req *UpdateStateMetadataRequest) {
 	}
 	s.events = append(s.events, *ev)
 	s.eventChan <- ev
-	s.wg.Done()
 }

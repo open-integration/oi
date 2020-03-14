@@ -62,9 +62,7 @@ func (e *engine) Run() error {
 	}
 	go e.waitForFinish()
 	e.handleStateEvents()
-	s, _ := e.statev1.Copy()
-	g := e.graphBuilder.Build(s)
-	ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm)
+	e.printGraph()
 	return e.printStateStore()
 }
 
@@ -88,6 +86,7 @@ func (e *engine) handleStateEvents() {
 		case state.EventTaskElected:
 			go e.executeElectedTasks(*ev)
 		}
+		e.printGraph()
 	}
 }
 
@@ -125,6 +124,7 @@ func (e *engine) electNextTasks(ev state.Event) {
 		for _, t := range tasksToElect {
 			ids = append(ids, t.Metadata.Name)
 		}
+		e.wg.Add(1)
 		e.stateUpdateRequest <- state.StateUpdateRequest{
 			Metadata: state.StateUpdateRequestMetadata{
 				CreatedAt: now(),
@@ -166,21 +166,16 @@ func (e *engine) executeElectedTasks(ev state.Event) {
 
 func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 	spec := t.Spec
-
+	fileName := fmt.Sprintf("%s.log", t.Metadata.Name)
+	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
+	t.Metadata.Time.StartedAt = now()
+	e.wg.Add(1)
 	e.stateUpdateRequest <- state.StateUpdateRequest{
 		Metadata: state.StateUpdateRequestMetadata{
 			CreatedAt: now(),
 		},
 		AddRealtedTaskToEventReuqest: &state.AddRealtedTaskToEventReuqest{
 			EventID: ev.Metadata.ID,
-		},
-	}
-	fileName := fmt.Sprintf("%s.log", t.Metadata.Name)
-	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
-	e.wg.Add(1)
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
-			CreatedAt: now(),
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
@@ -213,6 +208,7 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		status = state.TaskStatusFailed
 		msg = err.Error()
 	}
+	t.Metadata.Time.FinishedAt = now()
 	e.wg.Add(1)
 	e.stateUpdateRequest <- state.StateUpdateRequest{
 		Metadata: state.StateUpdateRequestMetadata{
@@ -279,4 +275,10 @@ func (e *engine) printStateStore() error {
 		return err
 	}
 	return nil
+}
+
+func (e *engine) printGraph() {
+	s, _ := e.statev1.Copy()
+	g := e.graphBuilder.Build(s)
+	ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm)
 }
