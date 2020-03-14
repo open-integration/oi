@@ -145,7 +145,7 @@ func (s *state) copy() state {
 		dest.tasks[n] = t
 	}
 	dest.services = append([]ServiceState(nil), s.services...)
-	dest.events = append([]Event(nil), s.events......)
+	dest.events = append([]Event(nil), s.events...)
 	return dest
 }
 
