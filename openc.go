@@ -84,7 +84,7 @@ func NewEngine(opt *EngineOptions) Engine {
 	if opt.serviceDownloader == nil {
 		opt.serviceDownloader = downloader.New(downloader.Options{
 			Store:  servicesDir,
-			Logger: opt.Logger.New("module", "service-downloader"),
+			Logger: log.New("module", "service-downloader"),
 		})
 	}
 
@@ -149,7 +149,7 @@ func NewEngine(opt *EngineOptions) Engine {
 		}
 	}
 	s := state.New(&state.Options{
-		Logger:             opt.Logger.New("module", "state-store"),
+		Logger:             log.New("module", "state-store"),
 		EventChan:          eventChannel,
 		CommandsChan:       make(chan string, 1),
 		Name:               opt.Pipeline.Metadata.Name,
@@ -166,7 +166,7 @@ func NewEngine(opt *EngineOptions) Engine {
 		taskLogsDirctory:   tasksLogDir,
 		eventChan:          eventChannel,
 		stateUpdateRequest: stateUpdateChannel,
-		logger:             opt.Logger.New("module", "engine"),
+		logger:             log.New("module", "engine"),
 		modem:              serviceModem,
 	}
 }
