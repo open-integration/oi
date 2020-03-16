@@ -2,8 +2,10 @@ package core
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"sync"
 	"time"
@@ -35,6 +37,29 @@ type (
 		statev1            state.State
 		wg                 *sync.WaitGroup
 		graphBuilder       graph.Builder
+	}
+
+	taskRunner interface {
+		run() (string, error)
+	}
+
+	serviceRunner struct {
+		logger         logger.Logger
+		fileDescriptor string
+		modem          modem.Modem
+		spec           task.Spec
+	}
+
+	commandRunner struct {
+		logger    logger.Logger
+		logWriter io.Writer
+		cmd       task.Command
+		runner    interface {
+			Create() *exec.Cmd
+			AddCommand(cmd string)
+			AddEnv(key string, value string)
+			Bin(path string)
+		}
 	}
 )
 
@@ -174,9 +199,6 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		Metadata: state.StateUpdateRequestMetadata{
 			CreatedAt: now(),
 		},
-		AddRealtedTaskToEventReuqest: &state.AddRealtedTaskToEventReuqest{
-			EventID: ev.Metadata.ID,
-		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
 				State:  state.TaskStateInProgress,
@@ -186,28 +208,14 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		},
 	}
 
-	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
+	logWriter, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
 		logger.Error("Failed to create log file for task")
 	}
 
-	payload := ""
-	arguments := map[string]interface{}{}
-	if spec.Service != "" {
-		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
-		for _, arg := range spec.Arguments {
-			arguments[arg.Key] = arg.Value
-		}
-		payload, err = e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
-	}
+	// TODO: handle can when task was all default value
+	payload, err := e.taskRunner(spec, fileDescriptor, logWriter).run()
 
-	status := state.TaskStatusSuccess
-	msg := ""
-	if err != nil {
-		logger.Error("Task exited with error", "err", err.Error())
-		status = state.TaskStatusFailed
-		msg = err.Error()
-	}
 	t.Metadata.Time.FinishedAt = now()
 	e.wg.Add(1)
 	e.stateUpdateRequest <- state.StateUpdateRequest{
@@ -217,15 +225,14 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
 				State:  state.TaskStateFinished,
-				Status: status,
+				Status: e.concludeStatus(err),
 				Task:   t,
 				Output: payload,
-				Error:  msg,
+				Error:  err,
 				Logger: fileDescriptor,
 			},
 		},
 	}
-
 }
 
 // waitForFinish watch all events and send finish command once there are no more tasks in in-progress state
@@ -281,4 +288,72 @@ func (e *engine) printGraph() {
 	s, _ := e.statev1.Copy()
 	g := e.graphBuilder.Build(s)
 	ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm)
+}
+
+func (e *engine) concludeStatus(err error) string {
+	status := state.TaskStatusSuccess
+	if err != nil {
+		e.logger.Error("Task exited with error", "err", err.Error())
+		status = state.TaskStatusFailed
+	}
+	return status
+}
+
+func (e *engine) taskRunner(spec task.Spec, fd string, logWriter io.Writer) taskRunner {
+	if spec.Service != "" {
+		return &serviceRunner{
+			spec:           spec,
+			logger:         e.logger,
+			modem:          e.modem,
+			fileDescriptor: fd,
+		}
+	}
+	if spec.Cmd != nil {
+		return &commandRunner{
+			cmd:       *spec.Cmd,
+			logWriter: logWriter,
+			logger:    e.logger,
+			runner:    &utils.Command{},
+		}
+	}
+	return nil
+}
+
+func (s *serviceRunner) run() (string, error) {
+	arguments := map[string]interface{}{}
+	s.logger.Debug("Calling service", "service", s.spec.Service, "endpoint", s.spec.Endpoint)
+	for _, arg := range s.spec.Arguments {
+		arguments[arg.Key] = arg.Value
+	}
+	return s.modem.Call(s.spec.Service, s.spec.Endpoint, arguments, s.fileDescriptor)
+}
+
+func (r *commandRunner) run() (string, error) {
+	r.runner.Bin(r.cmd.Program)
+	for _, env := range r.cmd.EnvironmentVariables {
+		v, ok := env.Value.(string)
+		if !ok {
+			return "", fmt.Errorf("Failed to convert %v to string", env.Value)
+		}
+		r.runner.AddEnv(env.Key, v)
+	}
+	for _, arg := range r.cmd.Arguments {
+		r.runner.AddCommand(arg)
+	}
+	cmd := r.runner.Create()
+	cmd.Stdout = r.logWriter
+	cmd.Stderr = r.logWriter
+	err := cmd.Start()
+	if err != nil {
+		return "", err
+	}
+	err = cmd.Wait()
+	if err != nil {
+		return "", err
+	}
+	if r.cmd.WorkingDirectory == "" {
+		r.cmd.WorkingDirectory = os.Getenv("PWD")
+	}
+	cmd.Dir = r.cmd.WorkingDirectory
+	return "", nil
 }

@@ -116,7 +116,7 @@ func NewEngine(opt *EngineOptions) Engine {
 					LocalLogFileCreator:  &utils.FileCreator{},
 					LogsDirectory:        servicesLogDir,
 					ServiceClientCreator: utils.Proto{},
-					LocalCommandCreator:  utils.Command{},
+					LocalCommandCreator:  &utils.Command{},
 					LocalPathToBinary:    location,
 				}))
 			} else {

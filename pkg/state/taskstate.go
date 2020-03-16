@@ -11,7 +11,7 @@ type (
 		Status string    `yaml:"status"`
 		Task   task.Task `yaml:"task"`
 		Output string    `yaml:"output"`
-		Error  string    `yaml:"error"`
+		Error  error     `yaml:"error"`
 		Logger string    `yaml:"logger"`
 	}
 )

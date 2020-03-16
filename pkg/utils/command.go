@@ -7,17 +7,29 @@ import (
 )
 
 type (
-	Command struct{}
+	Command struct {
+		env     []string
+		command []string
+		bin     string
+	}
 )
 
-// Create build exec.Cmd
-func (_c Command) Create(port string, path string) *exec.Cmd {
-	cmd := exec.Command(path)
-	envs := []string{
-		fmt.Sprintf("PORT=%s", port),
-	}
-	cmd.Env = envs
-	cmd.Dir = ""
+func (_c *Command) AddEnv(key string, value string) {
+	_c.env = append(_c.env, fmt.Sprintf("%s=%s", key, value))
+}
+
+func (_c *Command) AddCommand(cmd string) {
+	_c.command = append(_c.command, cmd)
+}
+
+func (_c *Command) Bin(path string) {
+	_c.bin = path
+}
+
+// Create builds exec.Cmd
+func (_c *Command) Create() *exec.Cmd {
+	cmd := exec.Command(_c.bin, _c.command...)
+	cmd.Env = _c.env
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	return cmd
 }
