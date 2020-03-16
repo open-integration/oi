@@ -45,11 +45,7 @@ type (
 
 // NewEngine create new engine
 func NewEngine(opt *EngineOptions) Engine {
-	e := &engine{
-		pipeline:     opt.Pipeline,
-		wg:           &sync.WaitGroup{},
-		graphBuilder: graph.New(),
-	}
+
 	if opt.LogsDirectory == "" {
 		wd, err := os.Getwd()
 		dieOnError(err)
@@ -58,9 +54,6 @@ func NewEngine(opt *EngineOptions) Engine {
 
 	tasksLogDir := path.Join(opt.LogsDirectory, "logs", "tasks")
 	dieOnError(createDir(tasksLogDir))
-	e.taskLogsDirctory = tasksLogDir
-
-	e.stateDir = opt.LogsDirectory
 
 	home, err := os.UserHomeDir()
 	dieOnError(err)
@@ -68,33 +61,40 @@ func NewEngine(opt *EngineOptions) Engine {
 	servicesDir := path.Join(home, ".open-integration", "services")
 	dieOnError(createDir(servicesDir))
 
-	e.eventChan = make(chan *state.Event, 10)
-	e.stateUpdateRequest = make(chan state.StateUpdateRequest, 1)
+	eventChannel := make(chan *state.Event, 10)
+
+	stateUpdateChannel := make(chan state.StateUpdateRequest, 1)
+
+	waitGroup := &sync.WaitGroup{}
 
 	var log logger.Logger
-	if opt.Logger == nil {
-		loggerOptions := &logger.Options{
-			FilePath:    path.Join(opt.LogsDirectory, "logs", "log.log"),
-			LogToStdOut: true,
+	// create logger
+	{
+		if opt.Logger == nil {
+			loggerOptions := &logger.Options{
+				FilePath:    path.Join(opt.LogsDirectory, "logs", "log.log"),
+				LogToStdOut: true,
+			}
+			log = logger.New(loggerOptions)
+		} else {
+			log = opt.Logger
 		}
-		opt.Logger = logger.New(loggerOptions)
 	}
-	log = opt.Logger
-	e.logger = opt.Logger.New("module", "engine")
 
 	if opt.serviceDownloader == nil {
 		opt.serviceDownloader = downloader.New(downloader.Options{
 			Store:  servicesDir,
-			Logger: log.New("module", "service-downloader"),
+			Logger: opt.Logger.New("module", "service-downloader"),
 		})
 	}
 
 	servicesLogDir := path.Join(opt.LogsDirectory, "logs", "services")
 	dieOnError(createDir(servicesLogDir))
 
+	var serviceModem modem.Modem
 	// Init modem
 	{
-		e.modem = modem.New(&modem.ModemOptions{
+		serviceModem = modem.New(&modem.ModemOptions{
 			Logger: log.New("module", "modem"),
 		})
 		for _, s := range opt.Pipeline.Spec.Services {
@@ -106,7 +106,7 @@ func NewEngine(opt *EngineOptions) Engine {
 					dieOnError(err)
 				}
 				log.Debug("Adding service", "path", location)
-				e.modem.AddService(svcID, s.As, runner.New(&runner.Options{
+				serviceModem.AddService(svcID, s.As, runner.New(&runner.Options{
 					Type:                 runner.LocalRunner,
 					Logger:               log.New("service-runner", s.Name),
 					Name:                 s.Name,
@@ -116,7 +116,7 @@ func NewEngine(opt *EngineOptions) Engine {
 					LocalLogFileCreator:  &utils.FileCreator{},
 					LogsDirectory:        servicesLogDir,
 					ServiceClientCreator: utils.Proto{},
-					LocalCommandCreator:  utils.Command{},
+					LocalCommandCreator:  &utils.Command{},
 					LocalPathToBinary:    location,
 				}))
 			} else {
@@ -144,21 +144,31 @@ func NewEngine(opt *EngineOptions) Engine {
 				if opt.Kubeconfig.InCluster {
 					runnerOpt.KubernetesGrpcDialViaPodIP = true
 				}
-				e.modem.AddService(svcID, s.As, runner.New(runnerOpt))
+				serviceModem.AddService(svcID, s.As, runner.New(runnerOpt))
 			}
 		}
 	}
 	s := state.New(&state.Options{
 		Logger:             opt.Logger.New("module", "state-store"),
-		EventChan:          e.eventChan,
+		EventChan:          eventChannel,
 		CommandsChan:       make(chan string, 1),
-		Name:               e.pipeline.Metadata.Name,
-		StateUpdateRequest: e.stateUpdateRequest,
-		WG:                 e.wg,
+		Name:               opt.Pipeline.Metadata.Name,
+		StateUpdateRequest: stateUpdateChannel,
+		WG:                 waitGroup,
 	})
-	e.statev1 = s
 	go s.StartProcess()
-	return e
+	return &engine{
+		statev1:            s,
+		pipeline:           opt.Pipeline,
+		wg:                 waitGroup,
+		graphBuilder:       graph.New(),
+		stateDir:           opt.LogsDirectory,
+		taskLogsDirctory:   tasksLogDir,
+		eventChan:          eventChannel,
+		stateUpdateRequest: stateUpdateChannel,
+		logger:             opt.Logger.New("module", "engine"),
+		modem:              serviceModem,
+	}
 }
 
 func dieOnError(err error) {

@@ -25,11 +25,22 @@ type (
 		Service   string
 		Endpoint  string
 		Arguments []Argument
+		Cmd       *Command
 	}
 
 	// Argument is key value struct that should be passed in a service call
 	Argument struct {
 		Key   string
 		Value interface{}
+	}
+
+	// Command is a command to be executed as a sub-process
+	Command struct {
+		EnvironmentVariables []Argument
+		// Program is executable program
+		Program   string
+		Arguments []string
+		// WorkingDirectory default is the current directory
+		WorkingDirectory string
 	}
 )

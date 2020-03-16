@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	// LocalRunner type
+	// LocalRunner type using gGRPC to connect to
 	LocalRunner = "local"
 
 	// KubernetesRunner type

@@ -45,7 +45,7 @@ func main() {
 		Spec: core.PipelineSpec{
 			Reactions: []core.EventReaction{
 				core.EventReaction{
-					Condition: core.ConditionEngineStarted,
+					Condition: core.ConditionEngineStarted(),
 					Reaction: func(ev state.Event, state state.State) []task.Task {
 						fmt.Println("Hello world")
 						return []task.Task{}

@@ -34,7 +34,10 @@ type (
 	}
 
 	cmdCreator interface {
-		Create(port string, path string) *exec.Cmd
+		Create() *exec.Cmd
+		AddCommand(cmd string)
+		AddEnv(key string, value string)
+		Bin(path string)
 	}
 )
 
@@ -104,7 +107,9 @@ func (_l *localRunner) generateLogFile() error {
 }
 
 func (_l *localRunner) createCommand() error {
-	_l.command = _l.cmdCreator.Create(_l.port, _l.path)
+	_l.cmdCreator.AddEnv("PORT", _l.port)
+	_l.cmdCreator.Bin(_l.path)
+	_l.command = _l.cmdCreator.Create()
 	return nil
 }
 
