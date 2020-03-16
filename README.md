@@ -47,8 +47,21 @@ func main() {
 				core.EventReaction{
 					Condition: core.ConditionEngineStarted(),
 					Reaction: func(ev state.Event, state state.State) []task.Task {
-						fmt.Println("Hello world")
-						return []task.Task{}
+						return []task.Task{
+							task.Task{
+								Metadata: task.Metadata{
+									Name: "hello-world",
+								},
+								Spec: task.Spec{
+									Cmd: &task.Command{
+										Program: "echo",
+										Arguments: []string{
+											"hello-world",
+										},
+									},
+								},
+							},
+						}
 					},
 				},
 			},
@@ -58,10 +71,7 @@ func main() {
 		Pipeline: pipe,
 	})
 	err := e.Run()
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	core.HandleEngineError(err)
 }
 
 ```
@@ -69,3 +79,4 @@ func main() {
 ### Real world examples
 * [JIRA](https://github.com/olegsu/jira-sync)
 * [Trello](https://github.com/olegsu/trello-sync)
+* [open-integration/core-ci-pipeline](https://github.com/open-integration/core-ci-pipeline)
