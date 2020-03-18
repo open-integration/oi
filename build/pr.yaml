@@ -1,0 +1,41 @@
+version: '1.0'
+
+mode: parallel
+
+stages:
+- prepare
+- test
+
+steps:
+  main_clone:
+    stage: prepare
+    type: git-clone
+    repo: ${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}
+    git: cf_github
+    revision: ${{CF_REVISION}}
+
+  security:
+    stage: test
+    image: openintegration/testing
+    commands:
+    - snyk auth ${{SNYK_TOKEN}}
+    - snyk monitor
+    when: &clone
+      steps:
+      - name: main_clone
+        on:
+        - success
+          
+  test:
+    stage: test
+    image: openintegration/testing
+    commands:
+    - make test
+    when: *clone
+
+  test-fmt:
+    stage: test
+    image: openintegration/testing
+    commands:
+    - make test-fmt
+    when: *clone
