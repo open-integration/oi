@@ -76,19 +76,28 @@ func (m *modem) Init() error {
 func (m *modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error) {
 	log := m.logger.New("service", service, "endpoint", endpoint)
 
+	if _, ok := m.services[service]; !ok {
+		return "", fmt.Errorf("Service %s not found", service)
+	}
+
 	req := &v1.CallRequest{
 		Endpoint: endpoint,
 		Fd:       fd,
 	}
-	argsJSON, err := json.Marshal(arguments)
-	if err != nil {
-		return "", err
+	schema, ok := m.services[service].tasksSchemas[fmt.Sprintf("%s/%s", endpoint, "arguments.json")]
+	if !ok {
+		req.Arguments = ""
+	} else {
+		r, err := json.Marshal(arguments)
+		if err != nil {
+			return "", err
+		}
+		err = m.isArgumentsValid(r, schema)
+		if err != nil {
+			return "", err
+		}
+		req.Arguments = string(r)
 	}
-	err = m.isArgumentsValid(argsJSON, m.services[service].tasksSchemas[fmt.Sprintf("%s/%s", endpoint, "arguments.json")])
-	if err != nil {
-		return "", err
-	}
-	req.Arguments = string(argsJSON)
 	resp, err := m.services[service].runner.Call(context.Background(), req)
 	if err != nil {
 		log.Debug("Call return with error", "err", err.Error())
