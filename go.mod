@@ -19,7 +19,7 @@ require (
 	golang.org/x/sys v0.0.0-20191228213918-04cbcbbfeed8 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	google.golang.org/genproto v0.0.0-20191223191004-3caeed10a8bf // indirect
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.28.1
 	gopkg.in/yaml.v2 v2.2.7
 	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
