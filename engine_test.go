@@ -18,7 +18,7 @@ var pipelineTestMetadata = PipelineMetadata{
 type (
 	testEngineRun struct {
 		name       string
-		options    EngineOptions
+		options    *EngineOptions
 		wantErr    bool
 		middleware []func(e Engine)
 	}
@@ -29,14 +29,14 @@ func Test_engine_Run(t *testing.T) {
 		testEngineRun{
 			name:    "Should run zero tasks with no errors",
 			wantErr: false,
-			options: EngineOptions{
+			options: &EngineOptions{
 				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
 			},
 		},
 		testEngineRun{
 			name:    "Should run one task once the engine started and exit succesfuly",
 			wantErr: false,
-			options: EngineOptions{
+			options: &EngineOptions{
 				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
 				serviceDownloader: createFakeDownloader(),
 				Pipeline: Pipeline{
@@ -80,7 +80,7 @@ func Test_engine_Run(t *testing.T) {
 		testEngineRun{
 			name:    "Should create multiple tasks as a result of previous task",
 			wantErr: false,
-			options: EngineOptions{
+			options: &EngineOptions{
 				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
 				serviceDownloader: createFakeDownloader(),
 				Pipeline: Pipeline{
@@ -168,7 +168,7 @@ func Test_engine_Run(t *testing.T) {
 					e.Modem().AddService("service-id-2", "service2", runner)
 				},
 			},
-			options: EngineOptions{
+			options: &EngineOptions{
 				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
 				serviceDownloader: createFakeDownloader(),
 				Pipeline: Pipeline{

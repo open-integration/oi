@@ -44,7 +44,7 @@ type (
 )
 
 // NewEngine create new engine
-func NewEngine(opt EngineOptions) Engine {
+func NewEngine(opt *EngineOptions) Engine {
 
 	if opt.LogsDirectory == "" {
 		wd, err := os.Getwd()
