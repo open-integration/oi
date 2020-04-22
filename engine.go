@@ -39,10 +39,6 @@ type (
 		graphBuilder       graph.Builder
 	}
 
-	taskRunner interface {
-		run() (string, error)
-	}
-
 	serviceRunner struct {
 		logger         logger.Logger
 		fileDescriptor string
@@ -124,16 +120,7 @@ func (e *engine) electNextTasks(ev state.Event) {
 		e.logger.Error("Failed to copy state")
 		return
 	}
-
-	// candidate is the tasks results of all reactions
-	tasksCandidates := map[string]task.Task{}
-	for _, reaction := range e.pipeline.Spec.Reactions {
-		if reaction.Condition.Met(ev, stateCpy) {
-			for _, t := range reaction.Reaction(ev, stateCpy) {
-				tasksCandidates[t.Metadata.Name] = t
-			}
-		}
-	}
+	tasksCandidates := e.getCandidates(ev, stateCpy)
 
 	tasksToElect := []task.Task{}
 	for _, t := range tasksCandidates {
@@ -208,13 +195,18 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		},
 	}
 
-	logWriter, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
+	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
 		logger.Error("Failed to create log file for task")
 	}
 
-	// TODO: handle can when task was all default value
-	payload, err := e.taskRunner(spec, fileDescriptor, logWriter).run()
+	tr := &serviceRunner{
+		spec:           spec,
+		logger:         e.logger,
+		modem:          e.modem,
+		fileDescriptor: fileDescriptor,
+	}
+	payload, err := tr.run()
 
 	t.Metadata.Time.FinishedAt = now()
 	e.wg.Add(1)
@@ -299,24 +291,32 @@ func (e *engine) concludeStatus(err error) string {
 	return status
 }
 
-func (e *engine) taskRunner(spec task.Spec, fd string, logWriter io.Writer) taskRunner {
-	if spec.Service != "" {
-		return &serviceRunner{
-			spec:           spec,
-			logger:         e.logger,
-			modem:          e.modem,
-			fileDescriptor: fd,
+func (e *engine) getCandidates(ev state.Event, st state.State) map[string]task.Task {
+	tasksCandidates := map[string]task.Task{}
+	wg := &sync.WaitGroup{}
+	taskCh := make(chan task.Task, 1)
+	go func() {
+		for {
+			select {
+			case t, closed := <-taskCh:
+				if !closed {
+					return
+				}
+				tasksCandidates[t.Metadata.Name] = t
+			}
+		}
+	}()
+	for _, reaction := range e.pipeline.Spec.Reactions {
+		if !reaction.Condition.Met(ev, st) {
+			continue
+		}
+		wg.Add(1)
+		for _, t := range reaction.Reaction(ev, st) {
+			tasksCandidates[t.Metadata.Name] = t
 		}
 	}
-	if spec.Cmd != nil {
-		return &commandRunner{
-			cmd:       *spec.Cmd,
-			logWriter: logWriter,
-			logger:    e.logger,
-			runner:    &utils.Command{},
-		}
-	}
-	return nil
+	wg.Wait()
+	return tasksCandidates
 }
 
 func (s *serviceRunner) run() (string, error) {
@@ -326,34 +326,4 @@ func (s *serviceRunner) run() (string, error) {
 		arguments[arg.Key] = arg.Value
 	}
 	return s.modem.Call(s.spec.Service, s.spec.Endpoint, arguments, s.fileDescriptor)
-}
-
-func (r *commandRunner) run() (string, error) {
-	r.runner.Bin(r.cmd.Program)
-	for _, env := range r.cmd.EnvironmentVariables {
-		v, ok := env.Value.(string)
-		if !ok {
-			return "", fmt.Errorf("Failed to convert %v to string", env.Value)
-		}
-		r.runner.AddEnv(env.Key, v)
-	}
-	for _, arg := range r.cmd.Arguments {
-		r.runner.AddCommand(arg)
-	}
-	cmd := r.runner.Create()
-	cmd.Stdout = r.logWriter
-	cmd.Stderr = r.logWriter
-	err := cmd.Start()
-	if err != nil {
-		return "", err
-	}
-	err = cmd.Wait()
-	if err != nil {
-		return "", err
-	}
-	if r.cmd.WorkingDirectory == "" {
-		r.cmd.WorkingDirectory = os.Getenv("PWD")
-	}
-	cmd.Dir = r.cmd.WorkingDirectory
-	return "", nil
 }
