@@ -87,6 +87,10 @@ func (_l *localRunner) Call(context context.Context, req *v1.CallRequest) (*v1.C
 	return _l.client.Call(context, req)
 }
 
+func (_l *localRunner) Schemas() map[string]string {
+	return _l.tasksSchemas
+}
+
 func (_l *localRunner) generatePort() error {
 	port, err := _l.portGenerator.GetAvailable()
 	if err != nil {

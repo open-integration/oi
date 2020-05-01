@@ -103,6 +103,10 @@ func (_k *kubernetesRunner) Call(context context.Context, req *v1.CallRequest) (
 	return _k.client.Call(context, req)
 }
 
+func (_k *kubernetesRunner) Schemas() map[string]string {
+	return _k.tasksSchemas
+}
+
 func (_k *kubernetesRunner) startService() error {
 	port, err := _k.portGenerator.GetAvailable()
 	if err != nil {

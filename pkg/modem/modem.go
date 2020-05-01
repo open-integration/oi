@@ -63,7 +63,9 @@ func (m *modem) Init() error {
 		if s.err != nil {
 			m.logger.Error("Service failed to start", "service", name, "err", s.err.Error())
 			err.WriteString(fmt.Sprintf("Serive: %s - Error: %s\n", name, s.err.Error()))
+			continue
 		}
+		s.tasksSchemas = s.runner.Schemas()
 	}
 	if err.Len() > 0 {
 		m.logger.Error("Modem initializing finished with error")
@@ -84,20 +86,20 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 		Endpoint: endpoint,
 		Fd:       fd,
 	}
-	schema, ok := m.services[service].tasksSchemas[fmt.Sprintf("%s/%s", endpoint, "arguments.json")]
+	schema, ok := m.services[service].tasksSchemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "arguments.json")]
 	if !ok {
-		req.Arguments = ""
-	} else {
-		r, err := json.Marshal(arguments)
-		if err != nil {
-			return "", err
-		}
-		err = m.isArgumentsValid(r, schema)
-		if err != nil {
-			return "", err
-		}
-		req.Arguments = string(r)
+		log.Debug("Serivce endpoint doesnt configure any argument schema")
 	}
+	r, err := json.Marshal(arguments)
+	if err != nil {
+		return "", err
+	}
+	err = m.isArgumentsValid(r, schema)
+	if err != nil {
+		return "", err
+	}
+	req.Arguments = string(r)
+
 	resp, err := m.services[service].runner.Call(context.Background(), req)
 	if err != nil {
 		log.Debug("Call return with error", "err", err.Error())
@@ -108,7 +110,7 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 		return resp.Payload, fmt.Errorf(resp.Error)
 	}
 
-	err = m.isResponsePayloadValid(resp.Payload, m.services[service].tasksSchemas[fmt.Sprintf("%s/%s", endpoint, "returns.json")])
+	err = m.isResponsePayloadValid(resp.Payload, m.services[service].tasksSchemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "returns.json")])
 	if err != nil {
 		return resp.Payload, err
 	}

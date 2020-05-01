@@ -2,10 +2,8 @@ package core
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"sync"
 	"time"
@@ -37,25 +35,6 @@ type (
 		statev1            state.State
 		wg                 *sync.WaitGroup
 		graphBuilder       graph.Builder
-	}
-
-	serviceRunner struct {
-		logger         logger.Logger
-		fileDescriptor string
-		modem          modem.Modem
-		spec           task.Spec
-	}
-
-	commandRunner struct {
-		logger    logger.Logger
-		logWriter io.Writer
-		cmd       task.Command
-		runner    interface {
-			Create() *exec.Cmd
-			AddCommand(cmd string)
-			AddEnv(key string, value string)
-			Bin(path string)
-		}
 	}
 )
 
@@ -120,7 +99,14 @@ func (e *engine) electNextTasks(ev state.Event) {
 		e.logger.Error("Failed to copy state")
 		return
 	}
-	tasksCandidates := e.getCandidates(ev, stateCpy)
+	tasksCandidates := map[string]task.Task{}
+	for _, reaction := range e.pipeline.Spec.Reactions {
+		if reaction.Condition.Met(ev, stateCpy) {
+			for _, t := range reaction.Reaction(ev, stateCpy) {
+				tasksCandidates[t.Metadata.Name] = t
+			}
+		}
+	}
 
 	tasksToElect := []task.Task{}
 	for _, t := range tasksCandidates {
@@ -200,13 +186,12 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		logger.Error("Failed to create log file for task")
 	}
 
-	tr := &serviceRunner{
-		spec:           spec,
-		logger:         e.logger,
-		modem:          e.modem,
-		fileDescriptor: fileDescriptor,
+	e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
+	arguments := map[string]interface{}{}
+	for _, arg := range spec.Arguments {
+		arguments[arg.Key] = arg.Value
 	}
-	payload, err := tr.run()
+	payload, err := e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
 
 	t.Metadata.Time.FinishedAt = now()
 	e.wg.Add(1)
@@ -317,13 +302,4 @@ func (e *engine) getCandidates(ev state.Event, st state.State) map[string]task.T
 	}
 	wg.Wait()
 	return tasksCandidates
-}
-
-func (s *serviceRunner) run() (string, error) {
-	arguments := map[string]interface{}{}
-	s.logger.Debug("Calling service", "service", s.spec.Service, "endpoint", s.spec.Endpoint)
-	for _, arg := range s.spec.Arguments {
-		arguments[arg.Key] = arg.Value
-	}
-	return s.modem.Call(s.spec.Service, s.spec.Endpoint, arguments, s.fileDescriptor)
 }

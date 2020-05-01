@@ -23,6 +23,7 @@ type (
 		Run() error
 		Kill() error
 		Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error)
+		Schemas() map[string]string
 	}
 
 	// Options shows all the available options to build runner
