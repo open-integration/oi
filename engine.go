@@ -275,31 +275,3 @@ func (e *engine) concludeStatus(err error) string {
 	}
 	return status
 }
-
-func (e *engine) getCandidates(ev state.Event, st state.State) map[string]task.Task {
-	tasksCandidates := map[string]task.Task{}
-	wg := &sync.WaitGroup{}
-	taskCh := make(chan task.Task, 1)
-	go func() {
-		for {
-			select {
-			case t, closed := <-taskCh:
-				if !closed {
-					return
-				}
-				tasksCandidates[t.Metadata.Name] = t
-			}
-		}
-	}()
-	for _, reaction := range e.pipeline.Spec.Reactions {
-		if !reaction.Condition.Met(ev, st) {
-			continue
-		}
-		wg.Add(1)
-		for _, t := range reaction.Reaction(ev, st) {
-			tasksCandidates[t.Metadata.Name] = t
-		}
-	}
-	wg.Wait()
-	return tasksCandidates
-}
