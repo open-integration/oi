@@ -5,6 +5,7 @@ import (
 
 	apiv1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/mocks"
+	"github.com/open-integration/core/pkg/runner"
 	"github.com/open-integration/core/pkg/state"
 	"github.com/open-integration/core/pkg/task"
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,12 @@ type (
 		options    *EngineOptions
 		wantErr    bool
 		middleware []func(e Engine)
+	}
+
+	fakeService struct {
+		id     string
+		name   string
+		runner runner.Runner
 	}
 )
 
@@ -39,6 +46,13 @@ func Test_engine_Run(t *testing.T) {
 			options: &EngineOptions{
 				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
 				serviceDownloader: createFakeDownloader(),
+				modem: createFakeModem([]fakeService{
+					{
+						id:     "id",
+						name:   "some-service",
+						runner: createFakeServiceRunner(),
+					},
+				}),
 				Pipeline: Pipeline{
 					Metadata: pipelineTestMetadata,
 					Spec: PipelineSpec{
@@ -80,9 +94,17 @@ func Test_engine_Run(t *testing.T) {
 		testEngineRun{
 			name:    "Should create multiple tasks as a result of previous task",
 			wantErr: false,
+
 			options: &EngineOptions{
 				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
 				serviceDownloader: createFakeDownloader(),
+				modem: createFakeModem([]fakeService{
+					{
+						id:     "id",
+						name:   "some-service",
+						runner: createFakeServiceRunner(),
+					},
+				}),
 				Pipeline: Pipeline{
 					Metadata: pipelineTestMetadata,
 					Spec: PipelineSpec{
@@ -171,6 +193,13 @@ func Test_engine_Run(t *testing.T) {
 			options: &EngineOptions{
 				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
 				serviceDownloader: createFakeDownloader(),
+				modem: createFakeModem([]fakeService{
+					{
+						id:     "id",
+						name:   "some-service",
+						runner: createFakeServiceRunner(),
+					},
+				}),
 				Pipeline: Pipeline{
 					Metadata: pipelineTestMetadata,
 					Spec: PipelineSpec{
@@ -303,4 +332,22 @@ func createFakeDownloader() *mocks.Downloader {
 	d := &mocks.Downloader{}
 	d.On("Download", mock.Anything, mock.Anything).Return("", nil)
 	return d
+}
+
+func createFakeServiceRunner() *mocks.Runner {
+	r := &mocks.Runner{}
+	r.On("Schemas").Return(map[string]string{})
+	return r
+}
+
+func createFakeModem(services []fakeService) *mocks.Modem {
+	m := &mocks.Modem{}
+	m.On("AddService", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	m.On("Call", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", nil)
+	m.On("Init").Return(nil)
+	m.On("Destroy").Return(nil)
+	for _, s := range services {
+		m.AddService(s.id, s.name, s.runner)
+	}
+	return m
 }

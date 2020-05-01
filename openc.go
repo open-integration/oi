@@ -27,6 +27,7 @@ type (
 		Logger        logger.Logger
 
 		serviceDownloader downloader.Downloader
+		modem             modem.Modem
 	}
 
 	// EngineKubernetesOptions when running service on kubernetes cluster
@@ -91,63 +92,6 @@ func NewEngine(opt *EngineOptions) Engine {
 	servicesLogDir := path.Join(opt.LogsDirectory, "logs", "services")
 	dieOnError(createDir(servicesLogDir))
 
-	var serviceModem modem.Modem
-	// Init modem
-	{
-		serviceModem = modem.New(&modem.ModemOptions{
-			Logger: log.New("module", "modem"),
-		})
-		for _, s := range opt.Pipeline.Spec.Services {
-			svcID := utils.GenerateID()
-			if opt.Kubeconfig == nil {
-				location := s.Path
-				if s.Name != "" && s.Version != "" {
-					location, err = opt.serviceDownloader.Download(s.Name, s.Version)
-					dieOnError(err)
-				}
-				log.Debug("Adding service", "path", location)
-				serviceModem.AddService(svcID, s.As, runner.New(&runner.Options{
-					Type:                 runner.LocalRunner,
-					Logger:               log.New("service-runner", s.Name),
-					Name:                 s.Name,
-					ID:                   svcID,
-					Dailer:               &utils.GRPC{},
-					PortGenerator:        utils.Port{},
-					LocalLogFileCreator:  &utils.FileCreator{},
-					LogsDirectory:        servicesLogDir,
-					ServiceClientCreator: utils.Proto{},
-					LocalCommandCreator:  &utils.Command{},
-					LocalPathToBinary:    location,
-				}))
-			} else {
-				log.Debug("Adding service")
-				runnerOpt := &runner.Options{
-					Type:                      runner.KubernetesRunner,
-					Logger:                    log.New("service-runner", s.Name),
-					Name:                      s.Name,
-					ID:                        svcID,
-					Version:                   s.Version,
-					PortGenerator:             utils.Port{},
-					KubernetesKubeConfigPath:  opt.Kubeconfig.Path,
-					KubernetesContext:         opt.Kubeconfig.Context,
-					KubernetesNamespace:       opt.Kubeconfig.Namespace,
-					KubeconfigHost:            opt.Kubeconfig.Host,
-					KubeconfigToken:           opt.Kubeconfig.Token,
-					KubeconfigB64Crt:          opt.Kubeconfig.B64Crt,
-					Kube:                      &utils.Kubernetes{},
-					Dailer:                    &utils.GRPC{},
-					ServiceClientCreator:      utils.Proto{},
-					LogsDirectory:             opt.LogsDirectory,
-					KubernetesVolumeClaimName: opt.Kubeconfig.LogsVolumeClaimName,
-					KubernetesVolumeName:      opt.Kubeconfig.LogsVolumeName,
-				}
-				if opt.Kubeconfig.InCluster {
-					runnerOpt.KubernetesGrpcDialViaPodIP = true
-				}
-				serviceModem.AddService(svcID, s.As, runner.New(runnerOpt))
-			}
-		}
-	}
 	s := state.New(&state.Options{
 		Logger:             log.New("module", "state-store"),
 		EventChan:          eventChannel,
@@ -167,7 +111,7 @@ func NewEngine(opt *EngineOptions) Engine {
 		eventChan:          eventChannel,
 		stateUpdateRequest: stateUpdateChannel,
 		logger:             log.New("module", "engine"),
-		modem:              serviceModem,
+		modem:              createModem(opt, log, servicesLogDir),
 	}
 }
 
@@ -188,4 +132,65 @@ func HandleEngineError(err error) {
 		fmt.Printf("Failed to execute pipeline\nError: %v", err)
 		exit(1)
 	}
+}
+
+func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) modem.Modem {
+	if opt.modem != nil {
+		return opt.modem
+	}
+	serviceModem := modem.New(&modem.ModemOptions{
+		Logger: log.New("module", "modem"),
+	})
+	for _, s := range opt.Pipeline.Spec.Services {
+		svcID := utils.GenerateID()
+		if opt.Kubeconfig == nil {
+			finalLocation := s.Path
+			if s.Name != "" && s.Version != "" {
+				location, err := opt.serviceDownloader.Download(s.Name, s.Version)
+				dieOnError(err)
+				finalLocation = location
+			}
+			log.Debug("Adding service", "path", finalLocation)
+			serviceModem.AddService(svcID, s.As, runner.New(&runner.Options{
+				Type:                 runner.LocalRunner,
+				Logger:               log.New("service-runner", s.Name),
+				Name:                 s.Name,
+				ID:                   svcID,
+				Dailer:               &utils.GRPC{},
+				PortGenerator:        utils.Port{},
+				LocalLogFileCreator:  &utils.FileCreator{},
+				LogsDirectory:        servicesLogDir,
+				ServiceClientCreator: utils.Proto{},
+				LocalCommandCreator:  &utils.Command{},
+				LocalPathToBinary:    finalLocation,
+			}))
+		} else {
+			log.Debug("Adding service")
+			runnerOpt := &runner.Options{
+				Type:                      runner.KubernetesRunner,
+				Logger:                    log.New("service-runner", s.Name),
+				Name:                      s.Name,
+				ID:                        svcID,
+				Version:                   s.Version,
+				PortGenerator:             utils.Port{},
+				KubernetesKubeConfigPath:  opt.Kubeconfig.Path,
+				KubernetesContext:         opt.Kubeconfig.Context,
+				KubernetesNamespace:       opt.Kubeconfig.Namespace,
+				KubeconfigHost:            opt.Kubeconfig.Host,
+				KubeconfigToken:           opt.Kubeconfig.Token,
+				KubeconfigB64Crt:          opt.Kubeconfig.B64Crt,
+				Kube:                      &utils.Kubernetes{},
+				Dailer:                    &utils.GRPC{},
+				ServiceClientCreator:      utils.Proto{},
+				LogsDirectory:             opt.LogsDirectory,
+				KubernetesVolumeClaimName: opt.Kubeconfig.LogsVolumeClaimName,
+				KubernetesVolumeName:      opt.Kubeconfig.LogsVolumeName,
+			}
+			if opt.Kubeconfig.InCluster {
+				runnerOpt.KubernetesGrpcDialViaPodIP = true
+			}
+			serviceModem.AddService(svcID, s.As, runner.New(runnerOpt))
+		}
+	}
+	return serviceModem
 }

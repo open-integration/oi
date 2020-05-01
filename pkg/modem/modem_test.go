@@ -27,6 +27,7 @@ func buildMockService(runnerMockProvider func() *mocks.Runner) *service {
 	} else {
 		r := &mocks.Runner{}
 		r.On("Run", mock.Anything).Return(nil)
+		r.On("Schemas").Return(map[string]string{})
 		svc.runner = r
 	}
 	return svc
@@ -82,6 +83,7 @@ func Test_modem_Init(t *testing.T) {
 				services: map[string]*service{
 					"svc": buildMockService(func() *mocks.Runner {
 						m := &mocks.Runner{}
+						m.On("Schemas").Return(map[string]string{})
 						m.On("Run", mock.Anything).Return(errors.New(testingErrorFailedRunService))
 						return m
 					}),
@@ -157,16 +159,18 @@ func Test_modem_Call(t *testing.T) {
 		}{
 			name: "Should call the service with empty arguments in case it doesnt have argument schema",
 			args: args{
-				endpoint: "endpoint",
-				service:  "service",
+				endpoint:  "endpoint",
+				service:   "service",
+				arguments: map[string]interface{}{},
 			},
 			fields: fields{
 				services: map[string]*service{
 					"service": buildMockService(func() *mocks.Runner {
 						m := &mocks.Runner{}
+						m.On("Schemas").Return(map[string]string{})
 						m.On("Call", mock.Anything, &v1.CallRequest{
 							Endpoint:  "endpoint",
-							Arguments: "",
+							Arguments: "{}",
 						}).Return(&v1.CallResponse{}, nil)
 						return m
 					}),
@@ -195,6 +199,9 @@ func Test_modem_Call(t *testing.T) {
 					"service": func() *service {
 						s := buildMockService(func() *mocks.Runner {
 							m := &mocks.Runner{}
+							m.On("Schemas").Return(map[string]string{
+								"endpoint/arguments.json": "{\"properties\": { \"key\": { \"type\": \"string\" } } }",
+							})
 							m.On("Call", mock.Anything, &v1.CallRequest{
 								Endpoint:  "endpoint",
 								Arguments: "{\"key\":\"value\"}",
