@@ -3,7 +3,6 @@ package downloader
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -41,8 +40,7 @@ func New(opt Options) Downloader {
 func (d *downloader) Download(name string, version string) (string, error) {
 	candidateFileName := fmt.Sprintf("%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
 	fullPath := path.Join(d.store, candidateFileName)
-	_, err := ioutil.ReadFile(fullPath)
-	if os.IsExist(err) {
+	if fileExists(fullPath) {
 		d.logger.Debug("Skipping download, service exist", "path", fullPath)
 		return fullPath, nil
 	}
@@ -79,4 +77,12 @@ func (d *downloader) Download(name string, version string) (string, error) {
 	}
 	d.logger.Debug("Downloaded", "name", name, "code", resp.StatusCode)
 	return fullPath, nil
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
