@@ -7,6 +7,7 @@ type (
 	Task struct {
 		Metadata Metadata
 		Spec     Spec
+		Runner   Runner
 	}
 
 	// Metadata holds all the metadata of a pipeline
@@ -25,7 +26,6 @@ type (
 		Service   string
 		Endpoint  string
 		Arguments []Argument
-		Cmd       *Command
 	}
 
 	// Argument is key value struct that should be passed in a service call
@@ -34,13 +34,8 @@ type (
 		Value interface{}
 	}
 
-	// Command is a command to be executed as a sub-process
-	Command struct {
-		EnvironmentVariables []Argument
-		// Program is executable program
-		Program   string
-		Arguments []string
-		// WorkingDirectory default is the current directory
-		WorkingDirectory string
+	// Runner to run task in the same process of instead of calling
+	Runner interface {
+		Run() error
 	}
 )

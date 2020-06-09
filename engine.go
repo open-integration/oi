@@ -186,12 +186,17 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		logger.Error("Failed to create log file for task")
 	}
 
-	e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
-	arguments := map[string]interface{}{}
-	for _, arg := range spec.Arguments {
-		arguments[arg.Key] = arg.Value
+	payload := ""
+	if t.Runner != nil {
+		err = t.Runner.Run()
+	} else {
+		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
+		arguments := map[string]interface{}{}
+		for _, arg := range spec.Arguments {
+			arguments[arg.Key] = arg.Value
+		}
+		payload, err = e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
 	}
-	payload, err := e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
 
 	t.Metadata.Time.FinishedAt = now()
 	e.wg.Add(1)
