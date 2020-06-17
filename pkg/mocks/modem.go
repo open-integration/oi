@@ -26,14 +26,14 @@ func (_m *Modem) AddService(id string, name string, _a2 runner.Runner) error {
 }
 
 // Call provides a mock function with given fields: service, endpoint, arguments, fd
-func (_m *Modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error) {
+func (_m *Modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
 	ret := _m.Called(service, endpoint, arguments, fd)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}, string) string); ok {
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}, string) []byte); ok {
 		r0 = rf(service, endpoint, arguments, fd)
 	} else {
-		r0 = ret.Get(0).(string)
+		r0 = ret.Get(0).([]byte)
 	}
 
 	var r1 error

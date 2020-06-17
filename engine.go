@@ -186,9 +186,9 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 		logger.Error("Failed to create log file for task")
 	}
 
-	payload := ""
+	var payload []byte
 	if t.Runner != nil {
-		err = t.Runner.Run()
+		payload, err = t.Runner.Run()
 	} else {
 		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
 		arguments := map[string]interface{}{}

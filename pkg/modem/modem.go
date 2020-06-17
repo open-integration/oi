@@ -17,7 +17,7 @@ import (
 type (
 	Modem interface {
 		Init() error
-		Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error)
+		Call(service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error)
 		Destroy() error
 		AddService(id string, name string, runner runner.Runner) error
 	}
@@ -75,11 +75,11 @@ func (m *modem) Init() error {
 	return nil
 }
 
-func (m *modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) (string, error) {
+func (m *modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
 	log := m.logger.New("service", service, "endpoint", endpoint)
 
 	if _, ok := m.services[service]; !ok {
-		return "", fmt.Errorf("Service %s not found", service)
+		return nil, fmt.Errorf("Service %s not found", service)
 	}
 
 	req := &v1.CallRequest{
@@ -92,30 +92,30 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 	}
 	r, err := json.Marshal(arguments)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	err = m.isArgumentsValid(r, schema)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	req.Arguments = string(r)
 
 	resp, err := m.services[service].runner.Call(context.Background(), req)
 	if err != nil {
 		log.Debug("Call return with error", "err", err.Error())
-		return "", err
+		return nil, err
 	}
 	if resp.Status == v1.Status_Error {
 		log.Debug("Call return with error", "err", resp.Error)
-		return resp.Payload, fmt.Errorf(resp.Error)
+		return []byte(resp.Payload), fmt.Errorf(resp.Error)
 	}
 
 	err = m.isResponsePayloadValid(resp.Payload, m.services[service].tasksSchemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "returns.json")])
 	if err != nil {
-		return resp.Payload, err
+		return []byte(resp.Payload), err
 	}
 
-	return resp.Payload, nil
+	return []byte(resp.Payload), nil
 }
 
 func (m *modem) Destroy() error {

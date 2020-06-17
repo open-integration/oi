@@ -130,16 +130,10 @@ func Test_modem_Call(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    string
+		want    []byte
 		wantErr bool
 	}{
-		struct {
-			name    string
-			fields  fields
-			args    args
-			want    string
-			wantErr bool
-		}{
+		{
 			name: "Should return an error in case the service was not found",
 			args: args{
 				service: "not-found",
@@ -149,14 +143,7 @@ func Test_modem_Call(t *testing.T) {
 				services: make(map[string]*service),
 				logger:   buildBasicLoggerMock(&mocks.Logger{}),
 			},
-		},
-		struct {
-			name    string
-			fields  fields
-			args    args
-			want    string
-			wantErr bool
-		}{
+		}, {
 			name: "Should call the service with empty arguments in case it doesnt have argument schema",
 			args: args{
 				endpoint:  "endpoint",
@@ -177,15 +164,8 @@ func Test_modem_Call(t *testing.T) {
 				},
 				logger: buildBasicLoggerMock(&mocks.Logger{}),
 			},
-			want: "",
-		},
-		struct {
-			name    string
-			fields  fields
-			args    args
-			want    string
-			wantErr bool
-		}{
+			want: []byte{},
+		}, {
 			name: "Should call the service with the arguments in case they mached to the schema",
 			args: args{
 				endpoint: "endpoint",
@@ -216,7 +196,7 @@ func Test_modem_Call(t *testing.T) {
 				},
 				logger: buildBasicLoggerMock(&mocks.Logger{}),
 			},
-			want: "",
+			want: []byte{},
 		},
 	}
 	for _, tt := range tests {
@@ -231,9 +211,7 @@ func Test_modem_Call(t *testing.T) {
 				t.Errorf("modem.Call() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("modem.Call() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, got, tt.want)
 		})
 	}
 }

@@ -33,14 +33,14 @@ type (
 
 func Test_engine_Run(t *testing.T) {
 	tests := []testEngineRun{
-		testEngineRun{
+		{
 			name:    "Should run zero tasks with no errors",
 			wantErr: false,
 			options: &EngineOptions{
 				Logger: extendLoggerMockWithBasicMocks(createFakeLogger()),
 			},
 		},
-		testEngineRun{
+		{
 			name:    "Should run one task once the engine started and exit succesfuly",
 			wantErr: false,
 			options: &EngineOptions{
@@ -57,18 +57,18 @@ func Test_engine_Run(t *testing.T) {
 					Metadata: pipelineTestMetadata,
 					Spec: PipelineSpec{
 						Services: []Service{
-							Service{
+							{
 								Name:    "some-service",
 								As:      "service-name",
 								Version: "0.0.1",
 							},
 						},
 						Reactions: []EventReaction{
-							EventReaction{
+							{
 								Condition: ConditionEngineStarted(),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-name",
 											},
@@ -91,7 +91,7 @@ func Test_engine_Run(t *testing.T) {
 				},
 			},
 		},
-		testEngineRun{
+		{
 			name:    "Should create multiple tasks as a result of previous task",
 			wantErr: false,
 
@@ -109,23 +109,23 @@ func Test_engine_Run(t *testing.T) {
 					Metadata: pipelineTestMetadata,
 					Spec: PipelineSpec{
 						Services: []Service{
-							Service{
+							{
 								Name:    "service(task1)",
 								As:      "service1",
 								Version: "0.0.1",
 							},
-							Service{
+							{
 								Name:    "service(task2...5)",
 								As:      "service2",
 								Version: "0.0.1",
 							},
 						},
 						Reactions: []EventReaction{
-							EventReaction{
+							{
 								Condition: ConditionEngineStarted(),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-1",
 											},
@@ -137,11 +137,11 @@ func Test_engine_Run(t *testing.T) {
 									}
 								},
 							},
-							EventReaction{
+							{
 								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-2",
 											},
@@ -150,7 +150,7 @@ func Test_engine_Run(t *testing.T) {
 												Endpoint: "endpoint1",
 											},
 										},
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-3",
 											},
@@ -177,7 +177,7 @@ func Test_engine_Run(t *testing.T) {
 				},
 			},
 		},
-		testEngineRun{
+		{
 			name:    "Should run succesfully multiple tasks",
 			wantErr: false,
 			middleware: []func(e Engine){
@@ -204,23 +204,23 @@ func Test_engine_Run(t *testing.T) {
 					Metadata: pipelineTestMetadata,
 					Spec: PipelineSpec{
 						Services: []Service{
-							Service{
+							{
 								Name:    "service(task1)",
 								As:      "service1",
 								Version: "0.0.1",
 							},
-							Service{
+							{
 								Name:    "service(task2...5)",
 								As:      "service2",
 								Version: "0.0.1",
 							},
 						},
 						Reactions: []EventReaction{
-							EventReaction{
+							{
 								Condition: ConditionEngineStarted(),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-1",
 											},
@@ -232,11 +232,11 @@ func Test_engine_Run(t *testing.T) {
 									}
 								},
 							},
-							EventReaction{
+							{
 								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-2",
 											},
@@ -245,7 +245,7 @@ func Test_engine_Run(t *testing.T) {
 												Endpoint: "endpoint1",
 											},
 										},
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-3",
 											},
@@ -257,11 +257,11 @@ func Test_engine_Run(t *testing.T) {
 									}
 								},
 							},
-							EventReaction{
+							{
 								Condition: ConditionTaskFinishedWithStatus("task-2", state.TaskStatusSuccess),
 								Reaction: func(ev state.Event, state state.State) []task.Task {
 									return []task.Task{
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-4",
 											},
@@ -270,7 +270,7 @@ func Test_engine_Run(t *testing.T) {
 												Endpoint: "endpoint1",
 											},
 										},
-										task.Task{
+										{
 											Metadata: task.Metadata{
 												Name: "task-5",
 											},
@@ -343,7 +343,7 @@ func createFakeServiceRunner() *mocks.Runner {
 func createFakeModem(services []fakeService) *mocks.Modem {
 	m := &mocks.Modem{}
 	m.On("AddService", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	m.On("Call", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", nil)
+	m.On("Call", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]byte(""), nil)
 	m.On("Init").Return(nil)
 	m.On("Destroy").Return(nil)
 	for _, s := range services {

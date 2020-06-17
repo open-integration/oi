@@ -36,6 +36,6 @@ type (
 
 	// Runner to run task in the same process of instead of calling
 	Runner interface {
-		Run() error
+		Run() ([]byte, error)
 	}
 )
