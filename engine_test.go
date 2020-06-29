@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	apiv1 "github.com/open-integration/core/pkg/api/v1"
+	"github.com/open-integration/core/pkg/event"
 	"github.com/open-integration/core/pkg/mocks"
 	"github.com/open-integration/core/pkg/runner"
 	"github.com/open-integration/core/pkg/state"
@@ -66,7 +67,7 @@ func Test_engine_Run(t *testing.T) {
 						Reactions: []EventReaction{
 							{
 								Condition: ConditionEngineStarted(),
-								Reaction: func(ev state.Event, state state.State) []task.Task {
+								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
 										{
 											Metadata: task.Metadata{
@@ -123,7 +124,7 @@ func Test_engine_Run(t *testing.T) {
 						Reactions: []EventReaction{
 							{
 								Condition: ConditionEngineStarted(),
-								Reaction: func(ev state.Event, state state.State) []task.Task {
+								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
 										{
 											Metadata: task.Metadata{
@@ -139,7 +140,7 @@ func Test_engine_Run(t *testing.T) {
 							},
 							{
 								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
-								Reaction: func(ev state.Event, state state.State) []task.Task {
+								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
 										{
 											Metadata: task.Metadata{
@@ -218,7 +219,7 @@ func Test_engine_Run(t *testing.T) {
 						Reactions: []EventReaction{
 							{
 								Condition: ConditionEngineStarted(),
-								Reaction: func(ev state.Event, state state.State) []task.Task {
+								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
 										{
 											Metadata: task.Metadata{
@@ -234,7 +235,7 @@ func Test_engine_Run(t *testing.T) {
 							},
 							{
 								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
-								Reaction: func(ev state.Event, state state.State) []task.Task {
+								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
 										{
 											Metadata: task.Metadata{
@@ -259,7 +260,7 @@ func Test_engine_Run(t *testing.T) {
 							},
 							{
 								Condition: ConditionTaskFinishedWithStatus("task-2", state.TaskStatusSuccess),
-								Reaction: func(ev state.Event, state state.State) []task.Task {
+								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
 										{
 											Metadata: task.Metadata{

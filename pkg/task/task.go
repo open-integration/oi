@@ -1,6 +1,10 @@
 package task
 
-import "time"
+import (
+	"time"
+
+	"github.com/open-integration/core/pkg/event/reporter"
+)
 
 type (
 	// Task is a task a pipeline should execute
@@ -34,8 +38,8 @@ type (
 		Value interface{}
 	}
 
-	// Runner to run task in the same process of instead of calling
+	// Runner to run task in the same process of instead of calling a service
 	Runner interface {
-		Run() ([]byte, error)
+		Run(reporter.EventReporter) ([]byte, error)
 	}
 )

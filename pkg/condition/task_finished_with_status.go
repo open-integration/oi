@@ -1,13 +1,16 @@
 package condition
 
-import "github.com/open-integration/core/pkg/state"
+import (
+	"github.com/open-integration/core/pkg/event"
+	"github.com/open-integration/core/pkg/state"
+)
 
 type conditionTaskFinishedWithStatus struct {
 	task   string
 	status string
 }
 
-func (c *conditionTaskFinishedWithStatus) Met(ev state.Event, s state.State) bool {
+func (c *conditionTaskFinishedWithStatus) Met(ev event.Event, s state.State) bool {
 	if ev.Metadata.Name != state.EventTaskFinished {
 		return false
 	}

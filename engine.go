@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/open-integration/core/pkg/event"
+	"github.com/open-integration/core/pkg/event/reporter"
 	"github.com/open-integration/core/pkg/graph"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
@@ -27,7 +29,7 @@ type (
 	engine struct {
 		pipeline           Pipeline
 		logger             logger.Logger
-		eventChan          chan *state.Event
+		eventChan          chan *event.Event
 		stateUpdateRequest chan state.StateUpdateRequest
 		taskLogsDirctory   string
 		stateDir           string
@@ -90,8 +92,17 @@ func (e *engine) handleStateEvents() {
 	}
 }
 
+// handleTaskEvents watch on dedicated event channel created for each task.
+func (e *engine) handleTaskEvents(lgr logger.Logger, ch <-chan event.Event) {
+	for {
+		ev := <-ch
+		lgr.Debug("Got event from task", "name", ev.Metadata.Name)
+		go e.electNextTasks(ev)
+	}
+}
+
 // electNextTasks - running all reactions on the event and sending request to elect matched tasks
-func (e *engine) electNextTasks(ev state.Event) {
+func (e *engine) electNextTasks(ev event.Event) {
 	log := e.logger.New("event", ev.Metadata.Name)
 	log.Debug("Received event, electing next tasks")
 	stateCpy, err := e.statev1.Copy()
@@ -139,7 +150,7 @@ func (e *engine) electNextTasks(ev state.Event) {
 }
 
 // executeElectedTasks - execute all elected tasks in parallel
-func (e *engine) executeElectedTasks(ev state.Event) {
+func (e *engine) executeElectedTasks(ev event.Event) {
 	log := e.logger.New("event", ev.Metadata.Name)
 	stateCpy, err := e.statev1.Copy()
 	if err != nil {
@@ -162,7 +173,7 @@ func (e *engine) executeElectedTasks(ev state.Event) {
 	wg.Wait()
 }
 
-func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
+func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 	spec := t.Spec
 	fileName := fmt.Sprintf("%s.log", t.Metadata.Name)
 	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
@@ -183,12 +194,17 @@ func (e *engine) runTask(t task.Task, ev state.Event, logger logger.Logger) {
 
 	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
-		logger.Error("Failed to create log file for task")
+		lgr.Error("Failed to create log file for task")
 	}
-
 	var payload []byte
 	if t.Runner != nil {
-		payload, err = t.Runner.Run()
+		eventChan := make(chan event.Event)
+		r := reporter.New(reporter.Options{
+			EventChan: eventChan,
+			Name:      t.Metadata.Name,
+		})
+		go e.handleTaskEvents(e.logger.New("module", "task-event-handler"), eventChan)
+		payload, err = t.Runner.Run(r)
 	} else {
 		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
 		arguments := map[string]interface{}{}

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/open-integration/core/pkg/downloader"
+	"github.com/open-integration/core/pkg/event"
 	"github.com/open-integration/core/pkg/graph"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
@@ -62,7 +63,7 @@ func NewEngine(opt *EngineOptions) Engine {
 	servicesDir := path.Join(home, ".open-integration", "services")
 	dieOnError(createDir(servicesDir))
 
-	eventChannel := make(chan *state.Event, 10)
+	eventChannel := make(chan *event.Event, 10)
 
 	stateUpdateChannel := make(chan state.StateUpdateRequest, 1)
 

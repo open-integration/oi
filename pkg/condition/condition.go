@@ -1,6 +1,7 @@
 package condition
 
 import (
+	"github.com/open-integration/core/pkg/event"
 	"github.com/open-integration/core/pkg/state"
 )
 
@@ -16,7 +17,7 @@ const (
 type (
 	// Condition exposes interface to run condition on state events
 	Condition interface {
-		Met(ev state.Event, s state.State) bool
+		Met(ev event.Event, s state.State) bool
 	}
 )
 
@@ -39,5 +40,12 @@ func TaskFinishedWithStatus(task string, status string) Condition {
 func Combined(condition ...Condition) Condition {
 	return &conditionCombined{
 		conditions: condition,
+	}
+}
+
+// TaskEventReported build task_event_reported.go
+func TaskEventReported(name string) Condition {
+	return &conditionTaskEventReported{
+		name: name,
 	}
 }

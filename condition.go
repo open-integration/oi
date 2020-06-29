@@ -26,3 +26,9 @@ func ConditionTaskFinishedWithStatus(task string, status string) condition.Condi
 func ConditionCombined(conditions ...condition.Condition) condition.Condition {
 	return condition.Combined(conditions...)
 }
+
+// ConditionTaskEventReported return the condition that satisfied when task reported event
+// in format {TASK_NAME}.{EVENT}
+func ConditionTaskEventReported(name string) condition.Condition {
+	return condition.TaskEventReported(name)
+}

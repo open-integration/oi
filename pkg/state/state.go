@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/imdario/mergo"
+	"github.com/open-integration/core/pkg/event"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/utils"
 	"gopkg.in/yaml.v2"
@@ -16,7 +17,7 @@ type (
 	State interface {
 		Copy() (State, error)
 		Tasks() map[string]TaskState
-		Events() []Event
+		Events() []event.Event
 		Services() []ServiceState
 		StateBytes() ([]byte, error)
 		EventBytes() ([]byte, error)
@@ -28,8 +29,8 @@ type (
 		state              string
 		services           []ServiceState
 		tasks              map[string]TaskState
-		events             []Event
-		eventChan          chan *Event
+		events             []event.Event
+		eventChan          chan *event.Event
 		commandsChan       chan string
 		logger             logger.Logger
 		initialized        bool
@@ -43,7 +44,7 @@ type (
 	Options struct {
 		Name string
 		// EventChan to write new event to the channel once a chance was applied
-		EventChan chan *Event
+		EventChan chan *event.Event
 		// CommandsChan to receive commands to create new change channel
 		CommandsChan chan string
 		// StateUpdateRequest to receive updated on the state in realtime
@@ -97,7 +98,7 @@ func (s *state) EventBytes() ([]byte, error) {
 	}
 	return yaml.Marshal(res)
 }
-func (s *state) Events() []Event {
+func (s *state) Events() []event.Event {
 	return s.events
 }
 func (s *state) Tasks() map[string]TaskState {
@@ -145,14 +146,14 @@ func (s *state) copy() state {
 		dest.tasks[n] = t
 	}
 	dest.services = append([]ServiceState(nil), s.services...)
-	dest.events = append([]Event(nil), s.events...)
+	dest.events = append([]event.Event(nil), s.events...)
 	return dest
 }
 
 func (s *state) addRealtedTaskToEventReuqest(req *AddRealtedTaskToEventReuqest) {
 	for i, e := range s.events {
 		if e.Metadata.ID == req.EventID {
-			event := Event{
+			event := event.Event{
 				Metadata:     e.Metadata,
 				Payload:      e.Payload,
 				RelatedTasks: append(e.RelatedTasks, req.Task...),
@@ -171,8 +172,8 @@ func (s *state) electTasksRequest(req *ElectTasksRequest) {
 			Task:  t,
 		}
 	}
-	ev := &Event{
-		Metadata: EventMetadata{
+	ev := &event.Event{
+		Metadata: event.Metadata{
 			CreatedAt: time.Now(),
 			ID:        utils.GenerateID(),
 			Name:      EventTaskElected,
@@ -182,8 +183,8 @@ func (s *state) electTasksRequest(req *ElectTasksRequest) {
 }
 func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
 	task := req.State.Task
-	ev := &Event{
-		Metadata: EventMetadata{
+	ev := &event.Event{
+		Metadata: event.Metadata{
 			CreatedAt: time.Now(),
 			ID:        utils.GenerateID(),
 			Task:      task.Metadata.Name,
@@ -202,8 +203,8 @@ func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
 	s.eventChan <- ev
 }
 func (s *state) updateStateMetadataRequest(req *UpdateStateMetadataRequest) {
-	ev := &Event{
-		Metadata: EventMetadata{
+	ev := &event.Event{
+		Metadata: event.Metadata{
 			CreatedAt: time.Now(),
 			ID:        utils.GenerateID(),
 		},
