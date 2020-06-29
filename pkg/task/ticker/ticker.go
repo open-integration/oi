@@ -25,7 +25,7 @@ type (
 
 // New creates new Ticker task
 func New(opt Options) task.Task {
-	name = "ticker"
+	name := "ticker"
 	if opt.Name != "" {
 		name = opt.Name
 	}
