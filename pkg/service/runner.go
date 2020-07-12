@@ -1,4 +1,4 @@
-package runner
+package service
 
 import (
 	"context"
@@ -10,20 +10,34 @@ import (
 )
 
 const (
-	// LocalRunner type using gGRPC to connect to
-	LocalRunner = "local"
+	// Local type using gGRPC to connect to
+	Local = "local"
 
-	// KubernetesRunner type
-	KubernetesRunner = "kubernetes"
+	// Kubernetes type
+	Kubernetes = "kubernetes"
 )
 
 type (
-	// Runner expose an interface to run services
-	Runner interface {
+	// Service expose an interface to manage services
+	Service interface {
+		Caller
+		RunnerKiller
+		API
+	}
+
+	// Caller to call the service
+	Caller interface {
+		Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error)
+	}
+	// RunnerKiller to start and stop the the service
+	RunnerKiller interface {
 		Run() error
 		Kill() error
-		Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error)
-		Schemas() map[string]string
+	}
+
+	// API expose general methods
+	API interface {
+		Schemas() map[string]string // TODO: cache!
 	}
 
 	// Options shows all the available options to build runner
@@ -74,9 +88,9 @@ type (
 )
 
 // New builds new runner based on Options.Type
-func New(opt *Options) Runner {
-	if opt.Type == LocalRunner {
-		return &localRunner{
+func New(opt *Options) Service {
+	if opt.Type == Local {
+		return &localService{
 			Logger:               opt.Logger,
 			name:                 opt.Name,
 			id:                   opt.ID,
@@ -90,8 +104,8 @@ func New(opt *Options) Runner {
 		}
 	}
 
-	if opt.Type == KubernetesRunner {
-		runner := &kubernetesRunner{
+	if opt.Type == Kubernetes {
+		runner := &kubernetesService{
 			Logger:               opt.Logger,
 			name:                 opt.Name,
 			version:              opt.Version,

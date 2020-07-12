@@ -1,4 +1,4 @@
-package runner
+package service
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 type (
-	localRunner struct {
+	localService struct {
 		Logger               logger.Logger
 		command              *exec.Cmd
 		name                 string
@@ -41,7 +41,7 @@ type (
 	}
 )
 
-func (_l *localRunner) Run() error {
+func (_l *localService) Run() error {
 	_l.Logger.Debug("Initializing service")
 	if err := _l.generatePort(); err != nil {
 		return err
@@ -69,7 +69,7 @@ func (_l *localRunner) Run() error {
 	return nil
 }
 
-func (_l *localRunner) Kill() error {
+func (_l *localService) Kill() error {
 	_l.Logger.Debug("Killing service")
 
 	if err := _l.connection.Close(); err != nil {
@@ -83,15 +83,15 @@ func (_l *localRunner) Kill() error {
 	return process.Signal(os.Interrupt)
 }
 
-func (_l *localRunner) Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error) {
+func (_l *localService) Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error) {
 	return _l.client.Call(context, req)
 }
 
-func (_l *localRunner) Schemas() map[string]string {
+func (_l *localService) Schemas() map[string]string {
 	return _l.tasksSchemas
 }
 
-func (_l *localRunner) generatePort() error {
+func (_l *localService) generatePort() error {
 	port, err := _l.portGenerator.GetAvailable()
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func (_l *localRunner) generatePort() error {
 	return nil
 }
 
-func (_l *localRunner) generateLogFile() error {
+func (_l *localService) generateLogFile() error {
 	name := fmt.Sprintf("%s-%s.log", _l.name, _l.id)
 	writer, err := _l.logFileCreator.Create(_l.logsFileDirectory, name)
 	if err != nil {
@@ -110,20 +110,20 @@ func (_l *localRunner) generateLogFile() error {
 	return nil
 }
 
-func (_l *localRunner) createCommand() error {
+func (_l *localService) createCommand() error {
 	_l.cmdCreator.AddEnv("PORT", _l.port)
 	_l.cmdCreator.Bin(_l.path)
 	_l.command = _l.cmdCreator.Create()
 	return nil
 }
 
-func (_l *localRunner) run() error {
+func (_l *localService) run() error {
 	_l.command.Stdout = _l.logWriter
 	_l.command.Stderr = _l.logWriter
 	return _l.command.Start()
 }
 
-func (_l *localRunner) dail() error {
+func (_l *localService) dail() error {
 	url := fmt.Sprintf("localhost:%s", _l.port)
 	conn, err := _l.dialer.Dial(url, grpc.WithInsecure())
 	if err != nil {
@@ -135,7 +135,7 @@ func (_l *localRunner) dail() error {
 	return nil
 }
 
-func (_l *localRunner) init() error {
+func (_l *localService) init() error {
 	resp, err := _l.client.Init(context.Background(), &v1.InitRequest{})
 	if err != nil {
 		return err

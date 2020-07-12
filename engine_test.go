@@ -6,7 +6,7 @@ import (
 	apiv1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/event"
 	"github.com/open-integration/core/pkg/mocks"
-	"github.com/open-integration/core/pkg/runner"
+	"github.com/open-integration/core/pkg/service"
 	"github.com/open-integration/core/pkg/state"
 	"github.com/open-integration/core/pkg/task"
 	"github.com/stretchr/testify/assert"
@@ -26,9 +26,8 @@ type (
 	}
 
 	fakeService struct {
-		id     string
 		name   string
-		runner runner.Runner
+		runner service.Service
 	}
 )
 
@@ -49,7 +48,6 @@ func Test_engine_Run(t *testing.T) {
 				serviceDownloader: createFakeDownloader(),
 				modem: createFakeModem([]fakeService{
 					{
-						id:     "id",
 						name:   "some-service",
 						runner: createFakeServiceRunner(),
 					},
@@ -87,8 +85,8 @@ func Test_engine_Run(t *testing.T) {
 			},
 			middleware: []func(e Engine){
 				func(e Engine) {
-					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
-					e.Modem().AddService("service-id", "service-name", runner)
+					runner := extendRunnerMockWithBasicMocks(createFakeServiceRunner())
+					e.Modem().AddService("service-name", runner)
 				},
 			},
 		},
@@ -101,7 +99,6 @@ func Test_engine_Run(t *testing.T) {
 				serviceDownloader: createFakeDownloader(),
 				modem: createFakeModem([]fakeService{
 					{
-						id:     "id",
 						name:   "some-service",
 						runner: createFakeServiceRunner(),
 					},
@@ -169,12 +166,12 @@ func Test_engine_Run(t *testing.T) {
 			},
 			middleware: []func(e Engine){
 				func(e Engine) {
-					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
-					e.Modem().AddService("service-id-1", "service1", runner)
+					runner := extendRunnerMockWithBasicMocks(createFakeServiceRunner())
+					e.Modem().AddService("service1", runner)
 				},
 				func(e Engine) {
-					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
-					e.Modem().AddService("service-id-2", "service2", runner)
+					runner := extendRunnerMockWithBasicMocks(createFakeServiceRunner())
+					e.Modem().AddService("service2", runner)
 				},
 			},
 		},
@@ -183,12 +180,12 @@ func Test_engine_Run(t *testing.T) {
 			wantErr: false,
 			middleware: []func(e Engine){
 				func(e Engine) {
-					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
-					e.Modem().AddService("service-id-1", "service1", runner)
+					runner := extendRunnerMockWithBasicMocks(createFakeServiceRunner())
+					e.Modem().AddService("service1", runner)
 				},
 				func(e Engine) {
-					runner := extendRunnerMockWithBasicMocks(createMockedRunner())
-					e.Modem().AddService("service-id-2", "service2", runner)
+					runner := extendRunnerMockWithBasicMocks(createFakeServiceRunner())
+					e.Modem().AddService("service2", runner)
 				},
 			},
 			options: &EngineOptions{
@@ -196,7 +193,6 @@ func Test_engine_Run(t *testing.T) {
 				serviceDownloader: createFakeDownloader(),
 				modem: createFakeModem([]fakeService{
 					{
-						id:     "id",
 						name:   "some-service",
 						runner: createFakeServiceRunner(),
 					},
@@ -304,11 +300,7 @@ func Test_engine_Run(t *testing.T) {
 	}
 }
 
-func createMockedRunner() *mocks.Runner {
-	return &mocks.Runner{}
-}
-
-func extendRunnerMockWithBasicMocks(m *mocks.Runner) *mocks.Runner {
+func extendRunnerMockWithBasicMocks(m *mocks.Service) *mocks.Service {
 	m.On("Run").Return(nil)
 	m.On("Kill").Return(nil)
 	m.On("Call", mock.Anything, mock.Anything).Return(&apiv1.CallResponse{
@@ -335,8 +327,8 @@ func createFakeDownloader() *mocks.Downloader {
 	return d
 }
 
-func createFakeServiceRunner() *mocks.Runner {
-	r := &mocks.Runner{}
+func createFakeServiceRunner() *mocks.Service {
+	r := &mocks.Service{}
 	r.On("Schemas").Return(map[string]string{})
 	return r
 }
@@ -348,7 +340,7 @@ func createFakeModem(services []fakeService) *mocks.Modem {
 	m.On("Init").Return(nil)
 	m.On("Destroy").Return(nil)
 	for _, s := range services {
-		m.AddService(s.id, s.name, s.runner)
+		m.AddService(s.name, s.runner)
 	}
 	return m
 }

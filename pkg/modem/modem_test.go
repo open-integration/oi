@@ -2,12 +2,12 @@ package modem
 
 import (
 	"errors"
-	"sync"
 	"testing"
 
 	v1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/mocks"
+	"github.com/open-integration/core/pkg/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -18,19 +18,14 @@ const (
 	testingErrorFailedRunService = "FailedToRunService"
 )
 
-func buildMockService(runnerMockProvider func() *mocks.Runner) *service {
-	svc := &service{
-		id: testingServiceID,
-	}
+func buildMockService(runnerMockProvider func() *mocks.Service) service.Service {
 	if runnerMockProvider != nil {
-		svc.runner = runnerMockProvider()
-	} else {
-		r := &mocks.Runner{}
-		r.On("Run", mock.Anything).Return(nil)
-		r.On("Schemas").Return(map[string]string{})
-		svc.runner = r
+		return runnerMockProvider()
 	}
-	return svc
+	r := &mocks.Service{}
+	r.On("Run", mock.Anything).Return(nil)
+	r.On("Schemas").Return(map[string]string{})
+	return r
 }
 
 func buildBasicLoggerMock(m *mocks.Logger) *mocks.Logger {
@@ -43,10 +38,9 @@ func buildBasicLoggerMock(m *mocks.Logger) *mocks.Logger {
 
 func Test_modem_Init(t *testing.T) {
 	type fields struct {
-		services            map[string]*service
+		services            map[string]service.Service
 		logger              func(*mocks.Logger) *mocks.Logger
 		serviceLogDirectory string
-		wg                  *sync.WaitGroup
 	}
 	tests := []struct {
 		name    string
@@ -55,9 +49,8 @@ func Test_modem_Init(t *testing.T) {
 		err     string
 	}{
 		{
-			name: "No service, not possilbe error",
+			name: "No service, no possilbe error",
 			fields: fields{
-				wg:     &sync.WaitGroup{},
 				logger: buildBasicLoggerMock,
 			},
 			wantErr: false,
@@ -65,10 +58,9 @@ func Test_modem_Init(t *testing.T) {
 		{
 			name: "Successfully initialized service, no error",
 			fields: fields{
-				wg:                  &sync.WaitGroup{},
 				serviceLogDirectory: testingServiceDirectory,
 				logger:              buildBasicLoggerMock,
-				services: map[string]*service{
+				services: map[string]service.Service{
 					"svc": buildMockService(nil),
 				},
 			},
@@ -77,12 +69,11 @@ func Test_modem_Init(t *testing.T) {
 		{
 			name: "Failed to start service, exit with error",
 			fields: fields{
-				wg:                  &sync.WaitGroup{},
 				serviceLogDirectory: testingServiceDirectory,
 				logger:              buildBasicLoggerMock,
-				services: map[string]*service{
-					"svc": buildMockService(func() *mocks.Runner {
-						m := &mocks.Runner{}
+				services: map[string]service.Service{
+					"svc": buildMockService(func() *mocks.Service {
+						m := &mocks.Service{}
 						m.On("Schemas").Return(map[string]string{})
 						m.On("Run", mock.Anything).Return(errors.New(testingErrorFailedRunService))
 						return m
@@ -90,7 +81,7 @@ func Test_modem_Init(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			err:     "Serive: svc - Error: FailedToRunService\n",
+			err:     "Failed to initiate service: FailedToRunService",
 		},
 	}
 	for _, tt := range tests {
@@ -98,7 +89,6 @@ func Test_modem_Init(t *testing.T) {
 
 			m := &modem{
 				services: tt.fields.services,
-				wg:       tt.fields.wg,
 			}
 			if tt.fields.logger != nil {
 				m.logger = tt.fields.logger(&mocks.Logger{})
@@ -116,9 +106,8 @@ func Test_modem_Init(t *testing.T) {
 
 func Test_modem_Call(t *testing.T) {
 	type fields struct {
-		services map[string]*service
 		logger   logger.Logger
-		wg       *sync.WaitGroup
+		services map[string]service.Service
 	}
 	type args struct {
 		service   string
@@ -140,8 +129,7 @@ func Test_modem_Call(t *testing.T) {
 			},
 			wantErr: true,
 			fields: fields{
-				services: make(map[string]*service),
-				logger:   buildBasicLoggerMock(&mocks.Logger{}),
+				logger: buildBasicLoggerMock(&mocks.Logger{}),
 			},
 		}, {
 			name: "Should call the service with empty arguments in case it doesnt have argument schema",
@@ -151,9 +139,9 @@ func Test_modem_Call(t *testing.T) {
 				arguments: map[string]interface{}{},
 			},
 			fields: fields{
-				services: map[string]*service{
-					"service": buildMockService(func() *mocks.Runner {
-						m := &mocks.Runner{}
+				services: map[string]service.Service{
+					"service": buildMockService(func() *mocks.Service {
+						m := &mocks.Service{}
 						m.On("Schemas").Return(map[string]string{})
 						m.On("Call", mock.Anything, &v1.CallRequest{
 							Endpoint:  "endpoint",
@@ -175,10 +163,10 @@ func Test_modem_Call(t *testing.T) {
 				},
 			},
 			fields: fields{
-				services: map[string]*service{
-					"service": func() *service {
-						s := buildMockService(func() *mocks.Runner {
-							m := &mocks.Runner{}
+				services: map[string]service.Service{
+					"service": func() service.Service {
+						s := buildMockService(func() *mocks.Service {
+							m := &mocks.Service{}
 							m.On("Schemas").Return(map[string]string{
 								"endpoint/arguments.json": "{\"properties\": { \"key\": { \"type\": \"string\" } } }",
 							})
@@ -188,9 +176,6 @@ func Test_modem_Call(t *testing.T) {
 							}).Return(&v1.CallResponse{}, nil)
 							return m
 						})
-						s.tasksSchemas = map[string]string{
-							"endpoint/arguments.json": "{\"properties\": { \"key\": { \"type\": \"string\" } } }",
-						}
 						return s
 					}(),
 				},
@@ -204,7 +189,6 @@ func Test_modem_Call(t *testing.T) {
 			m := &modem{
 				services: tt.fields.services,
 				logger:   tt.fields.logger,
-				wg:       tt.fields.wg,
 			}
 			got, err := m.Call(tt.args.service, tt.args.endpoint, tt.args.arguments, tt.args.fd)
 			if (err != nil) != tt.wantErr {

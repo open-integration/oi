@@ -11,7 +11,7 @@ import (
 	"github.com/open-integration/core/pkg/graph"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
-	"github.com/open-integration/core/pkg/runner"
+	"github.com/open-integration/core/pkg/service"
 	"github.com/open-integration/core/pkg/state"
 	"github.com/open-integration/core/pkg/utils"
 )
@@ -152,9 +152,9 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) m
 				finalLocation = location
 			}
 			log.Debug("Adding service", "path", finalLocation)
-			serviceModem.AddService(svcID, s.As, runner.New(&runner.Options{
-				Type:                 runner.LocalRunner,
-				Logger:               log.New("service-runner", s.Name),
+			serviceModem.AddService(s.As, service.New(&service.Options{
+				Type:                 service.Local,
+				Logger:               log.New("service-service", s.Name),
 				Name:                 s.Name,
 				ID:                   svcID,
 				Dailer:               &utils.GRPC{},
@@ -167,9 +167,9 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) m
 			}))
 		} else {
 			log.Debug("Adding service")
-			runnerOpt := &runner.Options{
-				Type:                      runner.KubernetesRunner,
-				Logger:                    log.New("service-runner", s.Name),
+			runnerOpt := &service.Options{
+				Type:                      service.Kubernetes,
+				Logger:                    log.New("service-service", s.Name),
 				Name:                      s.Name,
 				ID:                        svcID,
 				Version:                   s.Version,
@@ -190,7 +190,7 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) m
 			if opt.Kubeconfig.InCluster {
 				runnerOpt.KubernetesGrpcDialViaPodIP = true
 			}
-			serviceModem.AddService(svcID, s.As, runner.New(runnerOpt))
+			serviceModem.AddService(s.As, service.New(runnerOpt))
 		}
 	}
 	return serviceModem

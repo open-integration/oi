@@ -1,4 +1,4 @@
-package runner
+package service
 
 import (
 	"context"
@@ -18,7 +18,7 @@ const (
 )
 
 type (
-	kubernetesRunner struct {
+	kubernetesService struct {
 		Logger               logger.Logger
 		name                 string
 		id                   string
@@ -57,7 +57,7 @@ type (
 	}
 )
 
-func (_k *kubernetesRunner) Run() error {
+func (_k *kubernetesService) Run() error {
 	client, err := _k.kube.BuildClient(utils.BuildKubeClientOptions{
 		KubeconfigPath: _k.kubeconfigPath,
 	})
@@ -86,7 +86,7 @@ func (_k *kubernetesRunner) Run() error {
 	return nil
 }
 
-func (_k *kubernetesRunner) Kill() error {
+func (_k *kubernetesService) Kill() error {
 	name := fmt.Sprintf("%s-%s", _k.name, _k.id)
 	if err := _k.kube.KillService(_k.kubeclient, _k.kubeconfigNamespace, name); err != nil {
 		_k.Logger.Warn("Failed to delete kubernetes service", "service", name, "error", err.Error())
@@ -99,15 +99,15 @@ func (_k *kubernetesRunner) Kill() error {
 	return nil
 }
 
-func (_k *kubernetesRunner) Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error) {
+func (_k *kubernetesService) Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error) {
 	return _k.client.Call(context, req)
 }
 
-func (_k *kubernetesRunner) Schemas() map[string]string {
+func (_k *kubernetesService) Schemas() map[string]string {
 	return _k.tasksSchemas
 }
 
-func (_k *kubernetesRunner) startService() error {
+func (_k *kubernetesService) startService() error {
 	port, err := _k.portGenerator.GetAvailable()
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (_k *kubernetesRunner) startService() error {
 	return nil
 }
 
-func (_k *kubernetesRunner) startPod() error {
+func (_k *kubernetesService) startPod() error {
 	podDef, err := _k.kube.BuildPodDefinition(_k.kubeconfigNamespace, _k.name, _k.version, _k.id, defaultPort, _k.kubeVolumeName, _k.kubeVolumeClaimName, _k.logsDirectory)
 	if err != nil {
 		return err
@@ -156,7 +156,7 @@ func (_k *kubernetesRunner) startPod() error {
 	return nil
 }
 
-func (_k *kubernetesRunner) dail() error {
+func (_k *kubernetesService) dail() error {
 	url := fmt.Sprintf("%s:%s", _k.hostname, _k.port)
 	_k.Logger.Debug("Dial to service", "URL", url)
 	conn, err := _k.dialer.Dial(url, grpc.WithInsecure())
@@ -169,7 +169,7 @@ func (_k *kubernetesRunner) dail() error {
 	return nil
 }
 
-func (_k *kubernetesRunner) init() error {
+func (_k *kubernetesService) init() error {
 	_k.Logger.Debug("Calling service init endpoint one time")
 	resp, err := _k.client.Init(context.Background(), &v1.InitRequest{})
 	if err != nil {

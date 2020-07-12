@@ -3,14 +3,12 @@ package modem
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
-	"sync"
 
 	v1 "github.com/open-integration/core/pkg/api/v1"
 	"github.com/open-integration/core/pkg/logger"
-	"github.com/open-integration/core/pkg/runner"
+	"github.com/open-integration/core/pkg/service"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -19,21 +17,12 @@ type (
 		Init() error
 		Call(service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error)
 		Destroy() error
-		AddService(id string, name string, runner runner.Runner) error
+		AddService(name string, runner service.Service) error
 	}
 
 	modem struct {
-		services map[string]*service
+		services map[string]service.Service
 		logger   logger.Logger
-		wg       *sync.WaitGroup
-	}
-
-	service struct {
-		ready        bool
-		id           string
-		runner       runner.Runner
-		err          error
-		tasksSchemas map[string]string
 	}
 
 	ModemOptions struct {
@@ -43,52 +32,37 @@ type (
 
 func New(opt *ModemOptions) Modem {
 	m := &modem{
-		logger:   opt.Logger,
-		services: make(map[string]*service),
-		wg:       &sync.WaitGroup{},
+		logger: opt.Logger,
 	}
 	return m
 }
 
 func (m *modem) Init() error {
-	m.logger.Debug("Modem initializing started")
+	m.logger.Debug("Modem initiation started")
 	for name, s := range m.services {
-		m.wg.Add(1)
-		go m.initService(name, s, m.logger.New("service", name))
-	}
-	m.wg.Wait()
-
-	err := strings.Builder{}
-	for name, s := range m.services {
-		if s.err != nil {
-			m.logger.Error("Service failed to start", "service", name, "err", s.err.Error())
-			err.WriteString(fmt.Sprintf("Serive: %s - Error: %s\n", name, s.err.Error()))
-			continue
+		if err := m.initService(name, s, m.logger.New("service", name)); err != nil {
+			return fmt.Errorf("Failed to initiate service: %w", err)
 		}
-		s.tasksSchemas = s.runner.Schemas()
 	}
-	if err.Len() > 0 {
-		m.logger.Error("Modem initializing finished with error")
-		return errors.New(err.String())
-	}
-	m.logger.Debug("Modem initializing finished")
+	m.logger.Debug("Modem initiation finished")
 	return nil
 }
 
 func (m *modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
 	log := m.logger.New("service", service, "endpoint", endpoint)
-
-	if _, ok := m.services[service]; !ok {
-		return nil, fmt.Errorf("Service %s not found", service)
-	}
-
 	req := &v1.CallRequest{
 		Endpoint: endpoint,
 		Fd:       fd,
 	}
-	schema, ok := m.services[service].tasksSchemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "arguments.json")]
+	svc, ok := m.services[service]
+	if !ok {
+		return nil, fmt.Errorf("Service %s not found", service)
+	}
+	schemas := svc.Schemas()
+	schema, ok := schemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "arguments.json")]
 	if !ok {
 		log.Debug("Serivce endpoint doesnt configure any argument schema")
+
 	}
 	r, err := json.Marshal(arguments)
 	if err != nil {
@@ -100,7 +74,7 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 	}
 	req.Arguments = string(r)
 
-	resp, err := m.services[service].runner.Call(context.Background(), req)
+	resp, err := svc.Call(context.Background(), req)
 	if err != nil {
 		log.Debug("Call return with error", "err", err.Error())
 		return nil, err
@@ -110,7 +84,12 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 		return []byte(resp.Payload), fmt.Errorf(resp.Error)
 	}
 
-	err = m.isResponsePayloadValid(resp.Payload, m.services[service].tasksSchemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "returns.json")])
+	returnSchema, ok := schemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "returns.json")]
+	if !ok {
+		log.Debug("Serivce endpoint doesnt configure any return schema")
+		return []byte(resp.Payload), nil
+	}
+	err = m.isResponsePayloadValid(resp.Payload, returnSchema)
 	if err != nil {
 		return []byte(resp.Payload), err
 	}
@@ -120,7 +99,7 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 
 func (m *modem) Destroy() error {
 	for name, service := range m.services {
-		err := service.runner.Kill()
+		err := service.Kill()
 		if err != nil {
 			m.logger.Debug("Failed to kill service", "service", name)
 		}
@@ -129,25 +108,16 @@ func (m *modem) Destroy() error {
 	return nil
 }
 
-func (m *modem) AddService(id string, name string, runner runner.Runner) error {
-	s := &service{
-		ready: false,
-		id:    id,
-	}
-	s.runner = runner
-	m.services[name] = s
+func (m *modem) AddService(name string, runner service.Service) error {
+	m.services[name] = runner
 	return nil
 }
 
-func (m *modem) initService(name string, svc *service, log logger.Logger) {
-	defer m.wg.Done()
-	if err := svc.runner.Run(); err != nil {
-		log.Error("Serivce startup failed", "error", err.Error())
-		svc.err = err
-		return
+func (m *modem) initService(name string, svc service.Service, log logger.Logger) error {
+	if err := svc.Run(); err != nil {
+		return err
 	}
-	svc.ready = true
-	return
+	return nil
 }
 
 func (m *modem) isArgumentsValid(json []byte, schema string) error {
