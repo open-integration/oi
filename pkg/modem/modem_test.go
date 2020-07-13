@@ -1,6 +1,7 @@
 package modem
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -190,7 +191,7 @@ func Test_modem_Call(t *testing.T) {
 				services: tt.fields.services,
 				logger:   tt.fields.logger,
 			}
-			got, err := m.Call(tt.args.service, tt.args.endpoint, tt.args.arguments, tt.args.fd)
+			got, err := m.Call(context.Background(), tt.args.service, tt.args.endpoint, tt.args.arguments, tt.args.fd)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("modem.Call() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -14,10 +14,14 @@ import (
 
 type (
 	Modem interface {
+		ServiceCaller
 		Init() error
-		Call(service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error)
 		Destroy() error
 		AddService(name string, runner service.Service) error
+	}
+
+	ServiceCaller interface {
+		Call(ctx context.Context, service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error)
 	}
 
 	modem struct {
@@ -48,7 +52,7 @@ func (m *modem) Init() error {
 	return nil
 }
 
-func (m *modem) Call(service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
+func (m *modem) Call(ctx context.Context, service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
 	log := m.logger.New("service", service, "endpoint", endpoint)
 	req := &v1.CallRequest{
 		Endpoint: endpoint,
@@ -74,7 +78,7 @@ func (m *modem) Call(service string, endpoint string, arguments map[string]inter
 	}
 	req.Arguments = string(r)
 
-	resp, err := svc.Call(context.Background(), req)
+	resp, err := svc.Call(ctx, req)
 	if err != nil {
 		log.Debug("Call return with error", "err", err.Error())
 		return nil, err

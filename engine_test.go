@@ -67,15 +67,7 @@ func Test_engine_Run(t *testing.T) {
 								Condition: ConditionEngineStarted(),
 								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
-										{
-											Metadata: task.Metadata{
-												Name: "task-name",
-											},
-											Spec: task.Spec{
-												Endpoint: "endpoint",
-												Service:  "service-name",
-											},
-										},
+										NewSerivceTask("task-name", "service-name", "endpoint"),
 									}
 								},
 							},
@@ -123,15 +115,7 @@ func Test_engine_Run(t *testing.T) {
 								Condition: ConditionEngineStarted(),
 								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
-										{
-											Metadata: task.Metadata{
-												Name: "task-1",
-											},
-											Spec: task.Spec{
-												Service:  "service1",
-												Endpoint: "endpoint1",
-											},
-										},
+										NewSerivceTask("task-1", "service1", "endpoint1"),
 									}
 								},
 							},
@@ -139,24 +123,8 @@ func Test_engine_Run(t *testing.T) {
 								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
 								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
-										{
-											Metadata: task.Metadata{
-												Name: "task-2",
-											},
-											Spec: task.Spec{
-												Service:  "service2",
-												Endpoint: "endpoint1",
-											},
-										},
-										{
-											Metadata: task.Metadata{
-												Name: "task-3",
-											},
-											Spec: task.Spec{
-												Service:  "service2",
-												Endpoint: "endpoint1",
-											},
-										},
+										NewSerivceTask("task-2", "service2", "endpoint1"),
+										NewSerivceTask("task-3", "service2", "endpoint1"),
 									}
 								},
 							},
@@ -217,15 +185,7 @@ func Test_engine_Run(t *testing.T) {
 								Condition: ConditionEngineStarted(),
 								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
-										{
-											Metadata: task.Metadata{
-												Name: "task-1",
-											},
-											Spec: task.Spec{
-												Service:  "service1",
-												Endpoint: "endpoint1",
-											},
-										},
+										NewSerivceTask("task-1", "service1", "endpoint1"),
 									}
 								},
 							},
@@ -233,24 +193,8 @@ func Test_engine_Run(t *testing.T) {
 								Condition: ConditionTaskFinishedWithStatus("task-1", state.TaskStatusSuccess),
 								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
-										{
-											Metadata: task.Metadata{
-												Name: "task-2",
-											},
-											Spec: task.Spec{
-												Service:  "service2",
-												Endpoint: "endpoint1",
-											},
-										},
-										{
-											Metadata: task.Metadata{
-												Name: "task-3",
-											},
-											Spec: task.Spec{
-												Service:  "service2",
-												Endpoint: "endpoint1",
-											},
-										},
+										NewSerivceTask("task-2", "service2", "endpoint1"),
+										NewSerivceTask("task-3", "service2", "endpoint1"),
 									}
 								},
 							},
@@ -258,24 +202,8 @@ func Test_engine_Run(t *testing.T) {
 								Condition: ConditionTaskFinishedWithStatus("task-2", state.TaskStatusSuccess),
 								Reaction: func(ev event.Event, state state.State) []task.Task {
 									return []task.Task{
-										{
-											Metadata: task.Metadata{
-												Name: "task-4",
-											},
-											Spec: task.Spec{
-												Service:  "service2",
-												Endpoint: "endpoint1",
-											},
-										},
-										{
-											Metadata: task.Metadata{
-												Name: "task-5",
-											},
-											Spec: task.Spec{
-												Service:  "service2",
-												Endpoint: "endpoint1",
-											},
-										},
+										NewSerivceTask("task-4", "service2", "endpoint1"),
+										NewSerivceTask("task-5", "service2", "endpoint1"),
 									}
 								},
 							},
@@ -303,9 +231,11 @@ func Test_engine_Run(t *testing.T) {
 func extendRunnerMockWithBasicMocks(m *mocks.Service) *mocks.Service {
 	m.On("Run").Return(nil)
 	m.On("Kill").Return(nil)
-	m.On("Call", mock.Anything, mock.Anything).Return(&apiv1.CallResponse{
-		Status: apiv1.Status_OK,
-	}, nil)
+	m.
+		On("Call", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(&apiv1.CallResponse{
+			Status: apiv1.Status_OK,
+		}, nil)
 	return m
 }
 
@@ -336,7 +266,7 @@ func createFakeServiceRunner() *mocks.Service {
 func createFakeModem(services []fakeService) *mocks.Modem {
 	m := &mocks.Modem{}
 	m.On("AddService", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	m.On("Call", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]byte(""), nil)
+	m.On("Call", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]byte(""), nil)
 	m.On("Init").Return(nil)
 	m.On("Destroy").Return(nil)
 	for _, s := range services {
