@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"time"
 
 	"github.com/open-integration/core/pkg/task"
@@ -15,4 +16,9 @@ func NewSerivceTask(name string, service string, endpoint string, arg ...task.Ar
 // NewTickerTask builds task that will send event every tickInterval till it stops on totalTime
 func NewTickerTask(name string, tickInterval time.Duration, totalTime time.Duration) task.Task {
 	return tasks.NewTickerTask(name, tickInterval, totalTime)
+}
+
+// NewFunctionTask build task that will be executed in same process
+func NewFunctionTask(name string, fn func(context.Context, task.RunOptions) ([]byte, error)) task.Task {
+	return tasks.NewFunctionTask(name, fn)
 }

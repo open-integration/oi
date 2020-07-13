@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"context"
 	"time"
 
 	"github.com/open-integration/core/pkg/task"
@@ -26,5 +27,15 @@ func NewTickerTask(name string, tickInterval time.Duration, totalTime time.Durat
 		},
 		tickInterval: tickInterval,
 		totalTime:    totalTime,
+	}
+}
+
+// NewFunctionTask build task that will be executed in same process
+func NewFunctionTask(name string, fn func(context.Context, task.RunOptions) ([]byte, error)) task.Task {
+	return &function{
+		meta: task.Metadata{
+			Name: name,
+		},
+		function: fn,
 	}
 }
