@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/open-integration/core/pkg/event"
 	"github.com/open-integration/core/pkg/event/reporter"
+	"github.com/open-integration/core/pkg/filedescriptor"
 	"github.com/open-integration/core/pkg/graph"
 	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/modem"
@@ -40,8 +42,6 @@ type (
 	}
 )
 
-var now = func() time.Time { return time.Now() }
-
 // Run starts the pipeline execution
 func (e *engine) Run() error {
 	e.logger.Debug("Starting...", "pipeline", e.pipeline.Metadata.Name)
@@ -56,7 +56,7 @@ func (e *engine) Run() error {
 	e.wg.Add(1)
 	e.stateUpdateRequest <- state.StateUpdateRequest{
 		Metadata: state.StateUpdateRequestMetadata{
-			CreatedAt: now(),
+			CreatedAt: utils.TimeNow(),
 		},
 		UpdateStateMetadataRequest: &state.UpdateStateMetadataRequest{
 			State: state.EngineStateInProgress,
@@ -114,16 +114,16 @@ func (e *engine) electNextTasks(ev event.Event) {
 	for _, reaction := range e.pipeline.Spec.Reactions {
 		if reaction.Condition.Met(ev, stateCpy) {
 			for _, t := range reaction.Reaction(ev, stateCpy) {
-				tasksCandidates[t.Metadata.Name] = t
+				tasksCandidates[t.Name()] = t
 			}
 		}
 	}
 
 	tasksToElect := []task.Task{}
 	for _, t := range tasksCandidates {
-		_, exist := stateCpy.Tasks()[t.Metadata.Name]
+		_, exist := stateCpy.Tasks()[t.Name()]
 		if !exist {
-			e.logger.Debug("Adding task to elected set", "task", t.Metadata.Name)
+			e.logger.Debug("Adding task to elected set", "task", t.Name())
 			tasksToElect = append(tasksToElect, t)
 		}
 	}
@@ -131,12 +131,12 @@ func (e *engine) electNextTasks(ev event.Event) {
 		e.logger.Debug("Electing tasks", "total", len(tasksToElect))
 		ids := []string{}
 		for _, t := range tasksToElect {
-			ids = append(ids, t.Metadata.Name)
+			ids = append(ids, t.Name())
 		}
 		e.wg.Add(1)
 		e.stateUpdateRequest <- state.StateUpdateRequest{
 			Metadata: state.StateUpdateRequestMetadata{
-				CreatedAt: now(),
+				CreatedAt: utils.TimeNow(),
 			},
 			ElectTasksRequest: &state.ElectTasksRequest{
 				Tasks: tasksToElect,
@@ -166,27 +166,29 @@ func (e *engine) executeElectedTasks(ev event.Event) {
 	wg := &sync.WaitGroup{}
 	for _, t := range elected {
 		wg.Add(1)
-		log.Debug("Running task", "task", t.Metadata.Name)
-		go e.runTask(t, ev, log.New("task", t.Metadata.Name))
+		log.Debug("Running task", "task", t.Name())
+		go e.runTask(t, ev, log.New("task", t.Name()))
 		wg.Done()
 	}
 	wg.Wait()
 }
 
 func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
-	spec := t.Spec
-	fileName := fmt.Sprintf("%s.log", t.Metadata.Name)
+	fileName := fmt.Sprintf("%s.log", t.Name())
 	fileDescriptor := path.Join(e.taskLogsDirctory, fileName)
-	t.Metadata.Time.StartedAt = now()
 	e.wg.Add(1)
+	times := state.TaskTimes{
+		Started: utils.TimeNow(),
+	}
 	e.stateUpdateRequest <- state.StateUpdateRequest{
 		Metadata: state.StateUpdateRequestMetadata{
-			CreatedAt: now(),
+			CreatedAt: utils.TimeNow(),
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
 				State:  state.TaskStateInProgress,
 				Task:   t,
+				Times:  times,
 				Logger: fileDescriptor,
 			},
 		},
@@ -195,36 +197,38 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
 		lgr.Error("Failed to create log file for task")
-	}
-	var payload []byte
-	if t.Runner != nil {
-		eventChan := make(chan event.Event)
-		r := reporter.New(reporter.Options{
-			EventChan: eventChan,
-			Name:      t.Metadata.Name,
-		})
-		go e.handleTaskEvents(e.logger.New("module", "task-event-handler"), eventChan)
-		payload, err = t.Runner.Run(r)
-	} else {
-		e.logger.Debug("Calling service", "service", spec.Service, "endpoint", spec.Endpoint)
-		arguments := map[string]interface{}{}
-		for _, arg := range spec.Arguments {
-			arguments[arg.Key] = arg.Value
-		}
-		payload, err = e.modem.Call(spec.Service, spec.Endpoint, arguments, fileDescriptor)
+		return
 	}
 
-	t.Metadata.Time.FinishedAt = now()
+	fd, err := filedescriptor.New(fileDescriptor)
+	if err != nil {
+		lgr.Error("Failed to create filedescriptor")
+		return
+	}
+
+	eventChan := make(chan event.Event)
+	go e.handleTaskEvents(e.logger.New("module", "task-event-handler"), eventChan)
+	payload, err := t.Run(context.Background(), task.RunOptions{
+		FD: fd,
+		EventReporter: reporter.New(reporter.Options{
+			EventChan: eventChan,
+			Name:      t.Name(),
+		}),
+		Modem: e.modem,
+	})
+
 	e.wg.Add(1)
+	times.Finished = utils.TimeNow()
 	e.stateUpdateRequest <- state.StateUpdateRequest{
 		Metadata: state.StateUpdateRequestMetadata{
-			CreatedAt: now(),
+			CreatedAt: utils.TimeNow(),
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
 			State: state.TaskState{
 				State:  state.TaskStateFinished,
 				Status: e.concludeStatus(err),
 				Task:   t,
+				Times:  times,
 				Output: payload,
 				Error:  err,
 				Logger: fileDescriptor,
@@ -249,7 +253,7 @@ func (e *engine) waitForFinish() {
 	e.wg.Add(1)
 	e.stateUpdateRequest <- state.StateUpdateRequest{
 		Metadata: state.StateUpdateRequestMetadata{
-			CreatedAt: now(),
+			CreatedAt: utils.TimeNow(),
 		},
 		UpdateStateMetadataRequest: &state.UpdateStateMetadataRequest{
 			State:  state.EngineStateFinished,

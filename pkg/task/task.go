@@ -1,45 +1,33 @@
 package task
 
 import (
-	"time"
+	"context"
 
 	"github.com/open-integration/core/pkg/event/reporter"
+	"github.com/open-integration/core/pkg/filedescriptor"
+	"github.com/open-integration/core/pkg/modem"
 )
 
 type (
-	// Task is a task a pipeline should execute
-	Task struct {
-		Metadata Metadata
-		Spec     Spec
-		Runner   Runner
+	Task interface {
+		Run(ctx context.Context, options RunOptions) ([]byte, error)
+		Name() string
+	}
+
+	RunOptions struct {
+		FD            filedescriptor.FD
+		EventReporter reporter.EventReporter
+		Modem         modem.ServiceCaller
 	}
 
 	// Metadata holds all the metadata of a pipeline
 	Metadata struct {
 		Name string
-		Time struct {
-			// StaredAt the time when the step was started execution
-			StartedAt time.Time
-			// FinishedAt the time when the step finished execution
-			FinishedAt time.Time
-		}
-	}
-
-	// Spec is the spec of a task
-	Spec struct {
-		Service   string
-		Endpoint  string
-		Arguments []Argument
 	}
 
 	// Argument is key value struct that should be passed in a service call
 	Argument struct {
 		Key   string
 		Value interface{}
-	}
-
-	// Runner to run task in the same process of instead of calling a service
-	Runner interface {
-		Run(reporter.EventReporter) ([]byte, error)
 	}
 )

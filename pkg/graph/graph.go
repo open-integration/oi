@@ -65,12 +65,11 @@ func statusToColor(status string) string {
 }
 
 func node(taskstate state.TaskState) map[string]string {
-	name := taskstate.Task.Metadata.Name
-	times := taskstate.Task.Metadata.Time
+	name := taskstate.Task.Name()
+	times := taskstate.Times
 	return map[string]string{
 		"color": statusToColor(taskstate.Status),
-		"label": fmt.Sprintf("\"{ <start> | <%s> name:%s \\n total:%s  | <end> }\"", name, name, formatDiff(times.FinishedAt.Sub(times.StartedAt))),
+		"label": fmt.Sprintf("\"{ <start> | <%s> name:%s \\n total:%s  | <end> }\"", name, name, formatDiff(times.Finished.Sub(times.Started))),
 		"shape": "record",
 	}
-
 }

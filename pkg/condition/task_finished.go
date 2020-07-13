@@ -14,7 +14,7 @@ func (c *conditionTaskFinished) Met(ev event.Event, s state.State) bool {
 		return false
 	}
 	for _, t := range s.Tasks() {
-		if t.State == state.TaskStateFinished && t.Task.Metadata.Name == c.task {
+		if t.State == state.TaskStateFinished && t.Task.Name() == c.task {
 			return true
 		}
 	}

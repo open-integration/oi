@@ -2,6 +2,7 @@
 
 package mocks
 
+import context "context"
 import mock "github.com/stretchr/testify/mock"
 
 import service "github.com/open-integration/core/pkg/service"
@@ -25,13 +26,13 @@ func (_m *Modem) AddService(name string, runner service.Service) error {
 	return r0
 }
 
-// Call provides a mock function with given fields: _a0, endpoint, arguments, fd
-func (_m *Modem) Call(_a0 string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
-	ret := _m.Called(_a0, endpoint, arguments, fd)
+// Call provides a mock function with given fields: ctx, _a1, endpoint, arguments, fd
+func (_m *Modem) Call(ctx context.Context, _a1 string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
+	ret := _m.Called(ctx, _a1, endpoint, arguments, fd)
 
 	var r0 []byte
-	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}, string) []byte); ok {
-		r0 = rf(_a0, endpoint, arguments, fd)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, map[string]interface{}, string) []byte); ok {
+		r0 = rf(ctx, _a1, endpoint, arguments, fd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
@@ -39,8 +40,8 @@ func (_m *Modem) Call(_a0 string, endpoint string, arguments map[string]interfac
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, map[string]interface{}, string) error); ok {
-		r1 = rf(_a0, endpoint, arguments, fd)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, map[string]interface{}, string) error); ok {
+		r1 = rf(ctx, _a1, endpoint, arguments, fd)
 	} else {
 		r1 = ret.Error(1)
 	}
