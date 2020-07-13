@@ -11,7 +11,6 @@ import (
 
 type (
 	Task interface {
-		// json.Marshaler
 		Run(ctx context.Context, options RunOptions) ([]byte, error)
 		Metadata() Metadata
 	}
