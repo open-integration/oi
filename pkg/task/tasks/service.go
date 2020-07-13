@@ -21,9 +21,10 @@ func (s *svc) Run(ctx context.Context, options task.RunOptions) ([]byte, error) 
 	for _, arg := range s.arguments {
 		arguments[arg.Key] = arg.Value
 	}
-	return options.Modem.Call(ctx, s.name, s.endpoint, arguments, options.FD.File())
+	res, err := options.Modem.Call(ctx, s.name, s.endpoint, arguments, options.FD.File())
+	return res, err
 }
 
-func (s *svc) Metadata() task.Metadata {
-	return s.meta
+func (s *svc) Name() string {
+	return s.meta.Name
 }
