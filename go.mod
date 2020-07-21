@@ -7,7 +7,7 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
-	github.com/imdario/mergo v0.3.9
+	github.com/imdario/mergo v0.3.10
 	github.com/inconshreveable/log15 v0.0.0-20180818164646-67afb5ed74ec
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
@@ -20,7 +20,7 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	google.golang.org/genproto v0.0.0-20191223191004-3caeed10a8bf // indirect
 	google.golang.org/grpc v1.27.0
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v0.17.0
