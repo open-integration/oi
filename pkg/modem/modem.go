@@ -36,7 +36,8 @@ type (
 
 func New(opt *ModemOptions) Modem {
 	m := &modem{
-		logger: opt.Logger,
+		logger:   opt.Logger,
+		services: map[string]service.Service{},
 	}
 	return m
 }
