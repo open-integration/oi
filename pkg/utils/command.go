@@ -28,6 +28,7 @@ func (_c *Command) Bin(path string) {
 
 // Create builds exec.Cmd
 func (_c *Command) Create() *exec.Cmd {
+	// #nosec
 	cmd := exec.Command(_c.bin, _c.command...)
 	cmd.Env = _c.env
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
