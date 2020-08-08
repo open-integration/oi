@@ -15,7 +15,7 @@ steps:
     git: cf_github
     revision: ${{CF_REVISION}}
 
-  security:
+  security: &common
     stage: test
     image: openintegration/testing
     commands:
@@ -28,8 +28,7 @@ steps:
         - success
           
   test:
-    stage: test
-    image: openintegration/testing
+    <<: *common
     environment:
     - VCS_COMMIT_ID=${{CF_REVISION}}
     - VCS_BRANCH_NAME=${{CF_BRANCH}}
@@ -40,14 +39,38 @@ steps:
     - make test
     - curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
     - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
-    when: *clone
 
   test-fmt:
-    stage: test
-    image: openintegration/testing
+    <<: *common
     commands:
     - make test-fmt
-    when: *clone
+
+  spellcheck:
+    <<: *common
+    title: Spell Check
+    commands:
+      - make spellcheck
+
+  lint:
+    <<: *common
+    fail_fast: false
+    title: Run Go Lint
+    commands:
+      - make lint
+
+  code-security-scan:
+    <<: *common
+    title: Scan code security issues
+    fail_fast: false
+    commands:
+      - make security-check
+
+  gocyclo:
+    <<: *common
+    title: Run Gocyclo
+    commands:
+      - make gocyclo
+
 
   version:
     stage: prepare
