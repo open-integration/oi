@@ -29,6 +29,8 @@ type (
 	}
 )
 
+const base = "https://storage.googleapis.com/open-integration-service-catalog"
+
 // New creates new Downloader
 func New(opt Options) Downloader {
 	return &downloader{
@@ -46,9 +48,8 @@ func (d *downloader) Download(name string, version string) (string, error) {
 		return fullPath, nil
 	}
 
-	url := fmt.Sprintf("https://storage.googleapis.com/open-integration-service-catalog/%s", candidateFileName)
-	d.logger.Debug("Downloading", "name", name, "url", url)
-	resp, err := http.Get(url)
+	d.logger.Debug("Downloading", "name", name, "url", fmt.Sprintf("%s/%s", base, candidateFileName))
+	resp, err := http.Get(fmt.Sprintf("%s/%s", base, candidateFileName))
 	if err != nil {
 		return "", err
 	}
