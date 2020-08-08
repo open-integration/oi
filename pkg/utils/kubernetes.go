@@ -84,7 +84,7 @@ func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version 
 	if version == "" {
 		version = "latest"
 	}
-	portInt, err := strconv.Atoi(port)
+	portInt, err := strconv.ParseInt(port, 10, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (_k Kubernetes) BuildServiceDefinition(namespace string, name string, id st
 		t = v1.ServiceTypeLoadBalancer
 	}
 
-	portInt, err := strconv.Atoi(port)
+	portInt, err := strconv.ParseInt(port, 10, 0)
 	if err != nil {
 		return nil, err
 	}
