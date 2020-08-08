@@ -41,7 +41,7 @@ func Test_engine_Run(t *testing.T) {
 			},
 		},
 		{
-			name:    "Should run one task once the engine started and exit succesfuly",
+			name:    "Should run one task once the engine started and exit successfully",
 			wantErr: false,
 			options: &EngineOptions{
 				Logger:            extendLoggerMockWithBasicMocks(createFakeLogger()),
@@ -144,7 +144,7 @@ func Test_engine_Run(t *testing.T) {
 			},
 		},
 		{
-			name:    "Should run succesfully multiple tasks",
+			name:    "Should run successfully multiple tasks",
 			wantErr: false,
 			middleware: []func(e Engine){
 				func(e Engine) {
