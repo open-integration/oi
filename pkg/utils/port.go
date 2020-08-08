@@ -11,7 +11,7 @@ type (
 
 // GetAvailable returns available port on local machine
 func (_p Port) GetAvailable() (string, error) {
-	l, err := net.Listen("tcp", ":0")
+	l, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		return "", err
 	}
