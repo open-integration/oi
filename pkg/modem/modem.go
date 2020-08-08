@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	// Modem holds all the connection the external services
 	Modem interface {
 		ServiceCaller
 		Init() error
@@ -20,20 +21,18 @@ type (
 		AddService(name string, runner service.Service) error
 	}
 
-	ServiceCaller interface {
-		Call(ctx context.Context, service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error)
-	}
-
 	modem struct {
 		services map[string]service.Service
 		logger   logger.Logger
 	}
 
+	// ModemOptions to build new Modem
 	ModemOptions struct {
 		Logger logger.Logger
 	}
 )
 
+// New build Modem from options
 func New(opt *ModemOptions) Modem {
 	m := &modem{
 		logger:   opt.Logger,
@@ -42,6 +41,7 @@ func New(opt *ModemOptions) Modem {
 	return m
 }
 
+// Init starts the modem and all the services
 func (m *modem) Init() error {
 	m.logger.Debug("Modem initiation started")
 	for name, s := range m.services {
@@ -53,6 +53,7 @@ func (m *modem) Init() error {
 	return nil
 }
 
+// Call calls a service with input and returns output
 func (m *modem) Call(ctx context.Context, service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
 	log := m.logger.New("service", service, "endpoint", endpoint)
 	req := &v1.CallRequest{
@@ -102,6 +103,7 @@ func (m *modem) Call(ctx context.Context, service string, endpoint string, argum
 	return []byte(resp.Payload), nil
 }
 
+// Destory stop the modem and all the services
 func (m *modem) Destroy() error {
 	for name, service := range m.services {
 		err := service.Kill()
@@ -113,6 +115,7 @@ func (m *modem) Destroy() error {
 	return nil
 }
 
+// AddService adds external service to the modem
 func (m *modem) AddService(name string, runner service.Service) error {
 	m.services[name] = runner
 	return nil

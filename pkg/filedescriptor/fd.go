@@ -21,6 +21,7 @@ type (
 	}
 )
 
+// New builds new FD from path
 func New(file string) (FD, error) {
 	f, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
