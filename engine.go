@@ -44,14 +44,17 @@ type (
 
 // Run starts the pipeline execution
 func (e *engine) Run() error {
+	var err error
 	e.logger.Debug("Starting...", "pipeline", e.pipeline.Metadata.Name)
-	err := e.modem.Init()
+	err = e.modem.Init()
 	if err != nil {
 		return err
 	}
 	defer func() {
 		e.logger.Debug("killing all services")
-		e.modem.Destroy()
+		if cerr := e.modem.Destroy(); cerr != nil {
+			err = cerr
+		}
 	}()
 	e.wg.Add(1)
 	e.stateUpdateRequest <- state.UpdateRequest{
@@ -65,7 +68,10 @@ func (e *engine) Run() error {
 	go e.waitForFinish()
 	e.handleStateEvents()
 	e.printGraph()
-	return e.printStateStore()
+	if cerr := e.printStateStore(); cerr != nil {
+		return cerr
+	}
+	return err
 }
 
 // Modem returns the current modem
@@ -288,8 +294,15 @@ func (e *engine) printStateStore() error {
 
 func (e *engine) printGraph() {
 	s, _ := e.statev1.Copy()
-	g := e.graphBuilder.Build(s)
-	ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm)
+	g, err := e.graphBuilder.Build(s)
+	if err != nil {
+		e.logger.Error("Failed to build graph", "err", err.Error())
+		return
+	}
+	if err := ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm); err != nil {
+		e.logger.Error("Failed to write graph to file", "err", err.Error())
+	}
+
 }
 
 func (e *engine) concludeStatus(err error) string {

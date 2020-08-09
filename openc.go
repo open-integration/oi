@@ -156,7 +156,7 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) (
 				finalLocation = location
 			}
 			log.Debug("Adding service", "path", finalLocation)
-			serviceModem.AddService(s.As, service.New(&service.Options{
+			if err := serviceModem.AddService(s.As, service.New(&service.Options{
 				Type:                 service.Local,
 				Logger:               log.New("service-service", s.Name),
 				Name:                 s.Name,
@@ -168,7 +168,9 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) (
 				ServiceClientCreator: utils.Proto{},
 				LocalCommandCreator:  &utils.Command{},
 				LocalPathToBinary:    finalLocation,
-			}))
+			})); err != nil {
+				return nil, fmt.Errorf("Failed to add service %s to modem: %w", s.Name, err)
+			}
 		} else {
 			log.Debug("Adding service")
 			runnerOpt := &service.Options{

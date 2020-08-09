@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/open-integration/core/pkg/logger"
 	"github.com/open-integration/core/pkg/task"
 )
 
@@ -20,13 +21,18 @@ type (
 func (t *ticker) Run(ctx context.Context, options task.RunOptions) ([]byte, error) {
 	ticker := time.NewTicker(t.tickInterval)
 	finish := time.NewTimer(t.totalTime)
+	lgr := logger.New(&logger.Options{
+		FilePath: options.FD.File(),
+	})
 	for {
 		select {
 		// Finish the task execution
 		case _ = <-finish.C:
 			return nil, nil
 		case _ = <-ticker.C:
-			options.EventReporter.Report("tick", nil)
+			if err := options.EventReporter.Report("tick", nil); err != nil {
+				lgr.Error("Failed to report event", "event", "tick", "err", err.Error())
+			}
 		}
 	}
 }
