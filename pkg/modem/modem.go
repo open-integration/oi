@@ -103,7 +103,7 @@ func (m *modem) Call(ctx context.Context, service string, endpoint string, argum
 	return []byte(resp.Payload), nil
 }
 
-// Destory stop the modem and all the services
+// Destroy stop the modem and all the services
 func (m *modem) Destroy() error {
 	for name, service := range m.services {
 		err := service.Kill()
