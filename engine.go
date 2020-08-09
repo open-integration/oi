@@ -32,7 +32,7 @@ type (
 		pipeline           Pipeline
 		logger             logger.Logger
 		eventChan          chan *event.Event
-		stateUpdateRequest chan state.StateUpdateRequest
+		stateUpdateRequest chan state.UpdateRequest
 		taskLogsDirctory   string
 		stateDir           string
 		modem              modem.Modem
@@ -54,8 +54,8 @@ func (e *engine) Run() error {
 		e.modem.Destroy()
 	}()
 	e.wg.Add(1)
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateStateMetadataRequest: &state.UpdateStateMetadataRequest{
@@ -134,8 +134,8 @@ func (e *engine) electNextTasks(ev event.Event) {
 			ids = append(ids, t.Name())
 		}
 		e.wg.Add(1)
-		e.stateUpdateRequest <- state.StateUpdateRequest{
-			Metadata: state.StateUpdateRequestMetadata{
+		e.stateUpdateRequest <- state.UpdateRequest{
+			Metadata: state.UpdateRequestMetadata{
 				CreatedAt: utils.TimeNow(),
 			},
 			ElectTasksRequest: &state.ElectTasksRequest{
@@ -180,8 +180,8 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 	times := state.TaskTimes{
 		Started: utils.TimeNow(),
 	}
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
@@ -219,8 +219,8 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 
 	e.wg.Add(1)
 	times.Finished = utils.TimeNow()
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
@@ -251,8 +251,8 @@ func (e *engine) waitForFinish() {
 
 	e.logger.Debug("All tasks seems to be finished, sending finish command")
 	e.wg.Add(1)
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateStateMetadataRequest: &state.UpdateStateMetadataRequest{

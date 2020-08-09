@@ -36,7 +36,7 @@ type (
 		initialized        bool
 		copyChan           chan state
 		copyChanRequest    chan bool
-		stateUpdateRequest chan StateUpdateRequest
+		stateUpdateRequest chan UpdateRequest
 		wg                 *sync.WaitGroup
 	}
 
@@ -48,7 +48,7 @@ type (
 		// CommandsChan to receive commands to create new change channel
 		CommandsChan chan string
 		// StateUpdateRequest to receive updated on the state in realtime
-		StateUpdateRequest chan StateUpdateRequest
+		StateUpdateRequest chan UpdateRequest
 		Logger             logger.Logger
 		WG                 *sync.WaitGroup
 	}

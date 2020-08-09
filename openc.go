@@ -65,7 +65,7 @@ func NewEngine(opt *EngineOptions) Engine {
 
 	eventChannel := make(chan *event.Event, 10)
 
-	stateUpdateChannel := make(chan state.StateUpdateRequest, 1)
+	stateUpdateChannel := make(chan state.UpdateRequest, 1)
 
 	waitGroup := &sync.WaitGroup{}
 
