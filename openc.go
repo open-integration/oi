@@ -139,7 +139,7 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) m
 	if opt.modem != nil {
 		return opt.modem
 	}
-	serviceModem := modem.New(&modem.ModemOptions{
+	serviceModem := modem.New(&modem.Options{
 		Logger: log.New("module", "modem"),
 	})
 	for _, s := range opt.Pipeline.Spec.Services {

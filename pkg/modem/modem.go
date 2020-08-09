@@ -26,14 +26,14 @@ type (
 		logger   logger.Logger
 	}
 
-	// ModemOptions to build new Modem
-	ModemOptions struct {
+	// Options to build new Modem
+	Options struct {
 		Logger logger.Logger
 	}
 )
 
 // New build Modem from options
-func New(opt *ModemOptions) Modem {
+func New(opt *Options) Modem {
 	m := &modem{
 		logger:   opt.Logger,
 		services: map[string]service.Service{},
