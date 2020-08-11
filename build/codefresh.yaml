@@ -53,7 +53,6 @@ steps:
 
   lint:
     <<: *common
-    fail_fast: false
     title: Run Go Lint
     commands:
       - make lint
@@ -61,7 +60,6 @@ steps:
   code-security-scan:
     <<: *common
     title: Scan code security issues
-    fail_fast: false
     commands:
       - make security-check
 
@@ -88,7 +86,6 @@ steps:
     - git remote add origin https://olegsu:${{GITHUB_TOKEN}}@github.com/open-integration/core.git
     - git tag v${{VERSION}}
     - git push --tags
-    fail_fast: false
     when:
       branch:
         only:
