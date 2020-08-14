@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/awalterschulze/gographviz v0.0.0-20190522210029-fa59802746ab
+	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
@@ -21,8 +22,8 @@ require (
 	google.golang.org/genproto v0.0.0-20191223191004-3caeed10a8bf // indirect
 	google.golang.org/grpc v1.27.0
 	gopkg.in/yaml.v2 v2.3.0
-	k8s.io/api v0.17.0
-	k8s.io/apimachinery v0.17.0
-	k8s.io/client-go v0.17.0
-	k8s.io/utils v0.0.0-20191218082557-f07c713de883 // indirect
+	k8s.io/api v0.18.8
+	k8s.io/apimachinery v0.18.8
+	k8s.io/client-go v0.18.8
+	sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e // indirect
 )
