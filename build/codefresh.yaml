@@ -42,6 +42,7 @@ steps:
           
   test:
     <<: *common
+    stage: test
     environment:
     - VCS_COMMIT_ID=${{CF_REVISION}}
     - VCS_BRANCH_NAME=${{CF_BRANCH}}
@@ -55,16 +56,19 @@ steps:
 
   test-fmt:
     <<: *common
+    stage: test
     commands:
     - make test-fmt
 
   spellcheck:
     <<: *common
+    stage: test
     title: Spell Check
     commands:
       - make spellcheck
 
   lint:
+    stage: test
     <<: *common
     title: Run Go Lint
     commands:
@@ -72,11 +76,13 @@ steps:
 
   code-security-scan:
     <<: *common
+    stage: test
     title: Scan code security issues
     commands:
       - make security-check
 
   gocyclo:
+    stage: test
     <<: *common
     title: Run Gocyclo
     commands:
