@@ -18,6 +18,7 @@ type (
 	// Kubernetes expose abilities on run on kube cluster
 	Kubernetes struct{}
 
+	// BuildKubeClientOptions options to constract Kubernetes client
 	BuildKubeClientOptions struct {
 		KubeconfigPath string
 		Host           string
@@ -63,7 +64,7 @@ func (_k *Kubernetes) BuildClient(opt BuildKubeClientOptions) (*kubernetes.Clien
 	return clientset, nil
 }
 
-// BuildClient returns a kubernetes client based on path to kubeconfig
+// BuildClientWithToken returns a kubernetes client based on path to kubeconfig
 func (_k *Kubernetes) BuildClientWithToken(host string, ca string, token string) (*kubernetes.Clientset, error) {
 	config := &rest.Config{
 		Host: host,
@@ -80,11 +81,12 @@ func (_k *Kubernetes) BuildClientWithToken(host string, ca string, token string)
 	return clientset, nil
 }
 
+// BuildPodDefinition returns pod definition from arguments
 func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version string, id string, port string, volume string, volumeClaimName string, volumeMoutnPath string) (*v1.Pod, error) {
 	if version == "" {
 		version = "latest"
 	}
-	portInt, err := strconv.Atoi(port)
+	portInt, err := strconv.ParseInt(port, 10, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -140,6 +142,7 @@ func (_k *Kubernetes) BuildPodDefinition(namespace string, name string, version 
 	return p, nil
 }
 
+// BuildServiceDefinition returns service definition from argument
 func (_k Kubernetes) BuildServiceDefinition(namespace string, name string, id string, port string, serviceType string) (*v1.Service, error) {
 	t := v1.ServiceTypeClusterIP
 
@@ -147,7 +150,7 @@ func (_k Kubernetes) BuildServiceDefinition(namespace string, name string, id st
 		t = v1.ServiceTypeLoadBalancer
 	}
 
-	portInt, err := strconv.Atoi(port)
+	portInt, err := strconv.ParseInt(port, 10, 0)
 	if err != nil {
 		return nil, err
 	}

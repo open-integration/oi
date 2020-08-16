@@ -9,11 +9,13 @@ import (
 )
 
 type (
+	// Task defines task interface
 	Task interface {
 		Run(ctx context.Context, options RunOptions) ([]byte, error)
 		Name() string
 	}
 
+	// RunOptions run tasks with given options
 	RunOptions struct {
 		FD            filedescriptor.FD
 		EventReporter reporter.EventReporter

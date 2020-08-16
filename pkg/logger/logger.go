@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// Logger used to log messages
 	Logger interface {
 		FD() io.WriteCloser
 		Debug(msg string, ctx ...interface{})
@@ -19,6 +20,7 @@ type (
 		New(ctx ...interface{}) Logger
 	}
 
+	// Options to create new Logger
 	Options struct {
 		LogToStdOut bool
 		FilePath    string

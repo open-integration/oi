@@ -65,7 +65,7 @@ func NewEngine(opt *EngineOptions) Engine {
 
 	eventChannel := make(chan *event.Event, 10)
 
-	stateUpdateChannel := make(chan state.StateUpdateRequest, 1)
+	stateUpdateChannel := make(chan state.UpdateRequest, 1)
 
 	waitGroup := &sync.WaitGroup{}
 
@@ -102,6 +102,8 @@ func NewEngine(opt *EngineOptions) Engine {
 		WG:                 waitGroup,
 	})
 	go s.StartProcess()
+	m, err := createModem(opt, log, servicesLogDir)
+	dieOnError(err)
 	return &engine{
 		statev1:            s,
 		pipeline:           opt.Pipeline,
@@ -112,7 +114,7 @@ func NewEngine(opt *EngineOptions) Engine {
 		eventChan:          eventChannel,
 		stateUpdateRequest: stateUpdateChannel,
 		logger:             log.New("module", "engine"),
-		modem:              createModem(opt, log, servicesLogDir),
+		modem:              m,
 	}
 }
 
@@ -135,11 +137,11 @@ func HandleEngineError(err error) {
 	}
 }
 
-func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) modem.Modem {
+func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) (modem.Modem, error) {
 	if opt.modem != nil {
-		return opt.modem
+		return opt.modem, nil
 	}
-	serviceModem := modem.New(&modem.ModemOptions{
+	serviceModem := modem.New(&modem.Options{
 		Logger: log.New("module", "modem"),
 	})
 	for _, s := range opt.Pipeline.Spec.Services {
@@ -148,11 +150,13 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) m
 			finalLocation := s.Path
 			if s.Name != "" && s.Version != "" {
 				location, err := opt.serviceDownloader.Download(s.Name, s.Version)
-				dieOnError(err)
+				if err != nil {
+					return nil, fmt.Errorf("Failed to download serivce %s: %w", s.Name, err)
+				}
 				finalLocation = location
 			}
 			log.Debug("Adding service", "path", finalLocation)
-			serviceModem.AddService(s.As, service.New(&service.Options{
+			if err := serviceModem.AddService(s.As, service.New(&service.Options{
 				Type:                 service.Local,
 				Logger:               log.New("service-service", s.Name),
 				Name:                 s.Name,
@@ -164,7 +168,9 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) m
 				ServiceClientCreator: utils.Proto{},
 				LocalCommandCreator:  &utils.Command{},
 				LocalPathToBinary:    finalLocation,
-			}))
+			})); err != nil {
+				return nil, fmt.Errorf("Failed to add service %s to modem: %w", s.Name, err)
+			}
 		} else {
 			log.Debug("Adding service")
 			runnerOpt := &service.Options{
@@ -190,8 +196,10 @@ func createModem(opt *EngineOptions, log logger.Logger, servicesLogDir string) m
 			if opt.Kubeconfig.InCluster {
 				runnerOpt.KubernetesGrpcDialViaPodIP = true
 			}
-			serviceModem.AddService(s.As, service.New(runnerOpt))
+			if err := serviceModem.AddService(s.As, service.New(runnerOpt)); err != nil {
+				return nil, fmt.Errorf("Failed to add service %s to modem: %w", s.Name, err)
+			}
 		}
 	}
-	return serviceModem
+	return serviceModem, nil
 }

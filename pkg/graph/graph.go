@@ -11,7 +11,7 @@ import (
 type (
 	// Builder draw graphviz graph
 	Builder interface {
-		Build(state.State) []byte
+		Build(state.State) ([]byte, error)
 	}
 
 	builder struct{}
@@ -22,28 +22,42 @@ func New() Builder {
 	return &builder{}
 }
 
-func (b *builder) Build(s state.State) []byte {
+func (b *builder) Build(s state.State) ([]byte, error) {
 	graph := gographviz.NewGraph()
-	graph.SetDir(true)
-	graph.Attrs.Add(string(gographviz.RankDir), "LR")
+	if err := graph.SetDir(true); err != nil {
+		return nil, fmt.Errorf("Failed to set graph to be directed: %w", err)
+	}
+	if err := graph.Attrs.Add(string(gographviz.RankDir), "LR"); err != nil {
+		return nil, fmt.Errorf("Failed to add graph LR attribute: %w", err)
+	}
 	for _, e := range s.Events() {
 		if e.Metadata.Name == state.EventEngineStarted {
-			graph.AddNode("G", "started", nil)
+			if err := graph.AddNode("G", "started", nil); err != nil {
+				return nil, fmt.Errorf("Failed to add first node to graph: %w", err)
+			}
 			for _, rt := range e.RelatedTasks {
-				graph.AddNode("G", format(rt), node(s.Tasks()[rt]))
-				graph.AddEdge("started", format(rt), true, nil)
+				if err := graph.AddNode("G", format(rt), node(s.Tasks()[rt])); err != nil {
+					return nil, fmt.Errorf("Failed to add node to graph: %w", err)
+				}
+				if err := graph.AddEdge("started", format(rt), true, nil); err != nil {
+					return nil, fmt.Errorf("Failed to add edge to graph: %w", err)
+				}
 			}
 			continue
 		}
 
 		if len(e.RelatedTasks) > 0 {
 			for _, rt := range e.RelatedTasks {
-				graph.AddNode("G", format(rt), node(s.Tasks()[rt]))
-				graph.AddEdge(format(e.Metadata.Task), format(rt), true, nil)
+				if err := graph.AddNode("G", format(rt), node(s.Tasks()[rt])); err != nil {
+					return nil, fmt.Errorf("Failed to add node to graph: %w", err)
+				}
+				if err := graph.AddEdge(format(e.Metadata.Task), format(rt), true, nil); err != nil {
+					return nil, fmt.Errorf("Failed to add edge to graph: %w", err)
+				}
 			}
 		}
 	}
-	return []byte(graph.String())
+	return []byte(graph.String()), nil
 }
 
 func format(name string) string {

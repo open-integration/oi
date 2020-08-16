@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+var openfile = os.OpenFile
+
 type (
 	// FD represents log file mostly
 	// one that can be treated as io.WriteClose to be used within same process
@@ -21,8 +23,9 @@ type (
 	}
 )
 
+// New builds new FD from path
 func New(file string) (FD, error) {
-	f, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	f, err := openfile(file, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create FD: %w", err)
 	}

@@ -15,15 +15,33 @@ steps:
     git: cf_github
     revision: ${{CF_REVISION}}
 
-  security: &common
-    stage: test
-    image: openintegration/testing
+  version:
+    stage: prepare
+    image: codefresh/cli
     commands:
-    - snyk auth ${{SNYK_TOKEN}}
-    - snyk monitor
+    - cf_export VERSION=$(cat VERSION)
     when: &clone
       steps:
       - name: main_clone
+        on:
+        - success
+
+  module-download:
+    stage: prepare
+    image: openintegration/testing
+    commands:
+    - go mod download
+    when: *clone
+
+  security: &common
+    image: openintegration/testing
+    stage: test
+    commands:
+    - snyk auth ${{SNYK_TOKEN}}
+    - snyk monitor
+    when:
+      steps:
+      - name: module-download
         on:
         - success
           
@@ -42,42 +60,37 @@ steps:
 
   test-fmt:
     <<: *common
+    stage: test
     commands:
     - make test-fmt
 
   spellcheck:
     <<: *common
+    stage: test
     title: Spell Check
     commands:
       - make spellcheck
 
   lint:
     <<: *common
-    fail_fast: false
+    stage: test
     title: Run Go Lint
     commands:
       - make lint
 
   code-security-scan:
     <<: *common
+    stage: test
     title: Scan code security issues
-    fail_fast: false
     commands:
       - make security-check
 
   gocyclo:
     <<: *common
+    stage: test
     title: Run Gocyclo
     commands:
       - make gocyclo
-
-
-  version:
-    stage: prepare
-    image: codefresh/cli
-    commands:
-    - cf_export VERSION=$(cat VERSION)
-    when: *clone    
 
   git-tag:
     stage: push
@@ -88,7 +101,6 @@ steps:
     - git remote add origin https://olegsu:${{GITHUB_TOKEN}}@github.com/open-integration/core.git
     - git tag v${{VERSION}}
     - git push --tags
-    fail_fast: false
     when:
       branch:
         only:

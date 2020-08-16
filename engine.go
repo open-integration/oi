@@ -32,7 +32,7 @@ type (
 		pipeline           Pipeline
 		logger             logger.Logger
 		eventChan          chan *event.Event
-		stateUpdateRequest chan state.StateUpdateRequest
+		stateUpdateRequest chan state.UpdateRequest
 		taskLogsDirctory   string
 		stateDir           string
 		modem              modem.Modem
@@ -44,18 +44,21 @@ type (
 
 // Run starts the pipeline execution
 func (e *engine) Run() error {
+	var err error
 	e.logger.Debug("Starting...", "pipeline", e.pipeline.Metadata.Name)
-	err := e.modem.Init()
+	err = e.modem.Init()
 	if err != nil {
 		return err
 	}
 	defer func() {
 		e.logger.Debug("killing all services")
-		e.modem.Destroy()
+		if cerr := e.modem.Destroy(); cerr != nil {
+			err = cerr
+		}
 	}()
 	e.wg.Add(1)
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateStateMetadataRequest: &state.UpdateStateMetadataRequest{
@@ -65,7 +68,10 @@ func (e *engine) Run() error {
 	go e.waitForFinish()
 	e.handleStateEvents()
 	e.printGraph()
-	return e.printStateStore()
+	if cerr := e.printStateStore(); cerr != nil {
+		return cerr
+	}
+	return err
 }
 
 // Modem returns the current modem
@@ -134,8 +140,8 @@ func (e *engine) electNextTasks(ev event.Event) {
 			ids = append(ids, t.Name())
 		}
 		e.wg.Add(1)
-		e.stateUpdateRequest <- state.StateUpdateRequest{
-			Metadata: state.StateUpdateRequestMetadata{
+		e.stateUpdateRequest <- state.UpdateRequest{
+			Metadata: state.UpdateRequestMetadata{
 				CreatedAt: utils.TimeNow(),
 			},
 			ElectTasksRequest: &state.ElectTasksRequest{
@@ -180,8 +186,8 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 	times := state.TaskTimes{
 		Started: utils.TimeNow(),
 	}
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
@@ -219,8 +225,8 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 
 	e.wg.Add(1)
 	times.Finished = utils.TimeNow()
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateTaskStateRequest: &state.UpdateTaskStateRequest{
@@ -251,8 +257,8 @@ func (e *engine) waitForFinish() {
 
 	e.logger.Debug("All tasks seems to be finished, sending finish command")
 	e.wg.Add(1)
-	e.stateUpdateRequest <- state.StateUpdateRequest{
-		Metadata: state.StateUpdateRequestMetadata{
+	e.stateUpdateRequest <- state.UpdateRequest{
+		Metadata: state.UpdateRequestMetadata{
 			CreatedAt: utils.TimeNow(),
 		},
 		UpdateStateMetadataRequest: &state.UpdateStateMetadataRequest{
@@ -288,8 +294,15 @@ func (e *engine) printStateStore() error {
 
 func (e *engine) printGraph() {
 	s, _ := e.statev1.Copy()
-	g := e.graphBuilder.Build(s)
-	ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm)
+	g, err := e.graphBuilder.Build(s)
+	if err != nil {
+		e.logger.Error("Failed to build graph", "err", err.Error())
+		return
+	}
+	if err := ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm); err != nil {
+		e.logger.Error("Failed to write graph to file", "err", err.Error())
+	}
+
 }
 
 func (e *engine) concludeStatus(err error) string {

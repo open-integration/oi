@@ -36,7 +36,7 @@ type (
 		initialized        bool
 		copyChan           chan state
 		copyChanRequest    chan bool
-		stateUpdateRequest chan StateUpdateRequest
+		stateUpdateRequest chan UpdateRequest
 		wg                 *sync.WaitGroup
 	}
 
@@ -48,7 +48,7 @@ type (
 		// CommandsChan to receive commands to create new change channel
 		CommandsChan chan string
 		// StateUpdateRequest to receive updated on the state in realtime
-		StateUpdateRequest chan StateUpdateRequest
+		StateUpdateRequest chan UpdateRequest
 		Logger             logger.Logger
 		WG                 *sync.WaitGroup
 	}
@@ -197,8 +197,12 @@ func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
 		ev.Metadata.Name = EventTaskFinished
 	}
 	t := s.tasks[task.Name()]
-	mergo.MergeWithOverwrite(newstate, t)
-	mergo.MergeWithOverwrite(newstate, req.State)
+	if err := mergo.MergeWithOverwrite(newstate, t); err != nil {
+		s.logger.Error("Failed to merge current task state into new task state", "err", err.Error())
+	}
+	if err := mergo.MergeWithOverwrite(newstate, req.State); err != nil {
+		s.logger.Error("Failed to merge given task state into new task state", "err", err.Error())
+	}
 	s.tasks[task.Name()] = *newstate
 	s.events = append(s.events, *ev)
 	s.eventChan <- ev

@@ -29,6 +29,8 @@ type (
 	}
 )
 
+const base = "https://storage.googleapis.com/open-integration-service-catalog"
+
 // New creates new Downloader
 func New(opt Options) Downloader {
 	return &downloader{
@@ -38,6 +40,7 @@ func New(opt Options) Downloader {
 }
 
 func (d *downloader) Download(name string, version string) (string, error) {
+	var err error
 	candidateFileName := fmt.Sprintf("%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
 	fullPath := path.Join(d.store, candidateFileName)
 	if fileExists(fullPath) {
@@ -45,9 +48,8 @@ func (d *downloader) Download(name string, version string) (string, error) {
 		return fullPath, nil
 	}
 
-	url := fmt.Sprintf("https://storage.googleapis.com/open-integration-service-catalog/%s", candidateFileName)
-	d.logger.Debug("Downloading", "name", name, "url", url)
-	resp, err := http.Get(url)
+	d.logger.Debug("Downloading", "name", name, "url", fmt.Sprintf("%s/%s", base, candidateFileName))
+	resp, err := http.Get(fmt.Sprintf("%s/%s", base, candidateFileName))
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +64,13 @@ func (d *downloader) Download(name string, version string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer out.Close()
+	if out != nil {
+		defer func() {
+			if e := out.Close(); e != nil {
+				err = e
+			}
+		}()
+	}
 
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
@@ -76,7 +84,7 @@ func (d *downloader) Download(name string, version string) (string, error) {
 		return "", err
 	}
 	d.logger.Debug("Downloaded", "name", name, "code", resp.StatusCode)
-	return fullPath, nil
+	return fullPath, err
 }
 
 func fileExists(filename string) bool {
