@@ -59,29 +59,34 @@ steps:
     - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
 
   test-fmt:
+    <<: *common
     stage: test
     commands:
     - make test-fmt
 
   spellcheck:
+    <<: *common
     stage: test
     title: Spell Check
     commands:
       - make spellcheck
 
   lint:
+    <<: *common
     stage: test
     title: Run Go Lint
     commands:
       - make lint
 
   code-security-scan:
+    <<: *common
     stage: test
     title: Scan code security issues
     commands:
       - make security-check
 
   gocyclo:
+    <<: *common
     stage: test
     title: Run Gocyclo
     commands:
