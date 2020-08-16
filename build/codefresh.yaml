@@ -15,17 +15,39 @@ steps:
     git: cf_github
     revision: ${{CF_REVISION}}
 
-  security: &common
-    stage: test
-    image: openintegration/testing
+  version:
+    stage: prepare
+    image: codefresh/cli
     commands:
-    - snyk auth ${{SNYK_TOKEN}}
-    - snyk monitor
+    - cf_export VERSION=$(cat VERSION)
     when: &clone
       steps:
       - name: main_clone
         on:
         - success
+
+  module-download: &common
+    stage: prepare
+    image: openintegration/testing
+    commands:
+    - GO111MODULE=on
+    - GOSUMDB=off
+    - GOPROXY=direct
+    - GOCACHE=/codefresh/volume/gocache
+    - GOPATH=/codefresh/volume/gopath
+    - go mod download
+    - cf_export GO111MODULE
+    - cf_export GOSUMDB
+    - cf_export GOPROXY
+    - cf_export GOCACHE
+    - cf_export GOPATH
+    when: *clone
+
+  security:
+    stage: test
+    commands:
+    - snyk auth ${{SNYK_TOKEN}}
+    - snyk monitor
           
   test:
     <<: *common
@@ -68,14 +90,6 @@ steps:
     title: Run Gocyclo
     commands:
       - make gocyclo
-
-
-  version:
-    stage: prepare
-    image: codefresh/cli
-    commands:
-    - cf_export VERSION=$(cat VERSION)
-    when: *clone    
 
   git-tag:
     stage: push
