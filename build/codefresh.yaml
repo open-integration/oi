@@ -20,6 +20,7 @@ steps:
     image: codefresh/cli
     commands:
     - cf_export VERSION=$(cat VERSION)
+    - cf_export LATEST_VERSION=$(git show HEAD~1:VERSION)
     when: &clone
       steps:
       - name: main_clone
@@ -115,3 +116,6 @@ steps:
       - name: version
         on:
         - success
+      condition:
+        all:
+          NewVersion: '"${{VERSION}}" != "${{LATEST_VERSION}}"'
