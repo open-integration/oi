@@ -14,28 +14,66 @@ steps:
     git: cf_github
     revision: ${{CF_REVISION}}
 
-  security:
-    stage: test
+
+  module-download:
+    stage: prepare
     image: openintegration/testing
     commands:
-    - snyk auth ${{SNYK_TOKEN}}
-    - snyk monitor
+    - go mod download
     when: &clone
       steps:
       - name: main_clone
         on:
         - success
+
+  security: &common
+    image: openintegration/testing
+    stage: test
+    commands:
+    - snyk auth ${{SNYK_TOKEN}}
+    - snyk monitor
+    when:
+      steps:
+      - name: module-download
+        on:
+        - success
           
   test:
-    stage: test
-    image: openintegration/testing
+    <<: *common
+    environment:
+    - VCS_COMMIT_ID=${{CF_REVISION}}
+    - VCS_BRANCH_NAME=${{CF_BRANCH}}
+    - VCS_SLUG=open-integration/core
+    - CI_BUILD_ID=${{CF_BUILD_ID}}
+    - CI_BUILD_URL=${{CF_BUILD_URL}}
     commands:
     - make test
-    when: *clone
+    - curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
+    - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
 
   test-fmt:
+    <<: *common
     stage: test
-    image: openintegration/testing
     commands:
     - make test-fmt
-    when: *clone
+
+  spellcheck:
+    <<: *common
+    stage: test
+    title: Spell Check
+    commands:
+      - make spellcheck
+
+  lint:
+    <<: *common
+    stage: test
+    title: Run Go Lint
+    commands:
+      - make lint
+
+  code-security-scan:
+    <<: *common
+    stage: test
+    title: Scan code security issues
+    commands:
+      - make security-check
