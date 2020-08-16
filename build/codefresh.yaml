@@ -34,6 +34,7 @@ steps:
     when: *clone
 
   security: &common
+    image: openintegration/testing
     stage: test
     commands:
     - snyk auth ${{SNYK_TOKEN}}
