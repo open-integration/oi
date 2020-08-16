@@ -30,20 +30,11 @@ steps:
     stage: prepare
     image: openintegration/testing
     commands:
-    - GO111MODULE=on
-    - GOSUMDB=off
-    - GOPROXY=direct
-    - GOCACHE=/codefresh/volume/gocache
-    - GOPATH=/codefresh/volume/gopath
     - go mod download
-    - cf_export GO111MODULE
-    - cf_export GOSUMDB
-    - cf_export GOPROXY
-    - cf_export GOCACHE
-    - cf_export GOPATH
     when: *clone
 
   security:
+    <<: *common
     stage: test
     commands:
     - snyk auth ${{SNYK_TOKEN}}
