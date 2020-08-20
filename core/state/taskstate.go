@@ -3,7 +3,7 @@ package state
 import (
 	"time"
 
-	"github.com/open-integration/core/core/task"
+	"github.com/open-integration/open-integration/core/task"
 )
 
 type (

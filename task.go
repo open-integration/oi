@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/open-integration/core/core/task"
-	"github.com/open-integration/core/core/task/tasks"
+	"github.com/open-integration/open-integration/core/task"
+	"github.com/open-integration/open-integration/core/task/tasks"
 )
 
 // NewSerivceTask build task task calls a service with arguments

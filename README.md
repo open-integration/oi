@@ -2,7 +2,7 @@
 
 <img src="./logo.png" width="300" align="left">
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/open-integration/core)](https://goreportcard.com/report/github.com/open-integration/core)
+[![Go Report Card](https://goreportcard.com/badge/github.com/open-integration/open-integration)](https://goreportcard.com/report/github.com/open-integration/open-integration)
 [![codecov](https://codecov.io/gh/open-integration/core/branch/master/graph/badge.svg)](https://codecov.io/gh/open-integration/core)
 [![Codefresh build status]( https://g.codefresh.io/api/badges/pipeline/olegs-codefresh/open-integration%2Fcore?type=cf-1)]( https%3A%2F%2Fg.codefresh.io%2Fpublic%2Faccounts%2Folegs-codefresh%2Fpipelines%2F5df37658c4bb05f822229465)
 
@@ -32,4 +32,4 @@ use oictl to generate hello-world pipeline
 ### Real world examples
 * [JIRA](https://github.com/olegsu/jira-sync)
 * [Trello](https://github.com/olegsu/trello-sync)
-* [open-integration/core-ci-pipeline](https://github.com/open-integration/core-ci-pipeline)
+* [open-integration/core-ci-pipeline](https://github.com/open-integration/open-integration-ci-pipeline)

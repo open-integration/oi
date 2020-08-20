@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-integration/core/core/engine"
-	"github.com/open-integration/core/core/modem"
-	"github.com/open-integration/core/pkg/downloader"
-	"github.com/open-integration/core/pkg/logger"
+	"github.com/open-integration/open-integration/core/engine"
+	"github.com/open-integration/open-integration/core/modem"
+	"github.com/open-integration/open-integration/pkg/downloader"
+	"github.com/open-integration/open-integration/pkg/logger"
 )
 
 var exit = func(code int) { os.Exit(code) }

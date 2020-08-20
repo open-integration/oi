@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/imdario/mergo"
-	"github.com/open-integration/core/core/event"
-	"github.com/open-integration/core/pkg/logger"
-	"github.com/open-integration/core/pkg/utils"
+	"github.com/open-integration/open-integration/core/event"
+	"github.com/open-integration/open-integration/pkg/logger"
+	"github.com/open-integration/open-integration/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 

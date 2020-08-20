@@ -8,7 +8,7 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/open-integration/core/pkg/logger"
+	"github.com/open-integration/open-integration/pkg/logger"
 )
 
 type (

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/open-integration/core/core/condition"
+	"github.com/open-integration/open-integration/core/condition"
 )
 
 // ConditionEngineStarted returns the condition that is evaluated to true on engine.started event
