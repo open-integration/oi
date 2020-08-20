@@ -41,12 +41,6 @@ steps:
         only:
         - master
       steps:
-      - name: test
-        on:
-        - success
-      - name: test-fmt
-        on:
-        - success
       - name: version
         on:
         - success
