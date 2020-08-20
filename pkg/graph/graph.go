@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/awalterschulze/gographviz"
-	"github.com/open-integration/core/pkg/state"
+	"github.com/open-integration/core/core/state"
 )
 
 type (
