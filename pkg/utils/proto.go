@@ -1,7 +1,7 @@
 package utils
 
 import (
-	v1 "github.com/open-integration/core/pkg/api/v1"
+	v1 "github.com/open-integration/oi/pkg/api/v1"
 	"google.golang.org/grpc"
 )
 

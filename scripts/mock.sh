@@ -15,7 +15,7 @@ then
     echo "NAME is required"
 fi
 
-cmd="mockery -dir=$PKG -name=$NAME -output=./pkg/mocks -case underscore"
+cmd="mockery -dir=$PKG -name=$NAME -inpkg -case underscore"
 echo "Mocking..."
 echo $cmd
 eval $cmd
