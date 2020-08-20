@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/open-integration/oi/core/event/reporter"
+	"github.com/open-integration/oi/core/filedescriptor"
 	"github.com/open-integration/oi/core/modem"
-	"github.com/open-integration/oi/pkg/filedescriptor"
 )
 
 type (

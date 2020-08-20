@@ -15,9 +15,9 @@ import (
 	"github.com/open-integration/oi/core/state"
 	"github.com/open-integration/oi/core/task"
 
+	"github.com/open-integration/oi/core/filedescriptor"
 	"github.com/open-integration/oi/core/service/runner"
 	"github.com/open-integration/oi/pkg/downloader"
-	"github.com/open-integration/oi/pkg/filedescriptor"
 	"github.com/open-integration/oi/pkg/graph"
 	"github.com/open-integration/oi/pkg/logger"
 	"github.com/open-integration/oi/pkg/utils"

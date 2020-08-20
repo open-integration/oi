@@ -20,8 +20,9 @@ const (
 type (
 	// Service expose an interface to manage services
 	Service interface {
+		Run() error
 		Caller
-		RunnerKiller
+		Killer
 		API
 	}
 
@@ -29,9 +30,8 @@ type (
 	Caller interface {
 		Call(context context.Context, req *v1.CallRequest) (*v1.CallResponse, error)
 	}
-	// RunnerKiller to start and stop the the service
-	RunnerKiller interface {
-		Run() error
+	// Killer stop the the service
+	Killer interface {
 		Kill() error
 	}
 
