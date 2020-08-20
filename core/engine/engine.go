@@ -9,18 +9,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-integration/open-integration/core/event"
-	"github.com/open-integration/open-integration/core/event/reporter"
-	"github.com/open-integration/open-integration/core/modem"
-	"github.com/open-integration/open-integration/core/state"
-	"github.com/open-integration/open-integration/core/task"
+	"github.com/open-integration/oi/core/event"
+	"github.com/open-integration/oi/core/event/reporter"
+	"github.com/open-integration/oi/core/modem"
+	"github.com/open-integration/oi/core/state"
+	"github.com/open-integration/oi/core/task"
 
-	"github.com/open-integration/open-integration/core/service/runner"
-	"github.com/open-integration/open-integration/pkg/downloader"
-	"github.com/open-integration/open-integration/pkg/filedescriptor"
-	"github.com/open-integration/open-integration/pkg/graph"
-	"github.com/open-integration/open-integration/pkg/logger"
-	"github.com/open-integration/open-integration/pkg/utils"
+	"github.com/open-integration/oi/core/service/runner"
+	"github.com/open-integration/oi/pkg/downloader"
+	"github.com/open-integration/oi/pkg/filedescriptor"
+	"github.com/open-integration/oi/pkg/graph"
+	"github.com/open-integration/oi/pkg/logger"
+	"github.com/open-integration/oi/pkg/utils"
 )
 
 type (

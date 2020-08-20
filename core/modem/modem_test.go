@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/open-integration/open-integration/core/service/runner"
-	v1 "github.com/open-integration/open-integration/pkg/api/v1"
-	"github.com/open-integration/open-integration/pkg/logger"
+	"github.com/open-integration/oi/core/service/runner"
+	v1 "github.com/open-integration/oi/pkg/api/v1"
+	"github.com/open-integration/oi/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

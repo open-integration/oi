@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"github.com/open-integration/open-integration/core/condition"
-	"github.com/open-integration/open-integration/core/event"
-	"github.com/open-integration/open-integration/core/state"
-	"github.com/open-integration/open-integration/core/task"
+	"github.com/open-integration/oi/core/condition"
+	"github.com/open-integration/oi/core/event"
+	"github.com/open-integration/oi/core/state"
+	"github.com/open-integration/oi/core/task"
 )
 
 type (

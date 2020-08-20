@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	v1 "github.com/open-integration/open-integration/pkg/api/v1"
-	"github.com/open-integration/open-integration/pkg/logger"
+	v1 "github.com/open-integration/oi/pkg/api/v1"
+	"github.com/open-integration/oi/pkg/logger"
 	"google.golang.org/grpc"
 )
 

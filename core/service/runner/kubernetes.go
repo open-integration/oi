@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	v1 "github.com/open-integration/open-integration/pkg/api/v1"
-	"github.com/open-integration/open-integration/pkg/logger"
-	"github.com/open-integration/open-integration/pkg/utils"
+	v1 "github.com/open-integration/oi/pkg/api/v1"
+	"github.com/open-integration/oi/pkg/logger"
+	"github.com/open-integration/oi/pkg/utils"
 	"google.golang.org/grpc"
 	apiv1 "k8s.io/api/core/v1"
 

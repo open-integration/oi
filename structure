@@ -1,26 +1,26 @@
-open-integration/open-integration
+open-integration/oi
 
-open-integration/open-integration/core/engine
-open-integration/open-integration/core/modem
-open-integration/open-integration/core/event
-open-integration/open-integration/core/task
-open-integration/open-integration/core/state
-open-integration/open-integration/core/task/tasks
-open-integration/open-integration/core/condition
-open-integration/open-integration/core/condition/conditions
-open-integration/open-integration/core/service/runner
+open-integration/oi/core/engine
+open-integration/oi/core/modem
+open-integration/oi/core/event
+open-integration/oi/core/task
+open-integration/oi/core/state
+open-integration/oi/core/task/tasks
+open-integration/oi/core/condition
+open-integration/oi/core/condition/conditions
+open-integration/oi/core/service/runner
 
-open-integration/open-integration/pkg/kubernetes
+open-integration/oi/pkg/kubernetes
 
-open-integration/open-integration/api/proto/v1
+open-integration/oi/api/proto/v1
 
-open-integration/open-integration/pkg/logger
-open-integration/open-integration/pkg/api/v1
-open-integration/open-integration/pkg/service/downloader
-open-integration/open-integration/pkg/graph/drawer
-
-
-open-integration/open-integration/service/catalog
+open-integration/oi/pkg/logger
+open-integration/oi/pkg/api/v1
+open-integration/oi/pkg/service/downloader
+open-integration/oi/pkg/graph/drawer
 
 
-open-integration/open-integration/cmd/oictl
+open-integration/oi/service/catalog
+
+
+open-integration/oi/cmd/oictl

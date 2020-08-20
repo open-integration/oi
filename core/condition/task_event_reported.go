@@ -3,8 +3,8 @@ package condition
 import (
 	"fmt"
 
-	"github.com/open-integration/open-integration/core/event"
-	"github.com/open-integration/open-integration/core/state"
+	"github.com/open-integration/oi/core/event"
+	"github.com/open-integration/oi/core/state"
 )
 
 type conditionTaskEventReported struct {

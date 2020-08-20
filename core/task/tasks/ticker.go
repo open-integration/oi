@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/open-integration/open-integration/core/task"
-	"github.com/open-integration/open-integration/pkg/logger"
+	"github.com/open-integration/oi/core/task"
+	"github.com/open-integration/oi/pkg/logger"
 )
 
 type (

@@ -3,8 +3,8 @@ package reporter
 import (
 	"time"
 
-	"github.com/open-integration/open-integration/core/event"
-	"github.com/open-integration/open-integration/pkg/utils"
+	"github.com/open-integration/oi/core/event"
+	"github.com/open-integration/oi/pkg/utils"
 )
 
 type (

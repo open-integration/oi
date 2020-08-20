@@ -3,7 +3,7 @@ package tasks
 import (
 	"context"
 
-	"github.com/open-integration/open-integration/core/task"
+	"github.com/open-integration/oi/core/task"
 )
 
 type (

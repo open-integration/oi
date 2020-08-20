@@ -1,4 +1,4 @@
-module github.com/open-integration/open-integration
+module github.com/open-integration/oi
 
 go 1.14
 

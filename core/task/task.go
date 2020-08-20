@@ -3,9 +3,9 @@ package task
 import (
 	"context"
 
-	"github.com/open-integration/open-integration/core/event/reporter"
-	"github.com/open-integration/open-integration/core/modem"
-	"github.com/open-integration/open-integration/pkg/filedescriptor"
+	"github.com/open-integration/oi/core/event/reporter"
+	"github.com/open-integration/oi/core/modem"
+	"github.com/open-integration/oi/pkg/filedescriptor"
 )
 
 type (
