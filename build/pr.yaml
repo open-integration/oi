@@ -48,7 +48,7 @@ steps:
     - CI_BUILD_URL=${{CF_BUILD_URL}}
     commands:
     - make test
-    - ./codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
+    - ./testing/codecov.sh -e VCS_COMMIT_ID,VCS_BRANCH_NAME,VCS_SLUG,CI_BUILD_ID,CI_BUILD_URL
 
   test-fmt:
     <<: *common
