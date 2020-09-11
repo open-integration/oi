@@ -15,7 +15,7 @@ import (
 
 type (
 	// RenderTask holds a structure to run a complete task
-	// inlcuding renderring of templates
+	// including renderring of templates
 	// and running pre/post commands
 	RenderTask struct {
 		Name         string

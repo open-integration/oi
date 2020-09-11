@@ -30,7 +30,7 @@ type Pipeline struct {
 	EventReactions []EventReaction   `json:"eventReactions" yaml:"eventReactions"`
 }
 
-// PipelineService repersents dependency service
+// PipelineService represents dependency service
 type PipelineService struct {
 	Name    string `json:"name" yaml:"name"`
 	As      string `json:"as" yaml:"as"`
