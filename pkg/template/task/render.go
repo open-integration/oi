@@ -14,6 +14,9 @@ import (
 )
 
 type (
+	// RenderTask holds a structure to run a complete task
+	// inlcuding renderring of templates
+	// and running pre/post commands
 	RenderTask struct {
 		Name         string
 		IDs          map[string]string
@@ -27,6 +30,7 @@ type (
 	}
 )
 
+// Run RenderTask
 func (r *RenderTask) Run() error {
 	r.Logger.Debug("Starting task", "name", r.Name)
 

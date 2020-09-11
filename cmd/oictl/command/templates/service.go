@@ -1,5 +1,6 @@
 package templates
 
+// ServiceTemplateDockerfile template
 var ServiceTemplateDockerfile = `
 FROM alpine:3.9
 
@@ -19,16 +20,19 @@ ENV PORT=80
 CMD "/service"
 `
 
+// ServiceTemplateMakefile template
 var ServiceTemplateMakefile = `
 .PHONY: build
 build:
 	@sh ./scripts/build.sh {{ .name }}
 `
 
+// ServiceTemplateVERSION template
 var ServiceTemplateVERSION = `
 {{ default "0.0.1" .version }}
 `
 
+// ServiceTemplateBuildScript template
 var ServiceTemplateBuildScript = `
 #!/bin/bash
 set -e
@@ -50,6 +54,7 @@ build () {
 build $1
 `
 
+// ServiceTemplateDefaultJSONSchema template
 var ServiceTemplateDefaultJSONSchema = `
 {
     "$id": "https://example.com/person.schema.json",
@@ -58,6 +63,7 @@ var ServiceTemplateDefaultJSONSchema = `
 }
 `
 
+// ServiceTemplateEndpoint template
 var ServiceTemplateEndpoint = `
 package {{ .endpoint.name }}
 
@@ -83,6 +89,7 @@ func {{ .endpoint.name | strings.Title }}(opt {{ .endpoint.name | strings.Title 
 }
 `
 
+// ServiceTemplateMain template
 var ServiceTemplateMain = `
 package main
 

@@ -1,5 +1,6 @@
 package templates
 
+// PipelineTemplate template
 var PipelineTemplate = `
 package main
 
