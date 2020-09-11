@@ -43,3 +43,10 @@ mock:
 
 export-vars:
 	@sh ./scripts/export-vars.sh
+
+
+
+# Compile local oictl 
+.PHONY: build-oictl
+build-oictl:
+	go build -o ./dist/oictl ./cmd/oictl
