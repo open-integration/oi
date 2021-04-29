@@ -1,0 +1,38 @@
+version: 2
+updates:
+- package-ecosystem: gomod
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: google.golang.org/grpc
+    versions:
+    - 1.35.0
+    - 1.36.0
+    - 1.36.1
+  - dependency-name: k8s.io/client-go
+    versions:
+    - 0.20.2
+    - 0.20.3
+    - 0.20.4
+    - 0.20.5
+  - dependency-name: k8s.io/apimachinery
+    versions:
+    - 0.20.2
+    - 0.20.3
+    - 0.20.4
+    - 0.20.5
+  - dependency-name: k8s.io/api
+    versions:
+    - 0.20.2
+    - 0.20.3
+    - 0.20.4
+    - 0.20.5
+  - dependency-name: github.com/golang/protobuf
+    versions:
+    - 1.4.3
+    - 1.5.1
+  - dependency-name: github.com/imdario/mergo
+    versions:
+    - 0.3.11
