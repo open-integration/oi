@@ -46,7 +46,7 @@ var rootGeneratePipelineCmd = &cobra.Command{
 }
 
 func init() {
-	rootGeneratePipelineCmd.PersistentFlags().StringVar(&rootGeneratePipelineOptions.engineStartCommand, "init-cmd", "", "Command to run when pipeline is started")
+	rootGeneratePipelineCmd.PersistentFlags().StringVar(&rootGeneratePipelineOptions.engineStartCommand, "init-cmd", "echo HelloWorld", "Command to run when pipeline is started")
 	rootGeneratePipelineCmd.PersistentFlags().BoolVar(&rootGeneratePipelineOptions.skipGolangProjectInitiation, "skip-project-init", false, "Do not create/update go.mod and go.sum files")
 	rootGeneratePipelineCmd.PersistentFlags().StringArrayVar(&rootGeneratePipelineOptions.services, "service", []string{}, "services to use in format (name:version@as)")
 	rootGenerateCmd.AddCommand(rootGeneratePipelineCmd)

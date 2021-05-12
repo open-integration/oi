@@ -7,6 +7,8 @@ package main
 import (
 	"fmt"
 	"context"
+	"strings"
+	"os/exec"
 
 	"github.com/open-integration/oi"
 	"github.com/open-integration/oi/core/engine"
@@ -37,7 +39,7 @@ func main() {
 					Reaction: func(ev event.Event, state state.State) []task.Task {
 						return []task.Task{
 							{{ range $eventReaction.Reaction -}}
-							oi.NewFunctionTask("{{ .Name  }}", Run{{ .Name }}),
+							oi.NewFunctionTask("{{ .Name  }}", Run{{ .Name }}("{{ .Command }}")),
 							{{ end }}
 						}
 					},
@@ -55,12 +57,18 @@ func main() {
 {{ range $i, $eventReaction := .EventReactions }}
 {{ range $eventReaction.Reaction -}}
 
-
-func Run{{ .Name }}(ctx context.Context, options task.RunOptions) ([]byte, error) {
-	fmt.Println("*****************")
-	fmt.Println("Hello World")
-	fmt.Println("*****************")
-	return []byte{}, nil
+func Run{{ .Name }}(command string) func(ctx context.Context, opt task.RunOptions) ([]byte, error) {
+	return func(ctx context.Context, opt task.RunOptions) ([]byte, error) {
+		c := strings.Split(command, " ")
+		res := exec.CommandContext(ctx, c[0], strings.Join(c[1:], ""))
+		data, err := res.Output()
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(string(data))          // Print to the stdout
+		// fmt.Fprintln(opt.FD, string(data)) // Print to task logger, later the file can be found in $PWD/logs/tasks/{{ .Name }}.log
+		return []byte{}, nil
+	}
 }
 
 {{ end }}
