@@ -7,3 +7,4 @@ logs
 state.yaml
 events.yaml
 graph.dot
+dist
