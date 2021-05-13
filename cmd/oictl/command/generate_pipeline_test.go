@@ -93,19 +93,6 @@ func Test_resolveProjectFinalLocation(t *testing.T) {
 			dir:  "/path",
 			want: "/path",
 		},
-		{
-			name:   "Reject when location is file",
-			dir:    "/path/to/file",
-			want:   "",
-			errMsg: "Project location /path/to/file is not directory",
-			statFn: func(name string) (os.FileInfo, error) {
-				memfs := afero.NewMemMapFs()
-				if _, err := memfs.Create(name); err != nil {
-					return nil, err
-				}
-				return memfs.Stat(name)
-			},
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

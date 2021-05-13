@@ -1,4 +1,4 @@
-FROM golang:1.14.0 as go
+FROM golang:1.16.0 as go
 
 WORKDIR /testing
 
@@ -11,7 +11,6 @@ RUN go get github.com/client9/misspell/cmd/misspell && \
     go get github.com/google/addlicense && \
     go get github.com/github/hub
 
-# Install snyk cli for security testing
-RUN curl -o snyk -L https://github.com/snyk/snyk/releases/download/v1.291.0/snyk-linux && chmod +x snyk && mv snyk /usr/local/bin
+RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.1
 
 RUN curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
