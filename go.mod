@@ -42,7 +42,7 @@ require (
 	google.golang.org/grpc v1.27.0
 	gopkg.in/hairyhenderson/yaml.v2 v2.2.2
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
