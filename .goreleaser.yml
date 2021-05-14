@@ -15,9 +15,9 @@ builds:
       - windows
       - darwin
 brews:
-  tap:
-    owner: open-integration
-    name: homebrew-oictl
+  - tap:
+      owner: open-integration
+      name: homebrew-oictl
 archives:
   - replacements:
       darwin: Darwin
