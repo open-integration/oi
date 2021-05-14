@@ -73,10 +73,10 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 	{
 		location, err := resolveProjectFinalLocation(options.directory)
 		if err != nil {
-			return fmt.Errorf("Failed to resolved target directory: %w", err)
+			return fmt.Errorf("failed to resolved target directory: %w", err)
 		}
 		if err := ensureProjectLocation(location); err != nil {
-			return fmt.Errorf("Failed to create project directory: %w", err)
+			return fmt.Errorf("failed to create project directory: %w", err)
 		}
 		projectLocation = location
 	}
@@ -87,7 +87,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 		relative := path.Join("configs", "endpoints", "hello")
 		argumentsFile, err := ensureTargetFile(options.stdout, projectLocation, relative, "arguments.json")
 		if err != nil {
-			return fmt.Errorf("Failed to create hello-world arguments.json file: %w", err)
+			return fmt.Errorf("failed to create hello-world arguments.json file: %w", err)
 		}
 		if err := template.Render(template.RenderTask{
 			Content: templates.ServiceTemplateDefaultJSONSchema,
@@ -95,12 +95,12 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 			Name:    "arguments.json",
 			Out:     argumentsFile,
 		}); err != nil {
-			return fmt.Errorf("Failed to write hello-world arguments.json file: %w", err)
+			return fmt.Errorf("failed to write hello-world arguments.json file: %w", err)
 		}
 
 		returnsFile, err := ensureTargetFile(options.stdout, projectLocation, relative, "returns.json")
 		if err != nil {
-			return fmt.Errorf("Failed to create hello-world returns.json file: %w", err)
+			return fmt.Errorf("failed to create hello-world returns.json file: %w", err)
 		}
 		if err := template.Render(template.RenderTask{
 			Content: templates.ServiceTemplateDefaultJSONSchema,
@@ -108,7 +108,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 			Name:    "returns.json",
 			Out:     returnsFile,
 		}); err != nil {
-			return fmt.Errorf("Failed to write hello-world returns.json file: %w", err)
+			return fmt.Errorf("failed to write hello-world returns.json file: %w", err)
 		}
 		options.endpoints = append(options.endpoints, path.Join(projectLocation, relative))
 	}
@@ -135,7 +135,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 		post := []string{}
 		mainFile, err := ensureTargetFile(options.stdout, projectLocation, "", "main.go")
 		if err != nil {
-			return fmt.Errorf("Failed to initiate main.go: %w", err)
+			return fmt.Errorf("failed to initiate main.go: %w", err)
 		}
 		if !options.skipGolangProjectInitiation {
 			pre = append(pre, fmt.Sprintf("go mod init %s/%s", options.project, options.name))
@@ -163,7 +163,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 		epLocation := path.Join(projectLocation, "pkg", "endpoints", name)
 		err := ensureProjectLocation(epLocation)
 		if err != nil {
-			return fmt.Errorf("Failed to create endpoint directory: %w", err)
+			return fmt.Errorf("failed to create endpoint directory: %w", err)
 		}
 		post := []string{}
 		if !options.skipGolangProjectInitiation {
@@ -177,7 +177,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 
 		endpointFile, err := ensureTargetFile(options.stdout, projectLocation, path.Join("pkg", "endpoints", name), "endpoint.go")
 		if err != nil {
-			return fmt.Errorf("Failed to initiate main.go: %w", err)
+			return fmt.Errorf("failed to initiate main.go: %w", err)
 		}
 
 		flows = append(flows, flow{
@@ -207,15 +207,15 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 			cmdoutFile = options.stdout
 		}
 		if err := runPrePostCmds(flow.preCommands, projectLocation, cmdoutFile); err != nil {
-			return fmt.Errorf("Failed to run pre commands: %w", err)
+			return fmt.Errorf("failed to run pre commands: %w", err)
 		}
 		for _, task := range flow.render {
 			if err := template.Render(task); err != nil {
-				return fmt.Errorf("Failed to render file %s: %w", task.Name, err)
+				return fmt.Errorf("failed to render file %s: %w", task.Name, err)
 			}
 		}
 		if err := runPrePostCmds(flow.postCommands, projectLocation, cmdoutFile); err != nil {
-			return fmt.Errorf("Failed to run post commands: %w", err)
+			return fmt.Errorf("failed to run post commands: %w", err)
 		}
 	}
 	return nil
@@ -226,12 +226,12 @@ func buildServiceData(svc *Service, log logger.Logger) map[string]interface{} {
 	{
 		j, err := json.Marshal(svc)
 		if err != nil {
-			log.Error("Failed to marshal service", "error", err.Error())
+			log.Error("failed to marshal service", "error", err.Error())
 			return data
 		}
 		err = json.Unmarshal(j, &data)
 		if err != nil {
-			log.Error("Failed to unmarshal service", "error", err.Error())
+			log.Error("failed to unmarshal service", "error", err.Error())
 			return data
 		}
 	}
