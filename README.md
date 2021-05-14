@@ -4,13 +4,20 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/open-integration/oi)](https://goreportcard.com/report/github.com/open-integration/oi)
 [![codecov](https://codecov.io/gh/open-integration/core/branch/master/graph/badge.svg)](https://codecov.io/gh/open-integration/core)
-[![Codefresh build status]( https://g.codefresh.io/api/badges/pipeline/olegs-codefresh/open-integration%2Fcore?type=cf-1)]( https%3A%2F%2Fg.codefresh.io%2Fpublic%2Faccounts%2Folegs-codefresh%2Fpipelines%2F5df37658c4bb05f822229465)
 
 [![asciicast](https://asciinema.org/a/312592.svg)](https://asciinema.org/a/312592)
+# Install
+## Homebrew 
+`brew tap open-integration/oi`
+`brew install oictl`
+
+## Linux and Win
+Use the [released]() binaries 
+
 
 Til the project has not reached `version > 1.x.x` it may have breaking changes in the API, please use the latest version before opening issue.
 
-## Concepts
+# Concepts
 * A compiled, binary pipeline
 * State - the engine holds the state of all the tasks
 * Service - a standalone binary exposing API over http2 (gRPC) that the engine can trigger, called endpoint.
@@ -24,7 +31,7 @@ Til the project has not reached `version > 1.x.x` it may have breaking changes i
 ## Dataflow
 ![Diagram](docs/flow-diagram.png)
 
-### Example
+## Example
 use oictl to generate hello-world pipeline
 * `ioctl generate pipeline`
 * `go run *.go`
