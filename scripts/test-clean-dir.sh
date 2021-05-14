@@ -4,7 +4,6 @@
 set -e
 
 go mod tidy
-
 if [[ -z $(git status -s) ]]
 then
     echo "Directory is clean"
