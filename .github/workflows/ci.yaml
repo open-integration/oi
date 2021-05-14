@@ -17,11 +17,7 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
-      - run: make test-fmt
-      - run: make spellcheck
-      - run: make lint
-      - run: make security-check
-      - run: make test
+      - run: make test-all
       - uses: codecov/codecov-action@v1
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@master
