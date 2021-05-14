@@ -1,6 +1,6 @@
 
 .PHONY: test-all
-test-all: test-dir test-fmt spellcheck gocyclo lint security-check test
+test-all: test-dir test-fmt spellcheck lint security-check test
 
 .PHONY: test
 test:
@@ -10,7 +10,7 @@ test-fmt:
 	@sh ./scripts/test-fmt.sh
 
 test-dir:
-	@sh ./scripts/test-clean-dir.sh
+	@bash ./scripts/test-clean-dir.sh
 
 # Fix fmt errors in file
 fmt:
