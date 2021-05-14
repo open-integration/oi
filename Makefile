@@ -1,6 +1,6 @@
 
 .PHONY: test-all
-test-all: test-dir test-fmt spellcheck lint security-check test
+test-all: test-dir test-fmt gocyclo spellcheck lint security-check test
 
 .PHONY: test
 test:
