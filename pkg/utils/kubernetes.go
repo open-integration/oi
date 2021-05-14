@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	b64 "encoding/base64"
 	"fmt"
 	"strconv"
@@ -185,7 +186,7 @@ func (_k Kubernetes) CreatePod(client *kubernetes.Clientset, def *v1.Pod) (*v1.P
 	if def.ObjectMeta.Namespace != "" {
 		ns = def.ObjectMeta.Namespace
 	}
-	return client.CoreV1().Pods(ns).Create(def)
+	return client.CoreV1().Pods(ns).Create(context.TODO(), def, metav1.CreateOptions{})
 }
 
 // WaitForPod waits til pod reaches given phase
@@ -194,7 +195,7 @@ func (_k Kubernetes) WaitForPod(client *kubernetes.Clientset, pod *v1.Pod, phase
 	if pod.ObjectMeta.Namespace != "" {
 		ns = pod.ObjectMeta.Namespace
 	}
-	w, err := client.CoreV1().Pods(ns).Watch(metav1.ListOptions{
+	w, err := client.CoreV1().Pods(ns).Watch(context.TODO(), metav1.ListOptions{
 		TypeMeta: metav1.TypeMeta{
 			Kind: "Pod",
 		},
@@ -236,15 +237,15 @@ func (_k Kubernetes) CreateService(client *kubernetes.Clientset, def *v1.Service
 	if def.ObjectMeta.Namespace != "" {
 		ns = def.ObjectMeta.Namespace
 	}
-	return client.CoreV1().Services(ns).Create(def)
+	return client.CoreV1().Services(ns).Create(context.TODO(), def, metav1.CreateOptions{})
 }
 
 // KillService deletes kubernetes service
 func (_k Kubernetes) KillService(client *kubernetes.Clientset, namespace string, name string) error {
-	return client.CoreV1().Services(namespace).Delete(name, nil)
+	return client.CoreV1().Services(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 }
 
 // KillPod deletes kubernetes service
 func (_k Kubernetes) KillPod(client *kubernetes.Clientset, namespace string, name string) error {
-	return client.CoreV1().Pods(namespace).Delete(name, nil)
+	return client.CoreV1().Pods(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 }
