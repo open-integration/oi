@@ -23,7 +23,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.6.4 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/hashicorp/vault/api v1.0.4 // indirect
-	github.com/imdario/mergo v0.3.10
+	github.com/imdario/mergo v0.3.12
 	github.com/inconshreveable/log15 v0.0.0-20180818164646-67afb5ed74ec
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
