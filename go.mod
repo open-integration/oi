@@ -12,7 +12,7 @@ require (
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/docker/libkv v0.2.1 // indirect
 	github.com/frankban/quicktest v1.10.0 // indirect
-	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/golang/protobuf v1.5.2
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
