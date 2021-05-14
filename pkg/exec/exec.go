@@ -18,7 +18,7 @@ type (
 
 // Exec executes as subprocess
 func Exec(opt Options) error {
-	cmd := exec.Command("sh", "-c", opt.Command)
+	cmd := exec.Command("sh", "-c", opt.Command) // #nosec G204
 	cmd.Dir = opt.WorkingDir
 	cmd.Env = opt.Environment
 	cmd.Stdout = opt.File

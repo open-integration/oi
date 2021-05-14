@@ -13,6 +13,9 @@ test-fmt:
 fmt:
 	go fmt ./...
 
+release:
+	@sh ./scripts/release.sh
+
 # spellcheck Finds commonly misspelled English words
 .PHONY: spellcheck
 spellcheck:

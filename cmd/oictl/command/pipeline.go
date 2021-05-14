@@ -3,6 +3,7 @@ package command
 import (
 	"encoding/json"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/open-integration/oi/pkg/logger"
 )
@@ -52,7 +53,7 @@ type Reaction struct {
 // LoadFromPath loads pipeline from filesystem
 func LoadFromPath(location string, log logger.Logger) (*Pipeline, error) {
 	log.Debug("Loading pipeline", "path", location)
-	f, err := ioutil.ReadFile(location)
+	f, err := ioutil.ReadFile(filepath.Clean(location))
 	if err != nil {
 		return nil, err
 	}
