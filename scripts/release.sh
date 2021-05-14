@@ -5,5 +5,7 @@ set -e
 
 version=$(cat VERSION)
 echo "Releasing version $version"
-git tag v${version}
+fqrn="v$version"
+git checkout -b release-$fqrn
+git tag $fqrn
 git push --tags 
