@@ -130,70 +130,17 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 	flows := []flow{}
 
 	// generate main.go
-	{
-		pre := []string{}
-		post := []string{}
-		mainFile, err := ensureTargetFile(options.stdout, projectLocation, "", "main.go")
-		if err != nil {
-			return fmt.Errorf("failed to initiate main.go: %w", err)
-		}
-		if !options.skipGolangProjectInitiation {
-			pre = append(pre, fmt.Sprintf("go mod init %s/%s", options.project, options.name))
-		}
-		task := template.RenderTask{
-			Content: templates.ServiceTemplateMain,
-			Data:    rootScopedData,
-			Name:    "main.go",
-			Out:     mainFile,
-		}
-		flows = append(flows, flow{
-			name:         "Generate main.go file",
-			render:       []template.RenderTask{task},
-			preCommands:  pre,
-			postCommands: post,
-		})
+	mainGoFileFlows, err := buildMainGoFlow(options.stdout, options.skipGolangProjectInitiation, projectLocation, options.name, options.name, rootScopedData)
+	if err != nil {
+		return err
 	}
+	flows = append(flows, mainGoFileFlows...)
 
-	generateCodeGenerationCmd := func(epLocation string, epname string, sourceSchema string, golangPackage string, schemaType string) string {
-		output := path.Join(epLocation, fmt.Sprintf("%s.go", schemaType))
-		topName := fmt.Sprintf("%s%s", strings.Title(epname), strings.Title(schemaType))
-		return fmt.Sprintf("quicktype -o %s -l go -s schema --src %s --package %s -t %s", output, sourceSchema, golangPackage, topName)
+	endpointFlows, err := buildFlows(endpoints, projectLocation, options.skipGolangProjectInitiation, options.stdout, rootScopedData)
+	if err != nil {
+		return err
 	}
-	for name, ep := range endpoints {
-		epLocation := path.Join(projectLocation, "pkg", "endpoints", name)
-		err := ensureProjectLocation(epLocation)
-		if err != nil {
-			return fmt.Errorf("failed to create endpoint directory: %w", err)
-		}
-		post := []string{}
-		if !options.skipGolangProjectInitiation {
-			if ep.Arguments != "" {
-				post = append(post, generateCodeGenerationCmd(epLocation, name, ep.Arguments, name, "arguments"))
-			}
-			if ep.Returns != "" {
-				post = append(post, generateCodeGenerationCmd(epLocation, name, ep.Returns, name, "returns"))
-			}
-		}
-
-		endpointFile, err := ensureTargetFile(options.stdout, projectLocation, path.Join("pkg", "endpoints", name), "endpoint.go")
-		if err != nil {
-			return fmt.Errorf("failed to initiate main.go: %w", err)
-		}
-
-		flows = append(flows, flow{
-			name: fmt.Sprintf("Generate endpoint %s", name),
-			render: []template.RenderTask{
-				{
-					Content: templates.ServiceTemplateEndpoint,
-					Data:    buildEndpointData(ep, rootScopedData),
-					Name:    "endpoint.go",
-					Out:     endpointFile,
-				},
-			},
-			postCommands: post,
-		})
-	}
-
+	flows = append(flows, endpointFlows...)
 	flows = append(flows, flow{
 		name: "Finalize project",
 		postCommands: []string{
@@ -201,24 +148,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 			"gofmt -l -w .",
 		},
 	})
-	var cmdoutFile io.Writer
-	for _, flow := range flows {
-		if projectLocation != "" {
-			cmdoutFile = options.stdout
-		}
-		if err := runPrePostCmds(flow.preCommands, projectLocation, cmdoutFile); err != nil {
-			return fmt.Errorf("failed to run pre commands: %w", err)
-		}
-		for _, task := range flow.render {
-			if err := template.Render(task); err != nil {
-				return fmt.Errorf("failed to render file %s: %w", task.Name, err)
-			}
-		}
-		if err := runPrePostCmds(flow.postCommands, projectLocation, cmdoutFile); err != nil {
-			return fmt.Errorf("failed to run post commands: %w", err)
-		}
-	}
-	return nil
+	return runFlows(flows, projectLocation, options.stdout)
 }
 
 func buildServiceData(svc *Service, log logger.Logger) map[string]interface{} {
@@ -289,4 +219,96 @@ func buildEndpointsMap(locations []string) (map[string]Endpoint, error) {
 		}
 	}
 	return endpoints, nil
+}
+
+func buildFlows(endpoints map[string]Endpoint, projectLocation string, skipGolangProjectInitiation bool, stdout io.Writer, data map[string]interface{}) ([]flow, error) {
+	flows := []flow{}
+	for name, ep := range endpoints {
+		epLocation := path.Join(projectLocation, "pkg", "endpoints", name)
+		err := ensureProjectLocation(epLocation)
+		if err != nil {
+			return flows, fmt.Errorf("failed to create endpoint directory: %w", err)
+		}
+		post := []string{}
+		if !skipGolangProjectInitiation {
+			if ep.Arguments != "" {
+				post = append(post, generateCodeGenerationCmd(epLocation, name, ep.Arguments, name, "arguments"))
+			}
+			if ep.Returns != "" {
+				post = append(post, generateCodeGenerationCmd(epLocation, name, ep.Returns, name, "returns"))
+			}
+		}
+
+		endpointFile, err := ensureTargetFile(stdout, projectLocation, path.Join("pkg", "endpoints", name), "endpoint.go")
+		if err != nil {
+			return flows, fmt.Errorf("failed to initiate main.go: %w", err)
+		}
+
+		flows = append(flows, flow{
+			name: fmt.Sprintf("Generate endpoint %s", name),
+			render: []template.RenderTask{
+				{
+					Content: templates.ServiceTemplateEndpoint,
+					Data:    buildEndpointData(ep, data),
+					Name:    "endpoint.go",
+					Out:     endpointFile,
+				},
+			},
+			postCommands: post,
+		})
+	}
+	return flows, nil
+}
+
+func generateCodeGenerationCmd(epLocation string, epname string, sourceSchema string, golangPackage string, schemaType string) string {
+	output := path.Join(epLocation, fmt.Sprintf("%s.go", schemaType))
+	topName := fmt.Sprintf("%s%s", strings.Title(epname), strings.Title(schemaType))
+	return fmt.Sprintf("quicktype -o %s -l go -s schema --src %s --package %s -t %s", output, sourceSchema, golangPackage, topName)
+}
+
+func buildMainGoFlow(stdout io.Writer, skipGolangProjectInitiation bool, projectLocation string, project string, name string, data map[string]interface{}) ([]flow, error) {
+	flows := []flow{}
+	pre := []string{}
+	post := []string{}
+	mainFile, err := ensureTargetFile(stdout, projectLocation, "", "main.go")
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate main.go: %w", err)
+	}
+	if !skipGolangProjectInitiation {
+		pre = append(pre, fmt.Sprintf("go mod init %s/%s", project, name))
+	}
+	task := template.RenderTask{
+		Content: templates.ServiceTemplateMain,
+		Data:    data,
+		Name:    "main.go",
+		Out:     mainFile,
+	}
+	flows = append(flows, flow{
+		name:         "Generate main.go file",
+		render:       []template.RenderTask{task},
+		preCommands:  pre,
+		postCommands: post,
+	})
+	return flows, nil
+}
+
+func runFlows(flows []flow, projectLocation string, stdout io.Writer) error {
+	var cmdoutFile io.Writer
+	for _, flow := range flows {
+		if projectLocation != "" {
+			cmdoutFile = stdout
+		}
+		if err := runPrePostCmds(flow.preCommands, projectLocation, cmdoutFile); err != nil {
+			return fmt.Errorf("failed to run pre commands: %w", err)
+		}
+		for _, task := range flow.render {
+			if err := template.Render(task); err != nil {
+				return fmt.Errorf("failed to render file %s: %w", task.Name, err)
+			}
+		}
+		if err := runPrePostCmds(flow.postCommands, projectLocation, cmdoutFile); err != nil {
+			return fmt.Errorf("failed to run post commands: %w", err)
+		}
+	}
+	return nil
 }
