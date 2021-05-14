@@ -10,6 +10,7 @@ builds:
   - env:
       - CGO_ENABLED=0
     dir: cmd/oictl
+    binary: oictl
     goos:
       - linux
       - windows
