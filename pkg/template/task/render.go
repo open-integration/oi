@@ -61,41 +61,18 @@ func (r *RenderTask) Run() error {
 		return err
 	}
 
-	for name, tmpl := range templates {
-		shouldWrite := false
-		filePath := path.Join(r.Directory, name)
-		fileExist := isFileExist(filePath)
-		r.Logger.Debug("Starting renderring templates", "name", name, "path", filePath)
-		if !fileExist {
-			shouldWrite = true
-			r.Logger.Debug("File not exist", "file", filePath)
-		} else if fileExist && r.Overwrite {
-			r.Logger.Debug("File not exist, overwriting", "file", filePath)
-			shouldWrite = true
-		}
-
-		if !shouldWrite {
-			continue
-		}
-
-		data, err := r.render(tmpl, r.Data)
-		if err != nil {
-			return err
-		}
-		if err := r.write(filePath, data); err != nil {
-			return err
-		}
+	err := r.writeTemplates(templates)
+	if err != nil {
+		return err
 	}
 
-	postcmds := []string{}
-	for _, post := range r.PostCommands {
-		res, err := r.render(post, r.Data)
-		if err != nil {
-			return err
-		}
-		postcmds = append(precmds, res.String())
+	postcmds, err := r.buildPostCommands()
+	if err != nil {
+		return err
 	}
-	if err := r.execCommands(postcmds, r.Logger.New("state", "post-commands")); err != nil {
+	lgr := r.Logger.New("state", "post-commands")
+	err = r.execCommands(postcmds, lgr)
+	if err != nil {
 		return err
 	}
 
@@ -147,6 +124,47 @@ func (r *RenderTask) execCommands(commands []string, logger logger.Logger) error
 	for _, cmd := range commands {
 		logger.Debug("Running command", "cmd", cmd)
 		if err := r.runCommand(cmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *RenderTask) buildPostCommands() ([]string, error) {
+	res := []string{}
+	for _, post := range r.PostCommands {
+		buf, err := r.render(post, r.Data)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, buf.String())
+	}
+	return res, nil
+}
+
+func (r *RenderTask) writeTemplates(templates map[string]string) error {
+	for name, tmpl := range templates {
+		shouldWrite := false
+		filePath := path.Join(r.Directory, name)
+		fileExist := isFileExist(filePath)
+		r.Logger.Debug("Starting renderring templates", "name", name, "path", filePath)
+		if !fileExist {
+			shouldWrite = true
+			r.Logger.Debug("File not exist", "file", filePath)
+		} else if fileExist && r.Overwrite {
+			r.Logger.Debug("File not exist, overwriting", "file", filePath)
+			shouldWrite = true
+		}
+
+		if !shouldWrite {
+			continue
+		}
+
+		data, err := r.render(tmpl, r.Data)
+		if err != nil {
+			return err
+		}
+		if err := r.write(filePath, data); err != nil {
 			return err
 		}
 	}

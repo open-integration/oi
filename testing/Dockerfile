@@ -5,7 +5,7 @@ WORKDIR /testing
 RUN apt-get update && apt-get -y upgrade  && apt-get install build-essential make wget -y
 
 RUN go get github.com/client9/misspell/cmd/misspell && \
-    go get github.com/fzipp/gocyclo && \
+    go install github.com/fzipp/gocyclo/cmd/gocyclo@latest && \
     go get golang.org/x/lint/golint && \
     go get github.com/securego/gosec/cmd/gosec && \
     go get github.com/google/addlicense && \
