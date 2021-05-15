@@ -1,0 +1,21 @@
+name: Catalog CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  main:
+    container:
+      image: openintegration/testing
+      credentials:
+        username: ${{ secrets.dockerhub_username }}
+        password: ${{ secrets.dockerhub_password }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+      - run: make build-service-catalog
