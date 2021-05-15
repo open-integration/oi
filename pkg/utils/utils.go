@@ -28,3 +28,11 @@ func CreateLogFile(dir string, name string) (io.Writer, error) {
 func GenerateID() string {
 	return uuid.Must(uuid.NewV4()).String()
 }
+
+func GetEnvOrDefault(name string, def string) string {
+	res := os.Getenv(name)
+	if res == "" {
+		return def
+	}
+	return res
+}
