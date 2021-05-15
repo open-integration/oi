@@ -18,3 +18,6 @@ RUN curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.9.0/yq_linux_amd64.tar.gz && \
     tar -xvf yq_linux_amd64.tar.gz && \
     mv yq_linux_amd64 /usr/local/bin/yq
+
+ENV PATH $PATH:/root/google-cloud-sdk/bin
+RUN curl -sSL https://sdk.cloud.google.com | bash
