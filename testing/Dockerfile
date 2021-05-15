@@ -14,3 +14,7 @@ RUN go get github.com/client9/misspell/cmd/misspell && \
 RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.1
 
 RUN curl -o codecov.sh https://codecov.io/bash && chmod +x codecov.sh
+
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.9.0/yq_linux_amd64.tar.gz && \
+    tar -xvf yq_linux_amd64.tar.gz && \
+    mv yq_linux_amd64 /usr/local/bin/yq
