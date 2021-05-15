@@ -60,6 +60,10 @@ build-oictl:
 
 .PHONY: build-service-catalog
 build-service-catalog:
+	@bash ./scripts/build-service-catalog.sh
+
+.PHONY: release-service-catalog
+release-service-catalog:
 	@bash ./scripts/release-service-catalog.sh
 
 .PHONY: build-testing-image
