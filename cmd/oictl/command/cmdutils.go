@@ -21,7 +21,7 @@ func resolveProjectFinalLocation(target string) (string, error) {
 	if strings.HasPrefix(target, ".") {
 		dir, err := getwd()
 		if err != nil {
-			return "", fmt.Errorf("Failed to get current working directory: %w", err)
+			return "", fmt.Errorf("failed to get current working directory: %w", err)
 		}
 		location = path.Join(dir, target)
 	} else if strings.HasPrefix(target, "/") {
@@ -34,15 +34,15 @@ func resolveProjectFinalLocation(target string) (string, error) {
 func ensureProjectLocation(target string) error {
 	if _, err := stat(target); os.IsNotExist(err) {
 		if e := os.MkdirAll(target, os.ModePerm); e != nil {
-			return fmt.Errorf("Failed to create project directory: %w", e)
+			return fmt.Errorf("failed to create project directory: %w", e)
 		}
 	}
 	s, err := stat(target)
 	if err != nil {
-		return fmt.Errorf("Failed to get stat on project location %s: %w", target, err)
+		return fmt.Errorf("failed to get stat on project location %s: %w", target, err)
 	}
 	if !s.IsDir() {
-		return fmt.Errorf("Project location %s is not directory", target)
+		return fmt.Errorf("project location %s is not directory", target)
 	}
 	return nil
 }

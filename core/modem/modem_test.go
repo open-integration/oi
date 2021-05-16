@@ -15,7 +15,7 @@ import (
 const (
 	testingServiceDirectory      = "testing-service-directory"
 	testingServiceID             = "service-id"
-	testingErrorFailedRunService = "FailedToRunService"
+	testingErrorFailedRunService = "failedToRunService"
 )
 
 func buildMockService(runnerMockProvider func() *runner.MockService) *runner.MockService {
@@ -81,7 +81,7 @@ func Test_modem_Init(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			err:     "Failed to initiate service: FailedToRunService",
+			err:     "failed to initiate service: failedToRunService",
 		},
 	}
 	for _, tt := range tests {

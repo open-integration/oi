@@ -173,8 +173,5 @@ func (r *RenderTask) writeTemplates(templates map[string]string) error {
 
 func isFileExist(path string) bool {
 	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false // file does not exist
-	}
-	return true
+	return !os.IsNotExist(err)
 }

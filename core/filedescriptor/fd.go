@@ -27,7 +27,7 @@ type (
 func New(file string) (FD, error) {
 	f, err := openfile(file, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create FD: %w", err)
+		return nil, fmt.Errorf("failed to create FD: %w", err)
 	}
 
 	return &fd{

@@ -14,12 +14,12 @@ func CreateLogFile(dir string, name string) (io.Writer, error) {
 		return os.Stdout, nil
 	}
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("Failed to create logs directory in %s: %w", dir, err)
+		return nil, fmt.Errorf("failed to create logs directory in %s: %w", dir, err)
 	}
 	path := fmt.Sprintf("%s/%s", dir, name)
 	f, err := os.Create(path)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create log file %s: %w", path, err)
+		return nil, fmt.Errorf("failed to create log file %s: %w", path, err)
 	}
 	return f, nil
 }

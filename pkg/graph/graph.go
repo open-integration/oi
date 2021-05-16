@@ -25,22 +25,22 @@ func New() Builder {
 func (b *builder) Build(s state.State) ([]byte, error) {
 	graph := gographviz.NewGraph()
 	if err := graph.SetDir(true); err != nil {
-		return nil, fmt.Errorf("Failed to set graph to be directed: %w", err)
+		return nil, fmt.Errorf("failed to set graph to be directed: %w", err)
 	}
 	if err := graph.Attrs.Add(string(gographviz.RankDir), "LR"); err != nil {
-		return nil, fmt.Errorf("Failed to add graph LR attribute: %w", err)
+		return nil, fmt.Errorf("failed to add graph LR attribute: %w", err)
 	}
 	for _, e := range s.Events() {
 		if e.Metadata.Name == state.EventEngineStarted {
 			if err := graph.AddNode("G", "started", nil); err != nil {
-				return nil, fmt.Errorf("Failed to add first node to graph: %w", err)
+				return nil, fmt.Errorf("failed to add first node to graph: %w", err)
 			}
 			for _, rt := range e.RelatedTasks {
 				if err := graph.AddNode("G", format(rt), node(s.Tasks()[rt])); err != nil {
-					return nil, fmt.Errorf("Failed to add node to graph: %w", err)
+					return nil, fmt.Errorf("failed to add node to graph: %w", err)
 				}
 				if err := graph.AddEdge("started", format(rt), true, nil); err != nil {
-					return nil, fmt.Errorf("Failed to add edge to graph: %w", err)
+					return nil, fmt.Errorf("failed to add edge to graph: %w", err)
 				}
 			}
 			continue
@@ -49,10 +49,10 @@ func (b *builder) Build(s state.State) ([]byte, error) {
 		if len(e.RelatedTasks) > 0 {
 			for _, rt := range e.RelatedTasks {
 				if err := graph.AddNode("G", format(rt), node(s.Tasks()[rt])); err != nil {
-					return nil, fmt.Errorf("Failed to add node to graph: %w", err)
+					return nil, fmt.Errorf("failed to add node to graph: %w", err)
 				}
 				if err := graph.AddEdge(format(e.Metadata.Task), format(rt), true, nil); err != nil {
-					return nil, fmt.Errorf("Failed to add edge to graph: %w", err)
+					return nil, fmt.Errorf("failed to add edge to graph: %w", err)
 				}
 			}
 		}

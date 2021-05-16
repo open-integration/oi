@@ -46,7 +46,7 @@ func (m *modem) Init() error {
 	m.logger.Debug("Modem initiation started")
 	for name, s := range m.services {
 		if err := m.initService(name, s, m.logger.New("service", name)); err != nil {
-			return fmt.Errorf("Failed to initiate service: %w", err)
+			return fmt.Errorf("failed to initiate service: %w", err)
 		}
 	}
 	m.logger.Debug("Modem initiation finished")
@@ -62,7 +62,7 @@ func (m *modem) Call(ctx context.Context, service string, endpoint string, argum
 	}
 	svc, ok := m.services[service]
 	if !ok {
-		return nil, fmt.Errorf("Service %s not found", service)
+		return nil, fmt.Errorf("service %s not found", service)
 	}
 	schemas := svc.Schemas()
 	schema, ok := schemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "arguments.json")]
@@ -108,7 +108,7 @@ func (m *modem) Destroy() error {
 	for name, service := range m.services {
 		err := service.Kill()
 		if err != nil {
-			m.logger.Debug("Failed to kill service", "service", name)
+			m.logger.Debug("failed to kill service", "service", name)
 		}
 		m.logger.Debug("Service stopped", "service", name)
 	}
