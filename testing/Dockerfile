@@ -6,7 +6,6 @@ RUN apt-get update && apt-get -y upgrade  && apt-get install build-essential mak
 
 RUN go get github.com/client9/misspell/cmd/misspell && \
     go install github.com/fzipp/gocyclo/cmd/gocyclo@latest && \
-    go get golang.org/x/lint/golint && \
     go get github.com/securego/gosec/cmd/gosec && \
     go get github.com/google/addlicense && \
     go get github.com/github/hub
@@ -21,3 +20,7 @@ RUN wget https://github.com/mikefarah/yq/releases/download/v4.9.0/yq_linux_amd64
 
 ENV PATH $PATH:/root/google-cloud-sdk/bin
 RUN curl -sSL https://sdk.cloud.google.com | bash
+
+RUN wget https://github.com/dominikh/go-tools/releases/download/2020.2.4/staticcheck_linux_amd64.tar.gz && \
+    tar -xvf staticcheck_linux_amd64.tar.gz && \
+    mv ./staticcheck/staticcheck /usr/local/bin
