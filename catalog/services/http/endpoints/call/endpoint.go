@@ -13,14 +13,6 @@ import (
 	"github.com/open-integration/oi/pkg/service"
 )
 
-type (
-	CallOptions struct {
-		Context   context.Context
-		LoggerFD  string
-		Arguments *CallArguments
-	}
-)
-
 func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *api.CallRequest) (*api.CallResponse, error) {
 	args := &CallArguments{}
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {

@@ -108,9 +108,10 @@ func (s *Service) RegisterEndpoint(name string, handler endpointHandler, argumen
 	if _, found := s.endpoints[name]; !found {
 		s.endpoints[name] = endpoint{
 			arguments: argumentsSchema,
-			returns:   argumentsSchema,
+			returns:   returnsSchems,
 			handler:   handler,
 		}
+		return nil
 	}
 	return fmt.Errorf("already exist")
 }
@@ -121,11 +122,21 @@ func UnmarshalRequestArgumentsInto(req *api.CallRequest, into interface{}) error
 }
 
 func BuildSuccessfullResponse(payload interface{}) (*api.CallResponse, error) {
-	return &api.CallResponse{}, nil
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return BuildErrorResponse(err)
+	}
+	return &api.CallResponse{
+		Status:  api.Status_OK,
+		Payload: string(b),
+	}, nil
 }
 
-func BuildErrorResponse() (*api.CallResponse, error) {
-	return &api.CallResponse{}, nil
+func BuildErrorResponse(err error) (*api.CallResponse, error) {
+	return &api.CallResponse{
+		Status: api.Status_Error,
+		Error:  err.Error(),
+	}, nil
 }
 
 func (s *Service) buildErrorResponse(err error) *api.CallResponse {

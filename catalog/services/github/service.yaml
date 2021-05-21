@@ -1,0 +1,6 @@
+name: github
+version: 0.0.1
+endpoints:
+- name: issuesearch
+  arguments: ./configs/endpoints/issuesearch/arguments.json
+  returns: ./configs/endpoints/issuesearch/returns.json
