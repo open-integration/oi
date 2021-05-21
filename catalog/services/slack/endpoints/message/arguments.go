@@ -19,6 +19,6 @@ func (r *MessageArguments) Marshal() ([]byte, error) {
 }
 
 type MessageArguments struct {
-	Message    string `json:"Message"`    // Message to send
-	WebhookURL string `json:"Webhook_URL"`// Slack webhook url
+	Message    string `json:"Message"`     // Message to send
+	WebhookURL string `json:"Webhook_URL"` // Slack webhook url
 }
