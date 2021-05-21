@@ -36,3 +36,11 @@ func GetEnvOrDefault(name string, def string) string {
 	}
 	return res
 }
+
+func DieOnError(err error, msg string) {
+	if err == nil {
+		return
+	}
+	fmt.Printf("Error: %s\n", msg)
+	panic(err)
+}
