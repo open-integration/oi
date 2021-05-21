@@ -34,7 +34,7 @@ gocyclo:
 
 .PHONY: lint
 lint:
-	@golint -set_exit_status ./...
+	@staticcheck ./...
 
 .PHONY: security-check
 security-check:
@@ -56,3 +56,16 @@ export-vars:
 .PHONY: build-oictl
 build-oictl:
 	go build -o ./dist/oictl ./cmd/oictl
+
+
+.PHONY: build-service-catalog
+build-service-catalog:
+	@bash ./scripts/build-service-catalog.sh
+
+.PHONY: release-service-catalog
+release-service-catalog:
+	@bash ./scripts/release-service-catalog.sh
+
+.PHONY: build-testing-image
+build-testing-image:
+	docker build . -f testing/Dockerfile -t openintegration/testing

@@ -76,24 +76,24 @@ func New(opt *Options) (Engine, error) {
 	if opt.LogsDirectory == "" {
 		wd, err := os.Getwd()
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get current working directory: %w", err)
+			return nil, fmt.Errorf("failed to get current working directory: %w", err)
 		}
 		opt.LogsDirectory = wd
 	}
 
 	tasksLogDir := path.Join(opt.LogsDirectory, "logs", "tasks")
 	if err := createDir(tasksLogDir); err != nil {
-		return nil, fmt.Errorf("Failed to create task logs directory %s: %w", opt.LogsDirectory, err)
+		return nil, fmt.Errorf("failed to create task logs directory %s: %w", opt.LogsDirectory, err)
 	}
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get user's home dir: %w", err)
+		return nil, fmt.Errorf("failed to get user's home dir: %w", err)
 	}
 
 	servicesDir := path.Join(home, ".open-integration", "services")
 	if err := createDir(servicesDir); err != nil {
-		return nil, fmt.Errorf("Failed to create service cache directory %s: %w", servicesDir, err)
+		return nil, fmt.Errorf("failed to create service cache directory %s: %w", servicesDir, err)
 	}
 
 	eventChannel := make(chan *event.Event, 10)
@@ -125,7 +125,7 @@ func New(opt *Options) (Engine, error) {
 
 	servicesLogDir := path.Join(opt.LogsDirectory, "logs", "services")
 	if err := createDir(servicesLogDir); err != nil {
-		return nil, fmt.Errorf("Failed to create service logs directory %s: %w", servicesLogDir, err)
+		return nil, fmt.Errorf("failed to create service logs directory %s: %w", servicesLogDir, err)
 	}
 
 	s := state.New(&state.Options{
@@ -139,7 +139,7 @@ func New(opt *Options) (Engine, error) {
 	go s.StartProcess()
 	m, err := createModem(opt, log, servicesLogDir)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create modemo: %w", err)
+		return nil, fmt.Errorf("failed to create modemo: %w", err)
 	}
 	return &engine{
 		statev1:            s,
@@ -226,7 +226,7 @@ func (e *engine) electNextTasks(ev event.Event) {
 	log.Debug("Received event, electing next tasks")
 	stateCpy, err := e.statev1.Copy()
 	if err != nil {
-		e.logger.Error("Failed to copy state")
+		e.logger.Error("failed to copy state")
 		return
 	}
 	tasksCandidates := map[string]task.Task{}
@@ -273,7 +273,7 @@ func (e *engine) executeElectedTasks(ev event.Event) {
 	log := e.logger.New("event", ev.Metadata.Name)
 	stateCpy, err := e.statev1.Copy()
 	if err != nil {
-		e.logger.Error("Failed to copy state")
+		e.logger.Error("failed to copy state")
 		return
 	}
 	elected := []task.Task{}
@@ -315,13 +315,13 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 
 	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
-		lgr.Error("Failed to create log file for task")
+		lgr.Error("failed to create log file for task")
 		return
 	}
 
 	fd, err := filedescriptor.New(fileDescriptor)
 	if err != nil {
-		lgr.Error("Failed to create filedescriptor")
+		lgr.Error("failed to create filedescriptor")
 		return
 	}
 
@@ -379,7 +379,6 @@ func (e *engine) waitForFinish() {
 			Status: state.EngineStatusSuccess,
 		},
 	}
-	return
 }
 
 func (e *engine) printStateStore() error {
@@ -389,7 +388,7 @@ func (e *engine) printStateStore() error {
 	}
 	err = ioutil.WriteFile(path.Join(e.stateDir, "state.yaml"), statebytes, os.ModePerm)
 	if err != nil {
-		e.logger.Error("Failed to store state to file")
+		e.logger.Error("failed to store state to file")
 		return err
 	}
 
@@ -399,7 +398,7 @@ func (e *engine) printStateStore() error {
 	}
 	err = ioutil.WriteFile(path.Join(e.stateDir, "events.yaml"), eventbytes, os.ModePerm)
 	if err != nil {
-		e.logger.Error("Failed to store state to file")
+		e.logger.Error("failed to store state to file")
 		return err
 	}
 	return nil
@@ -409,11 +408,11 @@ func (e *engine) printGraph() {
 	s, _ := e.statev1.Copy()
 	g, err := e.graphBuilder.Build(s)
 	if err != nil {
-		e.logger.Error("Failed to build graph", "err", err.Error())
+		e.logger.Error("failed to build graph", "err", err.Error())
 		return
 	}
 	if err := ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm); err != nil {
-		e.logger.Error("Failed to write graph to file", "err", err.Error())
+		e.logger.Error("failed to write graph to file", "err", err.Error())
 	}
 
 }
@@ -445,7 +444,7 @@ func createModem(opt *Options, log logger.Logger, servicesLogDir string) (modem.
 			if s.Name != "" && s.Version != "" {
 				location, err := opt.serviceDownloader.Download(s.Name, s.Version)
 				if err != nil {
-					return nil, fmt.Errorf("Failed to download serivce %s: %w", s.Name, err)
+					return nil, fmt.Errorf("failed to download serivce %s: %w", s.Name, err)
 				}
 				finalLocation = location
 			}
@@ -463,7 +462,7 @@ func createModem(opt *Options, log logger.Logger, servicesLogDir string) (modem.
 				LocalCommandCreator:  &utils.Command{},
 				LocalPathToBinary:    finalLocation,
 			})); err != nil {
-				return nil, fmt.Errorf("Failed to add service %s to modem: %w", s.Name, err)
+				return nil, fmt.Errorf("failed to add service %s to modem: %w", s.Name, err)
 			}
 		} else {
 			log.Debug("Adding service")
@@ -491,7 +490,7 @@ func createModem(opt *Options, log logger.Logger, servicesLogDir string) (modem.
 				runnerOpt.KubernetesGrpcDialViaPodIP = true
 			}
 			if err := serviceModem.AddService(s.As, runner.New(runnerOpt)); err != nil {
-				return nil, fmt.Errorf("Failed to add service %s to modem: %w", s.Name, err)
+				return nil, fmt.Errorf("failed to add service %s to modem: %w", s.Name, err)
 			}
 		}
 	}

@@ -27,9 +27,9 @@ func (t *ticker) Run(ctx context.Context, options task.RunOptions) ([]byte, erro
 	for {
 		select {
 		// Finish the task execution
-		case _ = <-finish.C:
+		case <-finish.C:
 			return nil, nil
-		case _ = <-ticker.C:
+		case <-ticker.C:
 			if err := options.EventReporter.Report("tick", nil); err != nil {
 				lgr.Error("Failed to report event", "event", "tick", "err", err.Error())
 			}

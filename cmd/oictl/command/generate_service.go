@@ -210,7 +210,7 @@ func buildEndpointsMap(locations []string) (map[string]Endpoint, error) {
 		name := path.Base(arg)
 		_, ok := endpoints[name]
 		if ok {
-			return nil, fmt.Errorf("Argument %s already exists as returns schema", name)
+			return nil, fmt.Errorf("argument %s already exists as returns schema", name)
 		}
 		endpoints[name] = Endpoint{
 			Name:      name,

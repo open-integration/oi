@@ -25,7 +25,6 @@ type (
 	}
 
 	state struct {
-		name               string
 		state              string
 		services           []ServiceState
 		tasks              map[string]TaskState
@@ -74,10 +73,10 @@ func (s *state) Copy() (State, error) {
 	s.copyChanRequest <- true
 	for {
 		select {
-		case cpy, _ := <-s.copyChan:
+		case cpy := <-s.copyChan:
 			return &cpy, nil
 		case <-time.After(60 * time.Second):
-			msg := "Failed to copy state after 10 seconds"
+			msg := "failed to copy state after 60 seconds"
 			return nil, errors.New(msg)
 		}
 	}
@@ -111,7 +110,7 @@ func (s *state) Services() []ServiceState {
 func (s *state) StartProcess() {
 	for {
 		select {
-		case _ = <-s.copyChanRequest:
+		case <-s.copyChanRequest:
 			s.copyChan <- s.copy()
 		case updateRequest := <-s.stateUpdateRequest:
 			if updateRequest.AddRealtedTaskToEventReuqest != nil {

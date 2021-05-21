@@ -10,9 +10,6 @@ import (
 )
 
 func Test_splitServiceIntoParts(t *testing.T) {
-	type args struct {
-		svc string
-	}
 	tests := []struct {
 		svc     string
 		name    string
@@ -46,15 +43,15 @@ func Test_splitServiceIntoParts(t *testing.T) {
 		},
 		{
 			svc:    "",
-			errMsg: "Name must be part of service",
+			errMsg: "name must be part of service",
 		},
 		{
 			svc:    ":0.0.1",
-			errMsg: "Name must be part of service",
+			errMsg: "name must be part of service",
 		},
 		{
 			svc:    "mysvc:v1",
-			errMsg: "Version must be semantic version: No Major.Minor.Patch elements found",
+			errMsg: "version must be semantic version: No Major.Minor.Patch elements found",
 		},
 	}
 	for _, tt := range tests {

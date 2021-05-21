@@ -24,7 +24,7 @@ func Exec(opt Options) error {
 	cmd.Stdout = opt.File
 	cmd.Stderr = opt.File
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Failed to executed command: %s: %w", opt.Command, err)
+		return fmt.Errorf("failed to executed command: %s: %w", opt.Command, err)
 	}
 	return nil
 }

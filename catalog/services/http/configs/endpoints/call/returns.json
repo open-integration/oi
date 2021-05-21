@@ -1,0 +1,33 @@
+{
+    "title": "Search Results",
+    "id": "https://docs.atlassian.com/jira/REST/schema/search-results#",
+    "type": "object",
+    "properties": {
+      "Headers": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "string"
+            },
+            "Value": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Body": {
+        "type": "string"
+      },
+      "Status": {
+        "type": "number"
+      }    
+    },
+    "required": [
+      "Status",
+      "Headers",
+      "Body"
+    ]
+  }
+  

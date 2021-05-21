@@ -61,7 +61,7 @@ func execrootGeneratePipeline(options *rootGeneratePipelineCmdOptions) error {
 	for _, svc := range options.services {
 		name, version, alias, err := splitServiceIntoParts(svc)
 		if err != nil {
-			return fmt.Errorf("Faild to read service format: %w", err)
+			return fmt.Errorf("failed to read service format: %w", err)
 		}
 		log.Debug("Injecting service", "name", name, "alias", alias, "version", version)
 		services = append(services, PipelineService{
@@ -91,7 +91,7 @@ func execrootGeneratePipeline(options *rootGeneratePipelineCmdOptions) error {
 	}
 	res, err := template.Exec("pipeline", templates.PipelineTemplate, pipeline, nil)
 	if err != nil {
-		return fmt.Errorf("Failed to template pipeline: %w", err)
+		return fmt.Errorf("failed to template pipeline: %w", err)
 	}
 	var mainFile io.Writer
 	projectLocation := ""
@@ -100,19 +100,19 @@ func execrootGeneratePipeline(options *rootGeneratePipelineCmdOptions) error {
 	} else {
 		location, err := resolveProjectFinalLocation(options.directory)
 		if err != nil {
-			return fmt.Errorf("Failed to resolved target directory: %w", err)
+			return fmt.Errorf("failed to resolved target directory: %w", err)
 		}
 		if err := ensureProjectLocation(location); err != nil {
-			return fmt.Errorf("Failed to create project directory: %w", err)
+			return fmt.Errorf("failed to create project directory: %w", err)
 		}
 		projectLocation = location
 		mainFile, err = os.Create(path.Join(location, "main.go"))
 		if err != nil {
-			return fmt.Errorf("Failed to create main.go: %w", err)
+			return fmt.Errorf("failed to create main.go: %w", err)
 		}
 	}
 	if _, err := fmt.Fprintln(mainFile, res); err != nil {
-		return fmt.Errorf("Failed to write pipeline to main.go: %w", err)
+		return fmt.Errorf("failed to write pipeline to main.go: %w", err)
 	}
 	if !options.skipGolangProjectInitiation && projectLocation != "" {
 		if err := exec.Exec(exec.Options{
@@ -120,14 +120,14 @@ func execrootGeneratePipeline(options *rootGeneratePipelineCmdOptions) error {
 			File:       os.Stdout,
 			WorkingDir: projectLocation,
 		}); err != nil {
-			return fmt.Errorf("Failed to initiate Golang project with 'go mod init ... ': %w", err)
+			return fmt.Errorf("failed to initiate Golang project with 'go mod init ... ': %w", err)
 		}
 		if err := exec.Exec(exec.Options{
 			Command:    "go mod tidy",
 			File:       os.Stdout,
 			WorkingDir: projectLocation,
 		}); err != nil {
-			return fmt.Errorf("Failed to run 'go mod tidy': %w", err)
+			return fmt.Errorf("failed to run 'go mod tidy': %w", err)
 		}
 	}
 	if projectLocation != "" {
@@ -136,7 +136,7 @@ func execrootGeneratePipeline(options *rootGeneratePipelineCmdOptions) error {
 			File:       os.Stdout,
 			WorkingDir: projectLocation,
 		}); err != nil {
-			return fmt.Errorf("Failed to run 'gofmt -l -w .': %w", err)
+			return fmt.Errorf("failed to run 'gofmt -l -w .': %w", err)
 		}
 	}
 	return nil
@@ -150,7 +150,7 @@ func splitServiceIntoParts(svc string) (string, string, string, error) {
 	nameVersion := strings.Split(fullnameAlias[0], ":")
 	name = nameVersion[0]
 	if name == "" {
-		return "", "", "", fmt.Errorf("Name must be part of service")
+		return "", "", "", fmt.Errorf("name must be part of service")
 	}
 	if len(nameVersion) == 2 {
 		version = nameVersion[1]
@@ -160,7 +160,7 @@ func splitServiceIntoParts(svc string) (string, string, string, error) {
 
 	_, err := semver.Parse(version)
 	if err != nil {
-		return "", "", "", fmt.Errorf("Version must be semantic version: %w", err)
+		return "", "", "", fmt.Errorf("version must be semantic version: %w", err)
 	}
 
 	if len(fullnameAlias) == 2 {

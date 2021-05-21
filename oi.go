@@ -8,10 +8,8 @@ import (
 
 	"github.com/open-integration/oi/core/condition"
 	"github.com/open-integration/oi/core/engine"
-	"github.com/open-integration/oi/core/modem"
 	"github.com/open-integration/oi/core/task"
 	"github.com/open-integration/oi/core/task/tasks"
-	"github.com/open-integration/oi/pkg/downloader"
 	"github.com/open-integration/oi/pkg/logger"
 )
 
@@ -25,9 +23,6 @@ type (
 		LogsDirectory string
 		Kubeconfig    *engine.KubernetesOptions
 		Logger        logger.Logger
-
-		serviceDownloader downloader.Downloader
-		modem             modem.Modem
 	}
 )
 
