@@ -1,0 +1,20 @@
+{
+    "$id": "https://example.com/person.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Jira List Task Arguments Schema",
+    "type": "object",
+    "properties": {
+      "Webhook_URL": {
+        "type": "string",
+        "description": "Slack webhook url"
+      },
+      "Message": {
+        "type": "string",
+        "description": "Message to send"
+      }
+    },
+    "required": [
+        "Webhook_URL",
+        "Message"
+    ]
+  }

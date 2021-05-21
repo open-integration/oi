@@ -12,14 +12,14 @@ build () {
     echo "Building $NAME-$VERSION service for darwin and amd64"
     GOOS=darwin GOARCH=amd64 go build -o $dest-darwin-amd64 $pkg 
 
-    echo "Building $NAME-$VERSION service for linux and amd64"
-    GOOS=linux GOARCH=amd64 go build -o $dest-linux-amd64 $pkg
+    # echo "Building $NAME-$VERSION service for linux and amd64"
+    # GOOS=linux GOARCH=amd64 go build -o $dest-linux-amd64 $pkg
 
-    echo "Building $NAME-$VERSION service for linux and 386"
-    GOOS=linux GOARCH=386 go build -o $dest-linux-386 $pkg
+    # echo "Building $NAME-$VERSION service for linux and 386"
+    # GOOS=linux GOARCH=386 go build -o $dest-linux-386 $pkg
 }
 
-SERVICES="http github"
+SERVICES="http github slack"
 
 echo ""
 
