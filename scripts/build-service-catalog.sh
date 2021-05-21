@@ -19,7 +19,7 @@ build () {
     GOOS=linux GOARCH=386 go build -o $dest-linux-386 $pkg
 }
 
-SERVICES="http"
+SERVICES="http github"
 
 echo ""
 

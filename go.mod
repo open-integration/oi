@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Shopify/ejson v1.2.2 // indirect
+	github.com/alecthomas/jsonschema v0.0.0-20210413112511-5c9c23bdc720 // indirect
 	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/awalterschulze/gographviz v0.0.0-20190522210029-fa59802746ab
 	github.com/aws/aws-sdk-go v1.34.8 // indirect
@@ -14,6 +15,7 @@ require (
 	github.com/frankban/quicktest v1.10.0 // indirect
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/golang/protobuf v1.5.2
+	github.com/google/go-github/v35 v35.2.0
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hairyhenderson/gomplate v3.5.0+incompatible
@@ -37,6 +39,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/zealic/xignore v0.3.3 // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/grpc v1.37.1
 	gopkg.in/hairyhenderson/yaml.v2 v2.2.2
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect

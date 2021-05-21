@@ -54,7 +54,7 @@ export-vars:
 
 # Compile local oictl 
 .PHONY: build-oictl
-build-oictl:
+build-oictl::
 	go build -o ./dist/oictl ./cmd/oictl
 
 
@@ -69,3 +69,10 @@ release-service-catalog:
 .PHONY: build-testing-image
 build-testing-image:
 	docker build . -f testing/Dockerfile -t openintegration/testing
+
+.PHONY: generate-catalog-types
+generate-catalog-types:
+	# TODO: get all the data from service.yaml files
+	mkdir -p catalog/services/github/endpoints/issuesearch
+	quicktype -o catalog/services/github/endpoints/issuesearch/arguments.go -l go -s schema --src catalog/services/github/configs/endpoints/issuesearch/arguments.json --package issuesearch -t IssueSearchArguments
+	quicktype -o catalog/services/github/endpoints/issuesearch/returns.go -l go -s schema --src catalog/services/github/configs/endpoints/issuesearch/returns.json --package issuesearch -t IssueSearchReturns
