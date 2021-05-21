@@ -37,6 +37,14 @@ func GetEnvOrDefault(name string, def string) string {
 	return res
 }
 
+func GetEnvOrDie(name string, errMsg string) string {
+	if res := os.Getenv(name); res != "" {
+		return res
+	}
+	DieOnError(fmt.Errorf("%s is not set", name), errMsg)
+	return ""
+}
+
 func DieOnError(err error, msg string) {
 	if err == nil {
 		return
