@@ -1,5 +1,5 @@
 {
-    "title": "Message Result",
+    "title": "Slack send message return schema",
     "type": "object"
   }
   
