@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Shopify/ejson v1.2.2 // indirect
-	github.com/alecthomas/jsonschema v0.0.0-20210413112511-5c9c23bdc720 // indirect
+	github.com/alecthomas/jsonschema v0.0.0-20210413112511-5c9c23bdc720
 	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/awalterschulze/gographviz v0.0.0-20190522210029-fa59802746ab
 	github.com/aws/aws-sdk-go v1.34.8 // indirect
