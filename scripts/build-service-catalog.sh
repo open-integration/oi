@@ -28,5 +28,5 @@ do
     V=$(yq e '.version' catalog/services/$s/service.yaml)
     echo "Building service $s ($V)"
     build $s $V
-    docker build -f catalog/sahred/Dockerfile --build-arg SERVICE=$s -t openintegration/service-$s:$V-alpine .
+    # docker build -f catalog/sahred/Dockerfile --build-arg SERVICE=$s -t openintegration/service-$s:$V-alpine .
 done
