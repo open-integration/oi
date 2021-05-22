@@ -76,4 +76,8 @@ generate-catalog-types:
 	mkdir -p catalog/services/github/endpoints/issuesearch
 	quicktype -o catalog/services/github/endpoints/issuesearch/arguments.go -l go -s schema --src catalog/services/github/configs/endpoints/issuesearch/arguments.json --package issuesearch -t IssueSearchArguments
 	quicktype -o catalog/services/github/endpoints/issuesearch/returns.go -l go -s schema --src catalog/services/github/configs/endpoints/issuesearch/returns.json --package issuesearch -t IssueSearchReturns
+	
+	mkdir -p catalog/services/github/endpoints/getissuecomments
+	quicktype -o catalog/services/github/endpoints/getissuecomments/arguments.go -l go -s schema --src catalog/services/github/configs/endpoints/getissuecomments/arguments.json --package getissuecomments -t GeIssueCommentArguments
+	quicktype -o catalog/services/github/endpoints/getissuecomments/returns.go -l go -s schema --src catalog/services/github/configs/endpoints/getissuecomments/returns.json --package getissuecomments -t GetIssueCommentsReturns
 	make fmt
