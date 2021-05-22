@@ -11,7 +11,7 @@ import (
 // used as return arguments in github/issuesearch endpoint
 
 func main() {
-	schema := jsonschema.Reflect(&github.Issue{})
+	schema := jsonschema.Reflect(&github.IssueComment{})
 	b, _ := schema.MarshalJSON()
 	fmt.Println(string(b))
 }
