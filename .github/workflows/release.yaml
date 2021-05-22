@@ -24,11 +24,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
-      -
-        name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          version: latest
-          args: release --rm-dist
+      - run: make release-binaries
         env:
           GITHUB_TOKEN: ${{ secrets.GT_RELEASE_TOKEN }}

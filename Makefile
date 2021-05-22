@@ -52,15 +52,10 @@ export-vars:
 
 
 
-# Compile local oictl 
-.PHONY: build-oictl
-build-oictl::
-	go build -o ./dist/oictl ./cmd/oictl
+.PHONY: build
+build:
+	@bash ./scripts/build.sh
 
-
-.PHONY: build-service-catalog
-build-service-catalog:
-	@bash ./scripts/build-service-catalog.sh
 
 .PHONY: release-service-catalog
 release-service-catalog:
