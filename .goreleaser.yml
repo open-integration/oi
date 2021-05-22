@@ -19,6 +19,9 @@ dockers:
   - image_templates:
     - openintegration/oi:latest
     - openintegration/oi:{{ .Tag }}
+    dockerfile: Dockerfile
+    build_flag_templates:
+    - "--build-arg=SHA={{.FullCommit}}"
 brews:
   - tap:
       owner: open-integration
