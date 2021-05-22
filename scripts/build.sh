@@ -12,4 +12,4 @@ do
     export $FULL_NAME=$V
 done
 
-goreleaser build --skip-validate --rm-dist --single-target
+goreleaser build --skip-validate --rm-dist --single-target --snapshot
