@@ -1,8 +1,12 @@
-FROM golang:1.16.0 as go
+FROM docker as docker
+
+FROM golang:1.16.4-alpine as go
 
 WORKDIR /testing
 
-RUN apt-get update && apt-get -y upgrade  && apt-get install build-essential make wget -y
+COPY --from=docker /usr/local/bin/docker /usr/local/bin/docker 
+
+RUN apk update && apk add make wget curl bash python3 git jq
 
 RUN go get github.com/client9/misspell/cmd/misspell && \
     go install github.com/fzipp/gocyclo/cmd/gocyclo@latest && \
@@ -24,3 +28,8 @@ RUN curl -sSL https://sdk.cloud.google.com | bash
 RUN wget https://github.com/dominikh/go-tools/releases/download/2020.2.4/staticcheck_linux_amd64.tar.gz && \
     tar -xvf staticcheck_linux_amd64.tar.gz && \
     mv ./staticcheck/staticcheck /usr/local/bin
+
+RUN curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
+RUN mv bin/goreleaser /usr/local/bin/goreleaser
+
+RUN  apk add gcc build-base

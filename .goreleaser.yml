@@ -7,7 +7,8 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  - env:
+  - id: oictl 
+    env:
       - CGO_ENABLED=0
     dir: cmd/oictl
     binary: oictl
@@ -15,15 +16,78 @@ builds:
       - linux
       - windows
       - darwin
+
+  - id: catalog/http
+    env:
+      - CGO_ENABLED=0
+    dir: cmd/catalog/http
+    binary: http-{{ .Env.HTTP_SERVICE_VERSION }}
+    goos:
+      - linux
+      - windows
+      - darwin
+
+  - id: catalog/slack
+    env:
+      - CGO_ENABLED=0
+    dir: cmd/catalog/slack
+    binary: slack-{{ .Env.SLACK_SERVICE_VERSION }}
+    goos:
+      - linux
+      - windows
+      - darwin
+
+  - id: catalog/github
+    env:
+      - CGO_ENABLED=0
+    dir: cmd/catalog/github
+    binary: github-{{ .Env.GITHUB_SERVICE_VERSION }}
+    goos:
+      - linux
+      - windows
+      - darwin
+
+
 dockers:
-  - image_templates:
+  - ids:
+    - oictl
+    image_templates:
     - openintegration/oi:latest
     - openintegration/oi:{{ .Tag }}
     dockerfile: Dockerfile
     build_flag_templates:
     - "--build-arg=SHA={{.FullCommit}}"
+    
+  - ids:
+    - catalog/http
+    image_templates:
+    - openintegration/serivce-http:latest
+    - openintegration/serivce-http:{{ .Env.HTTP_SERVICE_VERSION }}
+    dockerfile: catalog/shared/Dockerfile
+    build_flag_templates:
+    - "--build-arg=SERVICE=http"
+
+  - ids:
+    - catalog/slack
+    image_templates:
+    - openintegration/serivce-slack:latest
+    - openintegration/serivce-slack:{{ .Env.SLACK_SERVICE_VERSION }}
+    dockerfile: catalog/shared/Dockerfile
+    build_flag_templates:
+    - "--build-arg=SERVICE=slack"
+
+  - ids:
+    - catalog/github
+    image_templates:
+    - openintegration/serivce-github:latest
+    - openintegration/serivce-github:{{ .Env.GITHUB_SERVICE_VERSION }}
+    dockerfile: catalog/shared/Dockerfile
+    build_flag_templates:
+    - "--build-arg=SERVICE=github"
 brews:
-  - tap:
+  - ids:
+    - oictl
+    tap:
       owner: open-integration
       name: homebrew-oictl
     folder: Formula

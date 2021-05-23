@@ -14,9 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.16'
       - uses: reviewdog/action-staticcheck@v1
         with:
           github_token: ${{ secrets.github_token }}
@@ -25,3 +22,4 @@ jobs:
           fail_on_error: true
       - run: make test-all
       - uses: codecov/codecov-action@v1
+      - run: make build
