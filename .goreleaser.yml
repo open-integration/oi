@@ -80,6 +80,12 @@ dockers:
     dockerfile: catalog/shared/Dockerfile
     build_flag_templates:
     - "--build-arg=SERVICE=github"
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      386: i386
+      amd64: x86_64
 brews:
   - ids:
     - oictl
@@ -87,12 +93,6 @@ brews:
       owner: open-integration
       name: homebrew-oictl
     folder: Formula
-archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      386: i386
-      amd64: x86_64
 checksum:
   name_template: 'checksums.txt'
 snapshot:
