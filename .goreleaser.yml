@@ -14,7 +14,6 @@ builds:
     binary: oictl
     goos:
       - linux
-      - windows
       - darwin
 
   - id: catalog/http
@@ -24,7 +23,6 @@ builds:
     binary: http-{{ .Env.HTTP_SERVICE_VERSION }}
     goos:
       - linux
-      - windows
       - darwin
 
   - id: catalog/slack
@@ -34,7 +32,6 @@ builds:
     binary: slack-{{ .Env.SLACK_SERVICE_VERSION }}
     goos:
       - linux
-      - windows
       - darwin
 
   - id: catalog/github
@@ -44,7 +41,6 @@ builds:
     binary: github-{{ .Env.GITHUB_SERVICE_VERSION }}
     goos:
       - linux
-      - windows
       - darwin
 
 
@@ -95,7 +91,6 @@ archives:
   - replacements:
       darwin: Darwin
       linux: Linux
-      windows: Windows
       386: i386
       amd64: x86_64
 checksum:
