@@ -57,9 +57,9 @@ build:
 	@bash ./scripts/build.sh
 
 
-.PHONY: release-service-catalog
-release-service-catalog:
-	@bash ./scripts/release-service-catalog.sh
+.PHONY: release-binaries
+release-binaries:
+	@bash ./scripts/release-binaries.sh
 
 .PHONY: build-testing-image
 build-testing-image:
