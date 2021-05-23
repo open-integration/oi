@@ -1,1 +1,28 @@
-site_name: My Docs
+site_name: Open Integration
+strict: true
+theme:
+  name: material
+  palette:
+    primary: deep orange
+markdown_extensions:
+- codehilite
+- admonition
+- toc:
+    permalink: true
+nav:
+  - Overview: index.md
+  - Start Here:
+    - Installation: installation.md
+    - Pipeline: pipeline.md
+    - Concepts: concepts.md
+  - Service Catalog: service-catalog.md
+  - Advanced:
+    - Create Service: create-a-service.md
+    - Architecture: architecture.md
+    - Data Flow: data-flow.md
+    - Use Docker: use-docker.md
+    - Use Kubernetes: use-kubernetes.md
+  - Testing: testing.md
+  - Contribution: contribution.md
+  - Troubleshooting: troubleshooting.md
+

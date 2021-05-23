@@ -1,17 +1,14 @@
 # Open Integration
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+Open-Integration is a pipeline framework that allows to write (golang) powerful pipelines, then the pipeline is compiled into single binary to be executed elsewhere.
 
-## Commands
+## Why?
+A pipeline, wether its CI, CD, ETL and any other binding between multiple API's is most of the time 2 parts entity:
+1. The pipeline engine
+2. The pipeline spec
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+Its hard to test
+Its hard to run locally
+Required knowledge of providers pipeline spec
 
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+Well besicaly its once again the big debate code vs config
