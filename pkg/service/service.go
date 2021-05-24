@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/signal"
@@ -32,9 +33,7 @@ type (
 
 func New(port string) Service {
 	return Service{
-		Logger: logger.New(&logger.Options{
-			LogToStdOut: true,
-		}),
+		Logger:    logger.New(logger.Options{}),
 		Port:      port,
 		endpoints: map[string]endpoint{},
 	}
@@ -57,8 +56,12 @@ func (s *Service) Call(ctx context.Context, req *api.CallRequest) (*api.CallResp
 	if !ok {
 		return s.buildErrorResponse(fmt.Errorf("endpoint %s not found", req.Endpoint)), nil
 	}
-	lgr := logger.New(&logger.Options{
-		FilePath: req.GetFd(),
+	f, err := os.OpenFile(req.GetFd(), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file descriptor %s: %w", req.GetFd(), err)
+	}
+	lgr := logger.New(logger.Options{
+		WriterHandlers: []io.Writer{f},
 	})
 	resp, err := ep.handler(ctx, lgr, s, req)
 	if err != nil {
@@ -86,7 +89,7 @@ func (s *Service) Run(ctx context.Context) error {
 	go func() {
 		for range c {
 			// sig is a ^C, handle it
-			s.Logger.Debug("shutting down gRPC server...")
+			s.Logger.Info("shutting down gRPC server...")
 
 			server.GracefulStop()
 

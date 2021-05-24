@@ -45,7 +45,7 @@ security-check:
 # example: make mock PKG=./pkg/runtime NAME=Runtime
 .PHONY: mock
 mock:
-	@sh ./scripts/mock.sh $(PKG) $(NAME)
+	mockery --all --inpackage --log-level=debug
 
 export-vars:
 	@sh ./scripts/export-vars.sh

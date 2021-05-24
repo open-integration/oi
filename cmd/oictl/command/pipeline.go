@@ -52,12 +52,12 @@ type Reaction struct {
 
 // LoadFromPath loads pipeline from filesystem
 func LoadFromPath(location string, log logger.Logger) (*Pipeline, error) {
-	log.Debug("Loading pipeline", "path", location)
+	log.Info("Loading pipeline", "path", location)
 	f, err := ioutil.ReadFile(filepath.Clean(location))
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("File loaded")
+	log.Info("File loaded")
 
 	return UnmarshalPipeline(f)
 }

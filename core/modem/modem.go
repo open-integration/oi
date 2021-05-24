@@ -43,19 +43,19 @@ func New(opt *Options) Modem {
 
 // Init starts the modem and all the services
 func (m *modem) Init() error {
-	m.logger.Debug("Modem initiation started")
+	m.logger.Info("Modem initiation started")
 	for name, s := range m.services {
-		if err := m.initService(name, s, m.logger.New("service", name)); err != nil {
+		if err := m.initService(name, s, m.logger.Fork("service", name)); err != nil {
 			return fmt.Errorf("failed to initiate service: %w", err)
 		}
 	}
-	m.logger.Debug("Modem initiation finished")
+	m.logger.Info("Modem initiation finished")
 	return nil
 }
 
 // Call calls a service with input and returns output
 func (m *modem) Call(ctx context.Context, service string, endpoint string, arguments map[string]interface{}, fd string) ([]byte, error) {
-	log := m.logger.New("service", service, "endpoint", endpoint)
+	log := m.logger.Fork("service", service, "endpoint", endpoint)
 	req := &v1.CallRequest{
 		Endpoint: endpoint,
 		Fd:       fd,
@@ -67,7 +67,7 @@ func (m *modem) Call(ctx context.Context, service string, endpoint string, argum
 	schemas := svc.Schemas()
 	schema, ok := schemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "arguments.json")]
 	if !ok {
-		log.Debug("Serivce endpoint doesnt configure any argument schema")
+		log.Info("Serivce endpoint doesnt configure any argument schema")
 
 	}
 	r, err := json.Marshal(arguments)
@@ -82,17 +82,17 @@ func (m *modem) Call(ctx context.Context, service string, endpoint string, argum
 
 	resp, err := svc.Call(ctx, req)
 	if err != nil {
-		log.Debug("Call return with error", "err", err.Error())
+		log.Info("Call return with error", "err", err.Error())
 		return nil, err
 	}
 	if resp.Status == v1.Status_Error {
-		log.Debug("Call return with error", "err", resp.Error)
+		log.Info("Call return with error", "err", resp.Error)
 		return []byte(resp.Payload), fmt.Errorf(resp.Error)
 	}
 
 	returnSchema, ok := schemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "returns.json")]
 	if !ok {
-		log.Debug("Serivce endpoint doesnt configure any return schema")
+		log.Info("Serivce endpoint doesnt configure any return schema")
 		return []byte(resp.Payload), nil
 	}
 	err = m.isResponsePayloadValid(resp.Payload, returnSchema)
@@ -108,9 +108,9 @@ func (m *modem) Destroy() error {
 	for name, service := range m.services {
 		err := service.Kill()
 		if err != nil {
-			m.logger.Debug("failed to kill service", "service", name)
+			m.logger.Info("failed to kill service", "service", name)
 		}
-		m.logger.Debug("Service stopped", "service", name)
+		m.logger.Info("Service stopped", "service", name)
 	}
 	return nil
 }

@@ -61,9 +61,7 @@ func init() {
 }
 
 func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
-	log := logger.New(&logger.Options{
-		LogToStdOut: rootOptions.verbose,
-	})
+	log := logger.New(logger.Options{})
 
 	if options.project == "" {
 		options.project = options.name
@@ -80,7 +78,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 		}
 		projectLocation = location
 	}
-	log.Debug("Project location", "location", projectLocation)
+	log.Info("Project location", "location", projectLocation)
 
 	// Add hello-world endpoint
 	if len(options.endpoints) == 0 {
@@ -125,7 +123,7 @@ func execrootGenerateService(options rootGenerateServiceCmdOptions) error {
 		Project:   options.name,
 		Types:     options.types,
 	}, log)
-	log.Debug("Starting service generation")
+	log.Info("Starting service generation")
 
 	flows := []flow{}
 
@@ -156,12 +154,12 @@ func buildServiceData(svc *Service, log logger.Logger) map[string]interface{} {
 	{
 		j, err := json.Marshal(svc)
 		if err != nil {
-			log.Error("failed to marshal service", "error", err.Error())
+			log.Info("failed to marshal service", "error", err.Error())
 			return data
 		}
 		err = json.Unmarshal(j, &data)
 		if err != nil {
-			log.Error("failed to unmarshal service", "error", err.Error())
+			log.Info("failed to unmarshal service", "error", err.Error())
 			return data
 		}
 	}

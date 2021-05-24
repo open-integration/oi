@@ -2,6 +2,9 @@ package tasks
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/open-integration/oi/core/task"
@@ -21,8 +24,12 @@ type (
 func (t *ticker) Run(ctx context.Context, options task.RunOptions) ([]byte, error) {
 	ticker := time.NewTicker(t.tickInterval)
 	finish := time.NewTimer(t.totalTime)
-	lgr := logger.New(&logger.Options{
-		FilePath: options.FD.File(),
+	f, err := os.OpenFile(options.FD.File(), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file descriptor %s: %w", options.FD.File(), err)
+	}
+	lgr := logger.New(logger.Options{
+		WriterHandlers: []io.Writer{f},
 	})
 	for {
 		select {
@@ -31,7 +38,7 @@ func (t *ticker) Run(ctx context.Context, options task.RunOptions) ([]byte, erro
 			return nil, nil
 		case <-ticker.C:
 			if err := options.EventReporter.Report("tick", nil); err != nil {
-				lgr.Error("Failed to report event", "event", "tick", "err", err.Error())
+				lgr.Info("Failed to report event", "event", "tick", "err", err.Error())
 			}
 		}
 	}

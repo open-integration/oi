@@ -53,17 +53,15 @@ func init() {
 }
 
 func execrootGeneratePipeline(options *rootGeneratePipelineCmdOptions) error {
-	log := logger.New(&logger.Options{
-		LogToStdOut: rootOptions.verbose,
-	})
-	log.Debug("Generating pipeline", "name", options.name)
+	log := logger.New(logger.Options{})
+	log.Info("Generating pipeline", "name", options.name)
 	services := []PipelineService{}
 	for _, svc := range options.services {
 		name, version, alias, err := splitServiceIntoParts(svc)
 		if err != nil {
 			return fmt.Errorf("failed to read service format: %w", err)
 		}
-		log.Debug("Injecting service", "name", name, "alias", alias, "version", version)
+		log.Info("Injecting service", "name", name, "alias", alias, "version", version)
 		services = append(services, PipelineService{
 			Name:    name,
 			Version: version,
@@ -71,7 +69,7 @@ func execrootGeneratePipeline(options *rootGeneratePipelineCmdOptions) error {
 		})
 	}
 
-	log.Debug("Injecting task when pipeline is starting", "cmd", options.engineStartCommand)
+	log.Info("Injecting task when pipeline is starting", "cmd", options.engineStartCommand)
 	pipeline := &Pipeline{
 		Metadata: Metadata{
 			Name: options.name,

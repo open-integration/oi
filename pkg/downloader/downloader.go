@@ -44,11 +44,11 @@ func (d *downloader) Download(name string, version string) (string, error) {
 	candidateFileName := fmt.Sprintf("%s-%s-%s-%s", name, version, runtime.GOOS, runtime.GOARCH)
 	fullPath := path.Join(d.store, candidateFileName)
 	if fileExists(fullPath) {
-		d.logger.Debug("Skipping download, service exist", "path", fullPath)
+		d.logger.Info("Skipping download, service exist", "path", fullPath)
 		return fullPath, nil
 	}
 
-	d.logger.Debug("Downloading", "name", name, "url", fmt.Sprintf("%s/%s", base, candidateFileName))
+	d.logger.Info("Downloading", "name", name, "url", fmt.Sprintf("%s/%s", base, candidateFileName))
 	resp, err := http.Get(fmt.Sprintf("%s/%s", base, candidateFileName))
 	if err != nil {
 		return "", err
@@ -83,7 +83,7 @@ func (d *downloader) Download(name string, version string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	d.logger.Debug("Downloaded", "name", name, "code", resp.StatusCode)
+	d.logger.Info("Downloaded", "name", name, "code", resp.StatusCode)
 	return fullPath, err
 }
 

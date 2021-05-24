@@ -3,89 +3,91 @@ package logger
 import (
 	"fmt"
 	"io"
-	"os"
 
-	log "github.com/inconshreveable/log15"
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type (
-	// Logger used to log messages
+
+	// Logger to print stuff
 	Logger interface {
-		FD() io.WriteCloser
-		Debug(msg string, ctx ...interface{})
-		Info(msg string, ctx ...interface{})
-		Warn(msg string, ctx ...interface{})
-		Error(msg string, ctx ...interface{})
-		Crit(msg string, ctx ...interface{})
-		New(ctx ...interface{}) Logger
+		Info(msg string, keysAndValues ...interface{})
+		V(level int) Logger
+		Fork(keysAndValues ...interface{}) Logger
+		DF() io.WriteCloser
 	}
 
 	// Options to create new Logger
 	Options struct {
-		LogToStdOut bool
-		FilePath    string
+		WriterHandlers []io.Writer
+		WithCaller     bool
+		WithStacktrace bool
+		JSONFormat     bool
 	}
 
 	logger struct {
-		logger log.Logger
-		fd     io.WriteCloser
+		lgr logr.Logger
+		fd  io.WriteCloser
 	}
 )
 
-// New creates new logger based on logger.Options
-func New(opt *Options) Logger {
-	l := &logger{
-		logger: log.New(),
-		fd:     nil,
-	}
-	handlers := []log.Handler{}
-
-	lvl := log.LvlDebug
-	if opt != nil {
-		if opt.LogToStdOut {
-			stdoutHandler := log.LvlFilterHandler(lvl, log.StdoutHandler)
-			handlers = append(handlers, stdoutHandler)
+// New builds Logger
+func New(options Options) Logger {
+	var zlog *zap.Logger
+	if options.JSONFormat {
+		z, err := zap.NewProduction(zap.AddCallerSkip(1))
+		if err != nil {
+			panic(fmt.Sprintf("who watches the watchmen (%v)?", err))
 		}
-
-		if opt.FilePath != "" {
-			h, err := log.FileHandler(opt.FilePath, log.JsonFormat())
-			if err == nil {
-				handlers = append(handlers, log.LvlFilterHandler(lvl, h))
-			}
-			f, err := os.OpenFile(opt.FilePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-			if err != nil {
-				fmt.Printf("Failed to open file %s, writer is not available\n", opt.FilePath)
-			}
-			l.fd = f
+		zlog = z
+	} else {
+		z, err := zap.NewDevelopment(zap.AddCallerSkip(1))
+		if err != nil {
+			panic(fmt.Sprintf("who watches the watchmen (%v)?", err))
 		}
-	}
+		zlog = z
 
-	l.logger.SetHandler(log.MultiHandler(handlers...))
-	return l
+	}
+	if options.WithCaller {
+		zlog.WithOptions(zap.WithCaller(true))
+	}
+	if options.WithStacktrace {
+		zlog.WithOptions(zap.AddStacktrace(zap.InfoLevel))
+	}
+	for _, writer := range options.WriterHandlers {
+		zlog.WithOptions(zap.Hooks(func(e zapcore.Entry) error {
+			_, err := writer.Write([]byte(e.Message))
+			return err
+		}))
+	}
+	lgr := zapr.NewLogger(zlog)
+	return &logger{
+		lgr: lgr,
+	}
 }
 
 func (l *logger) FD() io.WriteCloser {
 	return l.fd
 }
 
-func (l *logger) New(ctx ...interface{}) Logger {
+func (l *logger) Fork(keysAndValues ...interface{}) Logger {
 	return &logger{
-		logger: l.logger.New(ctx...),
-		fd:     l.FD(),
+		lgr: l.lgr.WithValues(keysAndValues...),
+		fd:  l.FD(),
 	}
 }
-func (l *logger) Debug(msg string, ctx ...interface{}) {
-	l.logger.Debug(msg, ctx...)
-}
 func (l *logger) Info(msg string, ctx ...interface{}) {
-	l.logger.Info(msg, ctx...)
+	l.lgr.Info(msg, ctx...)
 }
-func (l *logger) Warn(msg string, ctx ...interface{}) {
-	l.logger.Warn(msg, ctx...)
+func (l *logger) V(level int) Logger {
+	return &logger{
+		lgr: l.lgr.V(level),
+		fd:  l.FD(),
+	}
 }
-func (l *logger) Error(msg string, ctx ...interface{}) {
-	l.logger.Error(msg, ctx...)
-}
-func (l *logger) Crit(msg string, ctx ...interface{}) {
-	l.logger.Crit(msg, ctx...)
+func (l *logger) DF() io.WriteCloser {
+	return l.fd
 }

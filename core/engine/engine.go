@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -106,9 +107,13 @@ func New(opt *Options) (Engine, error) {
 	// create logger
 	{
 		if opt.Logger == nil {
-			loggerOptions := &logger.Options{
-				FilePath:    path.Join(opt.LogsDirectory, "logs", "log.log"),
-				LogToStdOut: true,
+			logFilePath := path.Join(opt.LogsDirectory, "logs", "log.log")
+			f, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+			if err != nil {
+				return nil, fmt.Errorf("failed to open file descriptor %s: %w", logFilePath, err)
+			}
+			loggerOptions := logger.Options{
+				WriterHandlers: []io.Writer{f},
 			}
 			log = logger.New(loggerOptions)
 		} else {
@@ -119,7 +124,7 @@ func New(opt *Options) (Engine, error) {
 	if opt.serviceDownloader == nil {
 		opt.serviceDownloader = downloader.New(downloader.Options{
 			Store:  servicesDir,
-			Logger: log.New("module", "service-downloader"),
+			Logger: log.Fork("module", "service-downloader"),
 		})
 	}
 
@@ -129,7 +134,7 @@ func New(opt *Options) (Engine, error) {
 	}
 
 	s := state.New(&state.Options{
-		Logger:             log.New("module", "state-store"),
+		Logger:             log.Fork("module", "state-store"),
 		EventChan:          eventChannel,
 		CommandsChan:       make(chan string, 1),
 		Name:               opt.Pipeline.Metadata.Name,
@@ -150,7 +155,7 @@ func New(opt *Options) (Engine, error) {
 		taskLogsDirctory:   tasksLogDir,
 		eventChan:          eventChannel,
 		stateUpdateRequest: stateUpdateChannel,
-		logger:             log.New("module", "engine"),
+		logger:             log.Fork("module", "engine"),
 		modem:              m,
 	}, nil
 }
@@ -158,13 +163,13 @@ func New(opt *Options) (Engine, error) {
 // Run starts the pipeline execution
 func (e *engine) Run() error {
 	var err error
-	e.logger.Debug("Starting...", "pipeline", e.pipeline.Metadata.Name)
+	e.logger.Info("Starting...", "pipeline", e.pipeline.Metadata.Name)
 	err = e.modem.Init()
 	if err != nil {
 		return err
 	}
 	defer func() {
-		e.logger.Debug("killing all services")
+		e.logger.Info("killing all services")
 		if cerr := e.modem.Destroy(); cerr != nil {
 			err = cerr
 		}
@@ -215,18 +220,18 @@ func (e *engine) handleStateEvents() {
 func (e *engine) handleTaskEvents(lgr logger.Logger, ch <-chan event.Event) {
 	for {
 		ev := <-ch
-		lgr.Debug("Got event from task", "name", ev.Metadata.Name)
+		lgr.Info("Got event from task", "name", ev.Metadata.Name)
 		go e.electNextTasks(ev)
 	}
 }
 
 // electNextTasks - running all reactions on the event and sending request to elect matched tasks
 func (e *engine) electNextTasks(ev event.Event) {
-	log := e.logger.New("event", ev.Metadata.Name)
-	log.Debug("Received event, electing next tasks")
+	log := e.logger.Fork("event", ev.Metadata.Name)
+	log.Info("Received event, electing next tasks")
 	stateCpy, err := e.statev1.Copy()
 	if err != nil {
-		e.logger.Error("failed to copy state")
+		e.logger.Info("failed to copy state")
 		return
 	}
 	tasksCandidates := map[string]task.Task{}
@@ -242,12 +247,12 @@ func (e *engine) electNextTasks(ev event.Event) {
 	for _, t := range tasksCandidates {
 		_, exist := stateCpy.Tasks()[t.Name()]
 		if !exist {
-			e.logger.Debug("Adding task to elected set", "task", t.Name())
+			e.logger.Info("Adding task to elected set", "task", t.Name())
 			tasksToElect = append(tasksToElect, t)
 		}
 	}
 	if len(tasksToElect) > 0 {
-		e.logger.Debug("Electing tasks", "total", len(tasksToElect))
+		e.logger.Info("Electing tasks", "total", len(tasksToElect))
 		ids := []string{}
 		for _, t := range tasksToElect {
 			ids = append(ids, t.Name())
@@ -270,10 +275,10 @@ func (e *engine) electNextTasks(ev event.Event) {
 
 // executeElectedTasks - execute all elected tasks in parallel
 func (e *engine) executeElectedTasks(ev event.Event) {
-	log := e.logger.New("event", ev.Metadata.Name)
+	log := e.logger.Fork("event", ev.Metadata.Name)
 	stateCpy, err := e.statev1.Copy()
 	if err != nil {
-		e.logger.Error("failed to copy state")
+		e.logger.Info("failed to copy state")
 		return
 	}
 	elected := []task.Task{}
@@ -285,8 +290,8 @@ func (e *engine) executeElectedTasks(ev event.Event) {
 	wg := &sync.WaitGroup{}
 	for _, t := range elected {
 		wg.Add(1)
-		log.Debug("Running task", "task", t.Name())
-		go e.runTask(t, ev, log.New("task", t.Name()))
+		log.Info("Running task", "task", t.Name())
+		go e.runTask(t, ev, log.Fork("task", t.Name()))
 		wg.Done()
 	}
 	wg.Wait()
@@ -315,18 +320,18 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 
 	_, err := utils.CreateLogFile(e.taskLogsDirctory, fileName)
 	if err != nil {
-		lgr.Error("failed to create log file for task")
+		lgr.Info("failed to create log file for task")
 		return
 	}
 
 	fd, err := filedescriptor.New(fileDescriptor)
 	if err != nil {
-		lgr.Error("failed to create filedescriptor")
+		lgr.Info("failed to create filedescriptor")
 		return
 	}
 
 	eventChan := make(chan event.Event)
-	go e.handleTaskEvents(e.logger.New("module", "task-event-handler"), eventChan)
+	go e.handleTaskEvents(e.logger.Fork("module", "task-event-handler"), eventChan)
 	payload, err := t.Run(context.Background(), task.RunOptions{
 		FD: fd,
 		EventReporter: reporter.New(reporter.Options{
@@ -368,7 +373,7 @@ func (e *engine) waitForFinish() {
 		}
 	}
 
-	e.logger.Debug("All tasks seems to be finished, sending finish command")
+	e.logger.Info("All tasks seems to be finished, sending finish command")
 	e.wg.Add(1)
 	e.stateUpdateRequest <- state.UpdateRequest{
 		Metadata: state.UpdateRequestMetadata{
@@ -388,7 +393,7 @@ func (e *engine) printStateStore() error {
 	}
 	err = ioutil.WriteFile(path.Join(e.stateDir, "state.yaml"), statebytes, os.ModePerm)
 	if err != nil {
-		e.logger.Error("failed to store state to file")
+		e.logger.Info("failed to store state to file")
 		return err
 	}
 
@@ -398,7 +403,7 @@ func (e *engine) printStateStore() error {
 	}
 	err = ioutil.WriteFile(path.Join(e.stateDir, "events.yaml"), eventbytes, os.ModePerm)
 	if err != nil {
-		e.logger.Error("failed to store state to file")
+		e.logger.Info("failed to store state to file")
 		return err
 	}
 	return nil
@@ -408,11 +413,11 @@ func (e *engine) printGraph() {
 	s, _ := e.statev1.Copy()
 	g, err := e.graphBuilder.Build(s)
 	if err != nil {
-		e.logger.Error("failed to build graph", "err", err.Error())
+		e.logger.Info("failed to build graph", "err", err.Error())
 		return
 	}
 	if err := ioutil.WriteFile(path.Join(e.stateDir, "graph.dot"), g, os.ModePerm); err != nil {
-		e.logger.Error("failed to write graph to file", "err", err.Error())
+		e.logger.Info("failed to write graph to file", "err", err.Error())
 	}
 
 }
@@ -420,7 +425,7 @@ func (e *engine) printGraph() {
 func (e *engine) concludeStatus(err error) string {
 	status := state.TaskStatusSuccess
 	if err != nil {
-		e.logger.Error("Task exited with error", "err", err.Error())
+		e.logger.Info("Task exited with error", "err", err.Error())
 		status = state.TaskStatusFailed
 	}
 	return status
@@ -435,7 +440,7 @@ func createModem(opt *Options, log logger.Logger, servicesLogDir string) (modem.
 		return opt.modem, nil
 	}
 	serviceModem := modem.New(&modem.Options{
-		Logger: log.New("module", "modem"),
+		Logger: log.Fork("module", "modem"),
 	})
 	for _, s := range opt.Pipeline.Spec.Services {
 		svcID := utils.GenerateID()
@@ -448,10 +453,10 @@ func createModem(opt *Options, log logger.Logger, servicesLogDir string) (modem.
 				}
 				finalLocation = location
 			}
-			log.Debug("Adding service", "path", finalLocation)
+			log.Info("Adding service", "path", finalLocation)
 			if err := serviceModem.AddService(s.As, runner.New(&runner.Options{
 				Type:                 runner.Local,
-				Logger:               log.New("service-service", s.Name),
+				Logger:               log.Fork("service-service", s.Name),
 				Name:                 s.Name,
 				ID:                   svcID,
 				Dailer:               &utils.GRPC{},
@@ -465,10 +470,10 @@ func createModem(opt *Options, log logger.Logger, servicesLogDir string) (modem.
 				return nil, fmt.Errorf("failed to add service %s to modem: %w", s.Name, err)
 			}
 		} else {
-			log.Debug("Adding service")
+			log.Info("Adding service")
 			runnerOpt := &runner.Options{
 				Type:                      runner.Kubernetes,
-				Logger:                    log.New("service-service", s.Name),
+				Logger:                    log.Fork("service-service", s.Name),
 				Name:                      s.Name,
 				ID:                        svcID,
 				Version:                   s.Version,

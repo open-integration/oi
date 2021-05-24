@@ -36,7 +36,6 @@ func NewEngine(opt *EngineOptions) engine.Engine {
 	})
 	dieOnError(err)
 	return e
-
 }
 
 func dieOnError(err error) {

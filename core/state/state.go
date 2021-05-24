@@ -114,22 +114,22 @@ func (s *state) StartProcess() {
 			s.copyChan <- s.copy()
 		case updateRequest := <-s.stateUpdateRequest:
 			if updateRequest.AddRealtedTaskToEventReuqest != nil {
-				s.logger.Debug("Updating state", "request", "AddRealtedTaskToEventReuqest")
+				s.logger.Info("Updating state", "request", "AddRealtedTaskToEventReuqest")
 				s.addRealtedTaskToEventReuqest(updateRequest.AddRealtedTaskToEventReuqest)
 			}
 
 			if updateRequest.ElectTasksRequest != nil {
-				s.logger.Debug("Updating state", "request", "ElectTasksRequest")
+				s.logger.Info("Updating state", "request", "ElectTasksRequest")
 				s.electTasksRequest(updateRequest.ElectTasksRequest)
 			}
 
 			if updateRequest.UpdateStateMetadataRequest != nil {
-				s.logger.Debug("Updating state", "request", "UpdateStateMetadataRequest")
+				s.logger.Info("Updating state", "request", "UpdateStateMetadataRequest")
 				s.updateStateMetadataRequest(updateRequest.UpdateStateMetadataRequest)
 			}
 
 			if updateRequest.UpdateTaskStateRequest != nil {
-				s.logger.Debug("Updating state", "request", "UpdateTaskStateRequest")
+				s.logger.Info("Updating state", "request", "UpdateTaskStateRequest")
 				s.updateTaskStateRequest(updateRequest.UpdateTaskStateRequest)
 			}
 			s.wg.Done()
@@ -197,10 +197,10 @@ func (s *state) updateTaskStateRequest(req *UpdateTaskStateRequest) {
 	}
 	t := s.tasks[task.Name()]
 	if err := mergo.MergeWithOverwrite(newstate, t); err != nil {
-		s.logger.Error("Failed to merge current task state into new task state", "err", err.Error())
+		s.logger.Info("Failed to merge current task state into new task state", "err", err.Error())
 	}
 	if err := mergo.MergeWithOverwrite(newstate, req.State); err != nil {
-		s.logger.Error("Failed to merge given task state into new task state", "err", err.Error())
+		s.logger.Info("Failed to merge given task state into new task state", "err", err.Error())
 	}
 	s.tasks[task.Name()] = *newstate
 	s.events = append(s.events, *ev)

@@ -250,9 +250,8 @@ func createFakeLogger() *logger.MockLogger {
 }
 
 func extendLoggerMockWithBasicMocks(m *logger.MockLogger) logger.Logger {
-	m.On("Debug", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	m.On("Error", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	m.On("New", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(m)
+	m.On("Info", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	m.On("Fork", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(m)
 	return m
 }
 

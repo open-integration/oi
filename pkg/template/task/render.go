@@ -32,9 +32,9 @@ type (
 
 // Run RenderTask
 func (r *RenderTask) Run() error {
-	r.Logger.Debug("Starting task", "name", r.Name)
+	r.Logger.Info("Starting task", "name", r.Name)
 
-	r.Logger.Debug("Ensuring all ids exists in box")
+	r.Logger.Info("Ensuring all ids exists in box")
 	templates := map[string]string{}
 	for name, tmpl := range r.IDs {
 		filename, err := r.render(name, r.Data)
@@ -57,7 +57,7 @@ func (r *RenderTask) Run() error {
 		}
 		precmds = append(precmds, res.String())
 	}
-	if err := r.execCommands(precmds, r.Logger.New("state", "pre-commands")); err != nil {
+	if err := r.execCommands(precmds, r.Logger.Fork("state", "pre-commands")); err != nil {
 		return err
 	}
 
@@ -70,7 +70,7 @@ func (r *RenderTask) Run() error {
 	if err != nil {
 		return err
 	}
-	lgr := r.Logger.New("state", "post-commands")
+	lgr := r.Logger.Fork("state", "post-commands")
 	err = r.execCommands(postcmds, lgr)
 	if err != nil {
 		return err
@@ -94,35 +94,35 @@ func (r *RenderTask) render(tmpl string, data interface{}) (*bytes.Buffer, error
 }
 
 func (r *RenderTask) write(location string, content *bytes.Buffer) error {
-	r.Logger.Debug("Creating file", "location", location)
+	r.Logger.Info("Creating file", "location", location)
 	f, err := os.Create(location)
 	if err != nil {
 		return err
 	}
-	r.Logger.Debug("File created")
+	r.Logger.Info("File created")
 
 	_, err = fmt.Fprintln(f, content)
 	if err != nil {
 		return err
 	}
-	r.Logger.Debug("File saved")
+	r.Logger.Info("File saved")
 	return nil
 }
 
 func (r *RenderTask) ensureDirectory(dir string) {
-	r.Logger.Debug("Ensuring target directory exist", "directory", dir)
+	r.Logger.Info("Ensuring target directory exist", "directory", dir)
 	if !(isFileExist(dir)) && dir != "" {
 		err := os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
-			r.Logger.Error("Failed to create directory", "directory", dir)
+			r.Logger.Info("Failed to create directory", "directory", dir, "error", err.Error())
 		}
-		r.Logger.Debug("Directory created", "directory", dir)
+		r.Logger.Info("Directory created", "directory", dir)
 	}
 }
 
 func (r *RenderTask) execCommands(commands []string, logger logger.Logger) error {
 	for _, cmd := range commands {
-		logger.Debug("Running command", "cmd", cmd)
+		logger.Info("Running command", "cmd", cmd)
 		if err := r.runCommand(cmd); err != nil {
 			return err
 		}
@@ -147,12 +147,12 @@ func (r *RenderTask) writeTemplates(templates map[string]string) error {
 		shouldWrite := false
 		filePath := path.Join(r.Directory, name)
 		fileExist := isFileExist(filePath)
-		r.Logger.Debug("Starting renderring templates", "name", name, "path", filePath)
+		r.Logger.Info("Starting renderring templates", "name", name, "path", filePath)
 		if !fileExist {
 			shouldWrite = true
-			r.Logger.Debug("File not exist", "file", filePath)
+			r.Logger.Info("File not exist", "file", filePath)
 		} else if fileExist && r.Overwrite {
-			r.Logger.Debug("File not exist, overwriting", "file", filePath)
+			r.Logger.Info("File not exist, overwriting", "file", filePath)
 			shouldWrite = true
 		}
 

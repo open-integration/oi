@@ -66,7 +66,7 @@ func (_k *kubernetesService) Run() error {
 	}
 	_k.kubeclient = client
 
-	_k.Logger.Debug("Starting Kuberentes runner service-less")
+	_k.Logger.Info("Starting Kuberentes runner service-less")
 	if err := _k.startService(); err != nil {
 		return err
 	}
@@ -89,11 +89,11 @@ func (_k *kubernetesService) Run() error {
 func (_k *kubernetesService) Kill() error {
 	name := fmt.Sprintf("%s-%s", _k.name, _k.id)
 	if err := _k.kube.KillService(_k.kubeclient, _k.kubeconfigNamespace, name); err != nil {
-		_k.Logger.Warn("Failed to delete kubernetes service", "service", name, "error", err.Error())
+		_k.Logger.Info("Failed to delete kubernetes service", "service", name, "error", err.Error())
 	}
 
 	if err := _k.kube.KillPod(_k.kubeclient, _k.kubeconfigNamespace, name); err != nil {
-		_k.Logger.Warn("Failed to delete kubernetes pod", "pod", name, "error", err.Error())
+		_k.Logger.Info("Failed to delete kubernetes pod", "pod", name, "error", err.Error())
 	}
 
 	return nil
@@ -127,7 +127,7 @@ func (_k *kubernetesService) startService() error {
 	if err != nil {
 		return err
 	}
-	_k.Logger.Debug("Kubernetes Service created", "name", createdSvc.ObjectMeta.Name)
+	_k.Logger.Info("Kubernetes Service created", "name", createdSvc.ObjectMeta.Name)
 	return nil
 }
 
@@ -141,16 +141,16 @@ func (_k *kubernetesService) startPod() error {
 	if err != nil {
 		return err
 	}
-	_k.Logger.Debug("Pod created", "name", createdPod.ObjectMeta.Name)
+	_k.Logger.Info("Pod created", "name", createdPod.ObjectMeta.Name)
 
 	if err := _k.kube.WaitForPod(_k.kubeclient, createdPod, "Running"); err != nil {
 		return err
 	}
-	_k.Logger.Debug("Pod is ready", "name", createdPod.ObjectMeta.Name)
+	_k.Logger.Info("Pod is ready", "name", createdPod.ObjectMeta.Name)
 
 	// the target port is the default that the pod was started with
 	if _k.grpcDialViaPodIP {
-		_k.Logger.Debug("Updating dial options", "name", createdPod.ObjectMeta.Name, "port", _k.port, "hostname", _k.name)
+		_k.Logger.Info("Updating dial options", "name", createdPod.ObjectMeta.Name, "port", _k.port, "hostname", _k.name)
 		_k.hostname = fmt.Sprintf("%s-%s", _k.name, _k.id)
 	}
 	return nil
@@ -158,19 +158,19 @@ func (_k *kubernetesService) startPod() error {
 
 func (_k *kubernetesService) dail() error {
 	url := fmt.Sprintf("%s:%s", _k.hostname, _k.port)
-	_k.Logger.Debug("Dial to service", "URL", url)
+	_k.Logger.Info("Dial to service", "URL", url)
 	conn, err := _k.dialer.Dial(url, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
 	_k.connection = conn
 	_k.client = _k.serviceClientCreator.New(conn)
-	_k.Logger.Debug("Connection established")
+	_k.Logger.Info("Connection established")
 	return nil
 }
 
 func (_k *kubernetesService) init() error {
-	_k.Logger.Debug("Calling service init endpoint one time")
+	_k.Logger.Info("Calling service init endpoint one time")
 	resp, err := _k.client.Init(context.Background(), &v1.InitRequest{})
 	if err != nil {
 		return err

@@ -42,7 +42,7 @@ type (
 )
 
 func (_l *localService) Run() error {
-	_l.Logger.Debug("Initializing service")
+	_l.Logger.Info("Initializing service")
 	if err := _l.generatePort(); err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (_l *localService) Run() error {
 }
 
 func (_l *localService) Kill() error {
-	_l.Logger.Debug("Killing service")
+	_l.Logger.Info("Killing service")
 
 	if err := _l.connection.Close(); err != nil {
 		return err
@@ -131,7 +131,7 @@ func (_l *localService) dail() error {
 	}
 	_l.connection = conn
 	_l.client = _l.serviceClientCreator.New(conn)
-	_l.Logger.Debug("Connection established")
+	_l.Logger.Info("Connection established")
 	return nil
 }
 

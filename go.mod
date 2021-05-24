@@ -13,6 +13,8 @@ require (
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/docker/libkv v0.2.1 // indirect
 	github.com/frankban/quicktest v1.10.0 // indirect
+	github.com/go-logr/logr v0.4.0
+	github.com/go-logr/zapr v0.4.0
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v35 v35.2.0
@@ -26,7 +28,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/hashicorp/vault/api v1.0.4 // indirect
 	github.com/imdario/mergo v0.3.12
-	github.com/inconshreveable/log15 v0.0.0-20180818164646-67afb5ed74ec
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pierrec/lz4 v2.3.0+incompatible // indirect
@@ -39,6 +40,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/zealic/xignore v0.3.3 // indirect
+	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/grpc v1.38.0
