@@ -16,7 +16,7 @@ require (
 	github.com/frankban/quicktest v1.10.0 // indirect
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-github/v35 v35.2.0
+	github.com/google/go-github/v35 v35.3.0
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hairyhenderson/gomplate v3.5.0+incompatible
