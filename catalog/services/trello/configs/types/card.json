@@ -1,0 +1,240 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "Card": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "idShort": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pos": {
+                    "type": "number"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "shortLink": {
+                    "type": "string"
+                },
+                "shortUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "qt-uri-protocols": [
+                        "https"
+                    ]
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "qt-uri-protocols": [
+                        "https"
+                    ]
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "due": {
+                  "anyOf": [
+                      { "type": "string" },
+                      { "type": "null" }
+                    ]
+                },
+                "dueComplete": {
+                    "type": "boolean"
+                },
+                "closed": {
+                    "type": "boolean"
+                },
+                "subscribed": {
+                    "type": "boolean"
+                },
+                "dateLastActivity": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "Board": {
+                    "type": "null"
+                },
+                "idBoard": {
+                    "type": "string"
+                },
+                "List": {
+                    "$ref": "#/definitions/List"
+                },
+                "idList": {
+                    "type": "string"
+                },
+                "badges": {
+                    "$ref": "#/definitions/Badges"
+                },
+                "idCheckLists": {
+                    "type": "array",
+                    "items": {}
+                },
+                "idAttachmentCover": {
+                    "type": "string"
+                },
+                "manualCoverAttachment": {
+                    "type": "boolean"
+                },
+                "idLabels": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        { "type": "null" }
+                    ]
+                },
+                "labels": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Label"
+                            }
+                        },
+                        { "type": "null" }
+                    ]
+                }
+            },
+            "required": [
+                "Board",
+                "List",
+                "badges",
+                "closed",
+                "dateLastActivity",
+                "desc",
+                "due",
+                "dueComplete",
+                "email",
+                "id",
+                "idAttachmentCover",
+                "idBoard",
+                "idCheckLists",
+                "idList",
+                "idShort",
+                "manualCoverAttachment",
+                "name",
+                "pos",
+                "shortLink",
+                "shortUrl",
+                "subscribed",
+                "url"
+            ],
+            "title": "Card"
+        },
+        "List": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "idBoard": {
+                    "type": "string"
+                },
+                "closed": {
+                    "type": "boolean"
+                },
+                "pos": {
+                    "type": "number"
+                },
+                "subscribed": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "closed",
+                "id",
+                "idBoard",
+                "name",
+                "pos",
+                "subscribed"
+            ],
+            "title": "List"
+        },
+        "Badges": {
+            "type": "object",
+            "properties": {
+                "votes": {
+                    "type": "number"
+                },
+                "viewingMemberVoted": {
+                    "type": "boolean"
+                },
+                "subscribed": {
+                    "type": "boolean"
+                },
+                "checkItems": {
+                    "type": "number"
+                },
+                "checkItemsChecked": {
+                    "type": "number"
+                },
+                "comments": {
+                    "type": "number"
+                },
+                "attachments": {
+                    "type": "number"
+                },
+                "description": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "attachments",
+                "checkItems",
+                "checkItemsChecked",
+                "comments",
+                "description",
+                "subscribed",
+                "viewingMemberVoted",
+                "votes"
+            ],
+            "title": "Badges"
+        },
+        "Label": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "idBoard": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "uses": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "color",
+                "id",
+                "idBoard",
+                "name",
+                "uses"
+            ],
+            "title": "Label"
+        }
+    }
+  }
+  

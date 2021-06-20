@@ -5,17 +5,18 @@ import (
 	"encoding/json"
 
 	"github.com/adlio/trello"
+	"github.com/open-integration/oi/catalog/services/trello/types"
 	api "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
 	"github.com/open-integration/oi/pkg/service"
 )
 
 func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *api.CallRequest) (*api.CallResponse, error) {
-	args := &GetcardsArguments{}
+	args := &types.GetCardsArguments{}
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {
 		return service.BuildErrorResponse(err)
 	}
-	client := trello.NewClient(args.App, args.Token)
+	client := trello.NewClient(args.Auth.App, args.Auth.Token)
 	board, err := client.GetBoard(args.Board, trello.Defaults())
 	if err != nil {
 		return service.BuildErrorResponse(err)
@@ -43,7 +44,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}
-	res, err := UnmarshalGetcardsReturns(j)
+	res, err := types.UnmarshalGetCardsReturns(j)
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}

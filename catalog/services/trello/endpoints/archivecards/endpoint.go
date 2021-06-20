@@ -4,17 +4,18 @@ import (
 	"context"
 
 	"github.com/adlio/trello"
+	"github.com/open-integration/oi/catalog/services/trello/types"
 	api "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
 	"github.com/open-integration/oi/pkg/service"
 )
 
 func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *api.CallRequest) (*api.CallResponse, error) {
-	args := &ArchivecardsArguments{}
+	args := &types.ArchiveCardArguments{}
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {
 		return service.BuildErrorResponse(err)
 	}
-	client := trello.NewClient(args.App, args.Token)
+	client := trello.NewClient(args.Auth.App, args.Auth.Token)
 
 	for _, id := range args.CardIDs {
 		if id == "" {
@@ -34,5 +35,5 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 		}
 		lgr.Debug("Card archived", "Card", card.ID)
 	}
-	return service.BuildSuccessfullResponse(&ArchivecardsReturns{})
+	return service.BuildSuccessfullResponse(&types.ArchiveCardReturns{})
 }
