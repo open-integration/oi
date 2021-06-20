@@ -1,55 +1,19 @@
 {
-    "$id": "https://example.com/person.schema.json",
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Get Airtable records from table",
+    "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "definitions": {
-      "Record": {
-        "required": ["fields"],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "fields": {
-            "type": "object"
-          },
-          "createdTime": {
-            "type": "string"
-          },
-          "deleted": {
-            "type": "boolean"
-          },
-          "typecast": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object"
-      }
-    },
+    "title": "add records arguments",
     "properties": {
-      "APIKey": {
-        "type": "string",
-        "description": "Airtable API key"
-      },
-      "DatabaseID": {
-        "type": "string",
-        "description": "Database ID"
-      },
-      "TableName": {
-        "type": "string",
-        "description": "Table name"
+      "Auth": {
+        "$ref": "../../types/auth.json#/definitions/Auth"
       },
       "Records": {
         "type": "array",
         "items": {
-          "$ref": "#/definitions/Record"
+          "$ref": "../../types/record.json#/definitions/Record"
         }
       }
     },
     "required": [
-        "APIKey",
-        "DatabaseID",
-        "TableName"
+        "Auth"
     ]
   }

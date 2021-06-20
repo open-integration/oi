@@ -1,34 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "definitions": {
-    "Record": {
-      "required": ["fields"],
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "fields": {
-          "type": "object"
-        },
-        "createdTime": {
-          "type": "string"
-        },
-        "deleted": {
-          "type": "boolean"
-        },
-        "typecast": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    }
-  },
+  "type": "object",
+  "title": "get records returns",
   "properties": {
     "Records": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Record"
+        "$ref": "../../types/record.json#/definitions/Record"
       }
     }
   }

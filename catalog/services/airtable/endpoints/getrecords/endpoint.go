@@ -4,6 +4,7 @@ import (
 	"context"
 
 	at "github.com/mehanizm/airtable"
+	"github.com/open-integration/oi/catalog/services/airtable/types"
 	"github.com/open-integration/oi/catalog/shared/airtable"
 	api "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
@@ -11,23 +12,23 @@ import (
 )
 
 func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *api.CallRequest) (*api.CallResponse, error) {
-	args := &GetRecordsArguments{}
+	args := &types.GetRecordsArguments{}
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {
 		return service.BuildErrorResponse(err)
 	}
 
-	table := airtable.GetTable(args.APIKey, args.DatabaseID, args.TableName)
+	table := airtable.GetTable(args.Auth.APIKey, args.Auth.DatabaseID, args.Auth.TableName)
 
 	records, err := getRecords(table, lgr, args.Formula)
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}
 
-	return service.BuildSuccessfullResponse(GetRecordsReturnsClass{records})
+	return service.BuildSuccessfullResponse(types.GetRecordsReturns{records})
 }
 
-func getRecords(table *at.Table, lgr logger.Logger, formula *string) ([]Record, error) {
-	res := []Record{}
+func getRecords(table *at.Table, lgr logger.Logger, formula *string) ([]types.Record, error) {
+	res := []types.Record{}
 	request := table.GetRecords()
 	if formula != nil {
 		request.WithFilterFormula(*formula)
@@ -37,7 +38,7 @@ func getRecords(table *at.Table, lgr logger.Logger, formula *string) ([]Record, 
 		return nil, err
 	}
 	for _, r := range response.Records {
-		res = append(res, Record{
+		res = append(res, types.Record{
 			Fields:      r.Fields,
 			CreatedTime: &r.CreatedTime,
 			Deleted:     &r.Deleted,
@@ -58,7 +59,7 @@ func getRecords(table *at.Table, lgr logger.Logger, formula *string) ([]Record, 
 		}
 		lastOffset = resp.Offset
 		for _, r := range resp.Records {
-			res = append(res, Record{
+			res = append(res, types.Record{
 				Fields:      r.Fields,
 				CreatedTime: &r.CreatedTime,
 				Deleted:     &r.Deleted,

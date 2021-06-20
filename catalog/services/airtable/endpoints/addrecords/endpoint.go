@@ -4,6 +4,7 @@ import (
 	"context"
 
 	at "github.com/mehanizm/airtable"
+	"github.com/open-integration/oi/catalog/services/airtable/types"
 	"github.com/open-integration/oi/catalog/shared/airtable"
 	api "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
@@ -11,7 +12,7 @@ import (
 )
 
 func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *api.CallRequest) (*api.CallResponse, error) {
-	args := &AddRecordsArguments{}
+	args := &types.AddRecordsArguments{}
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {
 		return service.BuildErrorResponse(err)
 	}
@@ -26,7 +27,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 		})
 	}
 	chunks := chunkSlice(records, 10)
-	table := airtable.GetTable(args.APIKey, args.DatabaseID, args.TableName)
+	table := airtable.GetTable(args.Auth.APIKey, args.Auth.DatabaseID, args.Auth.TableName)
 	lgr.Info("Adding records", "total", len(records), "chunks", len(chunks))
 	for _, c := range chunks {
 		if _, err := table.AddRecords(&at.Records{
@@ -35,7 +36,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 			return service.BuildErrorResponse(err)
 		}
 	}
-	return service.BuildSuccessfullResponse(AddRecordsReturns{})
+	return service.BuildSuccessfullResponse(types.AddRecordsReturns{})
 }
 
 func chunkSlice(slice []*at.Record, chunkSize int) [][]*at.Record {
