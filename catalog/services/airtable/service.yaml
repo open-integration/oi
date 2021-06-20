@@ -1,0 +1,9 @@
+name: airtable
+version: 0.0.1
+endpoints:
+- name: getrecords
+  arguments: ./configs/endpoints/getrecords/arguments.json
+  returns: ./configs/endpoints/getrecords/returns.json
+- name: addrecords 
+  arguments: ./configs/endpoints/addrecords/arguments.json
+  returns: ./configs/endpoints/addrecords/returns.json

@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "title": "get records arguments",
+    "properties": {
+      "Auth": {
+        "$ref": "../../types/auth.json#/definitions/Auth"
+      },
+      "Formula": {
+        "type": "string",
+        "description": "Formula"
+      }
+    },
+    "required": [
+      "Auth"
+    ]
+  }

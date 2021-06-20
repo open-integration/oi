@@ -43,6 +43,24 @@ builds:
       - linux
       - darwin
 
+  - id: catalog/trello
+    env:
+      - CGO_ENABLED=0
+    dir: cmd/catalog/trello
+    binary: trello-{{ .Env.TRELLO_SERVICE_VERSION }}
+    goos:
+      - linux
+      - darwin
+
+  - id: catalog/airtable
+    env:
+      - CGO_ENABLED=0
+    dir: cmd/catalog/airtable
+    binary: airtable-{{ .Env.AIRTABLE_SERVICE_VERSION }}
+    goos:
+      - linux
+      - darwin
+
 
 dockers:
   - ids:

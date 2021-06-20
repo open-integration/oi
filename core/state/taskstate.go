@@ -13,7 +13,7 @@ type (
 		Status string    `yaml:"status"`
 		Task   task.Task `yaml:"task"`
 		Times  TaskTimes `yaml:"times"`
-		Output []byte    `yaml:"output"`
+		Output string    `yaml:"output"`
 		Error  error     `yaml:"error"`
 		Logger string    `yaml:"logger"`
 	}

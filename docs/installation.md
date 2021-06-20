@@ -1,6 +1,6 @@
 # Installation
 
-To start using Open Integration we reccomend to use oictl to create and manage your pipelines.
+To start using Open Integration we recommend to use oictl to create and manage your pipelines.
 
 ## Download
 

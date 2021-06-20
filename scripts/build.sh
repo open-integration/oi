@@ -3,7 +3,7 @@
 
 set -e
 
-SERVICES="http github slack"
+SERVICES="http github slack trello airtable"
 for s in $SERVICES
 do  
     V=$(yq e '.version' catalog/services/$s/service.yaml)
