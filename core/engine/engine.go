@@ -348,7 +348,7 @@ func (e *engine) runTask(t task.Task, ev event.Event, lgr logger.Logger) {
 				Status: e.concludeStatus(err),
 				Task:   t,
 				Times:  times,
-				Output: payload,
+				Output: string(payload),
 				Error:  err,
 				Logger: fileDescriptor,
 			},
