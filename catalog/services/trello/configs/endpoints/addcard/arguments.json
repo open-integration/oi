@@ -1,0 +1,52 @@
+{
+    "$id": "https://example.com/person.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Trello GetCards Task Arguments Schema",
+    "type": "object",
+    "properties": {
+      "App": {
+        "type": "string",
+        "description": "Trello Application ID",
+        "minLength": 1
+      },
+      "Token": {
+        "type": "string",
+        "description": "Trello token",
+        "minLength": 1
+      },
+      "Board": {
+        "description": "Trello board ID",
+        "type": "string",
+        "minLength": 1
+      },
+      "List": {
+        "description": "Trello list ID",
+        "type": "string",
+        "minLength": 1
+      },
+      "Name": {
+        "description": "Trello card name",
+        "type": "string",
+        "minLength": 1
+      },
+      "Description": {
+        "description": "Trello description to set on card",
+        "type": "string",
+        "minLength": 1
+      },
+      "Labels": {
+        "description": "Trello labels to apply on card",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+        "App",
+        "Token",
+        "Board",
+        "List",
+        "Name"
+    ]
+  }
