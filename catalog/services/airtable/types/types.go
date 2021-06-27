@@ -27,8 +27,6 @@ func (r *AddRecordsArguments) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type AddRecordsReturns map[string]interface{}
-
 func UnmarshalAddRecordsReturns(data []byte) (AddRecordsReturns, error) {
 	var r AddRecordsReturns
 	err := json.Unmarshal(data, &r)
@@ -76,6 +74,10 @@ type Record struct {
 	Fields      map[string]interface{} `json:"fields"`
 	ID          *string                `json:"id,omitempty"`
 	Typecast    *bool                  `json:"typecast,omitempty"`
+}
+
+type AddRecordsReturns struct {
+	Records []Record `json:"Records,omitempty"`
 }
 
 type GetRecordsArguments struct {

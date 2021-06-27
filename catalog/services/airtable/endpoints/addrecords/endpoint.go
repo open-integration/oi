@@ -29,14 +29,28 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	chunks := chunkSlice(records, 10)
 	table := airtable.GetTable(args.Auth.APIKey, args.Auth.DatabaseID, args.Auth.TableName)
 	lgr.Info("Adding records", "total", len(records), "chunks", len(chunks))
+	success := []types.Record{}
 	for _, c := range chunks {
-		if _, err := table.AddRecords(&at.Records{
+		res, err := table.AddRecords(&at.Records{
 			Records: c,
-		}); err != nil {
-			return service.BuildErrorResponse(err)
+		})
+		if err != nil {
+			lgr.Info("failed to add chunk", "err", err.Error())
 		}
+		for _, r := range res.Records {
+			success = append(success, types.Record{
+				Fields:      r.Fields,
+				CreatedTime: &r.CreatedTime,
+				Deleted:     &r.Deleted,
+				ID:          &r.ID,
+				Typecast:    &r.Typecast,
+			})
+		}
+
 	}
-	return service.BuildSuccessfullResponse(types.AddRecordsReturns{})
+	return service.BuildSuccessfullResponse(types.AddRecordsReturns{
+		Records: success,
+	})
 }
 
 func chunkSlice(slice []*at.Record, chunkSize int) [][]*at.Record {

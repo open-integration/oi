@@ -1,12 +1,66 @@
 // This file was generated from JSON Schema using quicktype, do not modify it directly.
 // To parse and unparse this JSON data, add this code to your project and do:
 //
+//    types, err := UnmarshalTypes(bytes)
+//    bytes, err = types.Marshal()
+//
+//    getIssueCommentsArguments, err := UnmarshalGetIssueCommentsArguments(bytes)
+//    bytes, err = getIssueCommentsArguments.Marshal()
+//
+//    getIssueCommentsReturns, err := UnmarshalGetIssueCommentsReturns(bytes)
+//    bytes, err = getIssueCommentsReturns.Marshal()
+//
+//    issueSearchArguments, err := UnmarshalIssueSearchArguments(bytes)
+//    bytes, err = issueSearchArguments.Marshal()
+//
 //    issueSearchReturns, err := UnmarshalIssueSearchReturns(bytes)
 //    bytes, err = issueSearchReturns.Marshal()
 
-package issuesearch
+package types
 
 import "encoding/json"
+
+type Types map[string]interface{}
+
+func UnmarshalTypes(data []byte) (Types, error) {
+	var r Types
+	err := json.Unmarshal(data, &r)
+	return r, err
+}
+
+func (r *Types) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func UnmarshalGetIssueCommentsArguments(data []byte) (GetIssueCommentsArguments, error) {
+	var r GetIssueCommentsArguments
+	err := json.Unmarshal(data, &r)
+	return r, err
+}
+
+func (r *GetIssueCommentsArguments) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func UnmarshalGetIssueCommentsReturns(data []byte) (GetIssueCommentsReturns, error) {
+	var r GetIssueCommentsReturns
+	err := json.Unmarshal(data, &r)
+	return r, err
+}
+
+func (r *GetIssueCommentsReturns) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func UnmarshalIssueSearchArguments(data []byte) (IssueSearchArguments, error) {
+	var r IssueSearchArguments
+	err := json.Unmarshal(data, &r)
+	return r, err
+}
+
+func (r *IssueSearchArguments) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
 
 func UnmarshalIssueSearchReturns(data []byte) (IssueSearchReturns, error) {
 	var r IssueSearchReturns
@@ -18,40 +72,42 @@ func (r *IssueSearchReturns) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type IssueSearchReturns struct {
-	Issues []Issue `json:"issues,omitempty"`
+type GetIssueCommentsArguments struct {
+	Issue float64 `json:"issue"`
+	Owner string  `json:"owner"`
+	Repo  string  `json:"repo"`
+	Token string  `json:"token"`
 }
 
-type Issue struct {
-	ActiveLockReason  *string           `json:"active_lock_reason,omitempty"`
-	Assignee          *User             `json:"assignee,omitempty"`
-	Assignees         []User            `json:"assignees,omitempty"`
-	AuthorAssociation *string           `json:"author_association,omitempty"`
-	Body              *string           `json:"body,omitempty"`
-	ClosedAt          *string           `json:"closed_at,omitempty"`
-	ClosedBy          *User             `json:"closed_by,omitempty"`
-	Comments          *int64            `json:"comments,omitempty"`
-	CommentsURL       *string           `json:"comments_url,omitempty"`
-	CreatedAt         *string           `json:"created_at,omitempty"`
-	EventsURL         *string           `json:"events_url,omitempty"`
-	HTMLURL           *string           `json:"html_url,omitempty"`
-	ID                *int64            `json:"id,omitempty"`
-	Labels            []Label           `json:"labels,omitempty"`
-	LabelsURL         *string           `json:"labels_url,omitempty"`
-	Locked            *bool             `json:"locked,omitempty"`
-	Milestone         *Milestone        `json:"milestone,omitempty"`
-	NodeID            *string           `json:"node_id,omitempty"`
-	Number            *int64            `json:"number,omitempty"`
-	PullRequest       *PullRequestLinks `json:"pull_request,omitempty"`
-	Reactions         *Reactions        `json:"reactions,omitempty"`
-	Repository        *Repository       `json:"repository,omitempty"`
-	RepositoryURL     *string           `json:"repository_url,omitempty"`
-	State             *string           `json:"state,omitempty"`
-	TextMatches       []TextMatch       `json:"text_matches,omitempty"`
-	Title             *string           `json:"title,omitempty"`
-	UpdatedAt         *string           `json:"updated_at,omitempty"`
-	URL               *string           `json:"url,omitempty"`
-	User              *User             `json:"user,omitempty"`
+type GetIssueCommentsReturns struct {
+	Comments []IssueComment `json:"comments,omitempty"`
+}
+
+type IssueComment struct {
+	AuthorAssociation *string    `json:"author_association,omitempty"`
+	Body              *string    `json:"body,omitempty"`
+	CreatedAt         *string    `json:"created_at,omitempty"`
+	HTMLURL           *string    `json:"html_url,omitempty"`
+	ID                *int64     `json:"id,omitempty"`
+	IssueURL          *string    `json:"issue_url,omitempty"`
+	NodeID            *string    `json:"node_id,omitempty"`
+	Reactions         *Reactions `json:"reactions,omitempty"`
+	UpdatedAt         *string    `json:"updated_at,omitempty"`
+	URL               *string    `json:"url,omitempty"`
+	User              *User      `json:"user,omitempty"`
+}
+
+type Reactions struct {
+	The1       *int64  `json:"+1,omitempty"`
+	Reactions1 *int64  `json:"-1,omitempty"`
+	Confused   *int64  `json:"confused,omitempty"`
+	Eyes       *int64  `json:"eyes,omitempty"`
+	Heart      *int64  `json:"heart,omitempty"`
+	Hooray     *int64  `json:"hooray,omitempty"`
+	Laugh      *int64  `json:"laugh,omitempty"`
+	Rocket     *int64  `json:"rocket,omitempty"`
+	TotalCount *int64  `json:"total_count,omitempty"`
+	URL        *string `json:"url,omitempty"`
 }
 
 type User struct {
@@ -125,6 +181,47 @@ type Match struct {
 	Text    *string `json:"text,omitempty"`
 }
 
+type IssueSearchArguments struct {
+	Query string `json:"query"`
+	Token string `json:"token"`
+}
+
+type IssueSearchReturns struct {
+	Issues []Issue `json:"issues,omitempty"`
+}
+
+type Issue struct {
+	ActiveLockReason  *string           `json:"active_lock_reason,omitempty"`
+	Assignee          *User             `json:"assignee,omitempty"`
+	Assignees         []User            `json:"assignees,omitempty"`
+	AuthorAssociation *string           `json:"author_association,omitempty"`
+	Body              *string           `json:"body,omitempty"`
+	ClosedAt          *string           `json:"closed_at,omitempty"`
+	ClosedBy          *User             `json:"closed_by,omitempty"`
+	Comments          *int64            `json:"comments,omitempty"`
+	CommentsURL       *string           `json:"comments_url,omitempty"`
+	CreatedAt         *string           `json:"created_at,omitempty"`
+	EventsURL         *string           `json:"events_url,omitempty"`
+	HTMLURL           *string           `json:"html_url,omitempty"`
+	ID                *int64            `json:"id,omitempty"`
+	Labels            []Label           `json:"labels,omitempty"`
+	LabelsURL         *string           `json:"labels_url,omitempty"`
+	Locked            *bool             `json:"locked,omitempty"`
+	Milestone         *Milestone        `json:"milestone,omitempty"`
+	NodeID            *string           `json:"node_id,omitempty"`
+	Number            *int64            `json:"number,omitempty"`
+	PullRequest       *PullRequestLinks `json:"pull_request,omitempty"`
+	Reactions         *Reactions        `json:"reactions,omitempty"`
+	Repository        *Repository       `json:"repository,omitempty"`
+	RepositoryURL     *string           `json:"repository_url,omitempty"`
+	State             *string           `json:"state,omitempty"`
+	TextMatches       []TextMatch       `json:"text_matches,omitempty"`
+	Title             *string           `json:"title,omitempty"`
+	UpdatedAt         *string           `json:"updated_at,omitempty"`
+	URL               *string           `json:"url,omitempty"`
+	User              *User             `json:"user,omitempty"`
+}
+
 type Label struct {
 	Color       *string `json:"color,omitempty"`
 	Default     *bool   `json:"default,omitempty"`
@@ -159,19 +256,6 @@ type PullRequestLinks struct {
 	HTMLURL  *string `json:"html_url,omitempty"`
 	PatchURL *string `json:"patch_url,omitempty"`
 	URL      *string `json:"url,omitempty"`
-}
-
-type Reactions struct {
-	The1       *int64  `json:"+1,omitempty"`
-	Reactions1 *int64  `json:"-1,omitempty"`
-	Confused   *int64  `json:"confused,omitempty"`
-	Eyes       *int64  `json:"eyes,omitempty"`
-	Heart      *int64  `json:"heart,omitempty"`
-	Hooray     *int64  `json:"hooray,omitempty"`
-	Laugh      *int64  `json:"laugh,omitempty"`
-	Rocket     *int64  `json:"rocket,omitempty"`
-	TotalCount *int64  `json:"total_count,omitempty"`
-	URL        *string `json:"url,omitempty"`
 }
 
 type Repository struct {

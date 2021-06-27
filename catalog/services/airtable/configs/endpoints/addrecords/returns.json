@@ -1,5 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
-  "title": "add records returns"
+  "title": "add records returns",
+  "properties": {
+    "Records": {
+      "type": "array",
+      "items": {
+        "$ref": "../../types/record.json#/definitions/Record"
+      }
+    }
+  }
 }

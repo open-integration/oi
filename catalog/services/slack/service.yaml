@@ -1,6 +1,0 @@
-name: slack
-version: 0.0.3
-endpoints:
-- name: message
-  arguments: ./configs/endpoints/message/arguments.json
-  returns: ./configs/endpoints/message/returns.json

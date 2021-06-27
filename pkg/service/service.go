@@ -18,6 +18,7 @@ import (
 type (
 	// Service implements the gRPC service to be used by the different catalog services
 	Service struct {
+		api.UnimplementedServiceServer
 		Logger    logger.Logger
 		Port      string
 		endpoints map[string]endpoint
@@ -41,10 +42,7 @@ func New(port string) Service {
 }
 
 func (s *Service) Init(ctx context.Context, req *api.InitRequest) (*api.InitResponse, error) {
-	m := map[string]string{}
-	return &api.InitResponse{
-		JsonSchemas: m,
-	}, nil
+	return &api.InitResponse{}, nil
 }
 
 func (s *Service) Call(ctx context.Context, req *api.CallRequest) (*api.CallResponse, error) {

@@ -1,17 +1,18 @@
 {
-    "$id": "https://example.com/person.schema.json",
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "properties": {
-      "token": {
-        "type": "string"
-      },
-      "query": {
-        "type": "string"
-      }
+  "$id": "https://example.com/person.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "issue search arguments",
+  "properties": {
+    "token": {
+      "type": "string"
     },
-    "required": [
-      "token",
-      "query"
-    ]
-  }
+    "query": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "token",
+    "query"
+  ]
+}

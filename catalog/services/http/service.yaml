@@ -1,6 +1,0 @@
-name: http
-version: 0.0.3
-endpoints:
-- name: call
-  arguments: ./configs/endpoints/call/arguments.json
-  returns: ./configs/endpoints/call/returns.json
