@@ -15,7 +15,6 @@ require (
 	github.com/docker/libkv v0.2.1 // indirect
 	github.com/frankban/quicktest v1.10.0 // indirect
 	github.com/gofrs/uuid v3.4.0+incompatible
-	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v35 v35.3.0
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
@@ -36,12 +35,11 @@ require (
 	github.com/spf13/viper v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
-	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/zealic/xignore v0.3.3 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
 	google.golang.org/grpc v1.38.0
+	google.golang.org/protobuf v1.26.0
 	gopkg.in/hairyhenderson/yaml.v2 v2.2.2
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0

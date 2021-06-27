@@ -136,10 +136,9 @@ func (_l *localService) dail() error {
 }
 
 func (_l *localService) init() error {
-	resp, err := _l.client.Init(context.Background(), &v1.InitRequest{})
+	_, err := _l.client.Init(context.Background(), &v1.InitRequest{})
 	if err != nil {
 		return err
 	}
-	_l.tasksSchemas = resp.JsonSchemas
 	return nil
 }

@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/open-integration/oi/core/service/runner"
 	v1 "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 type (
@@ -64,17 +62,7 @@ func (m *modem) Call(ctx context.Context, service string, endpoint string, argum
 	if !ok {
 		return nil, fmt.Errorf("service %s not found", service)
 	}
-	schemas := svc.Schemas()
-	schema, ok := schemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "arguments.json")]
-	if !ok {
-		log.Debug("Serivce endpoint doesnt configure any argument schema")
-
-	}
 	r, err := json.Marshal(arguments)
-	if err != nil {
-		return nil, err
-	}
-	err = m.isArgumentsValid(r, schema)
 	if err != nil {
 		return nil, err
 	}
@@ -88,16 +76,6 @@ func (m *modem) Call(ctx context.Context, service string, endpoint string, argum
 	if resp.Status == v1.Status_Error {
 		log.Debug("Call return with error", "err", resp.Error)
 		return []byte(resp.Payload), fmt.Errorf(resp.Error)
-	}
-
-	returnSchema, ok := schemas[fmt.Sprintf("endpoints/%s/%s", endpoint, "returns.json")]
-	if !ok {
-		log.Debug("Serivce endpoint doesnt configure any return schema")
-		return []byte(resp.Payload), nil
-	}
-	err = m.isResponsePayloadValid(resp.Payload, returnSchema)
-	if err != nil {
-		return []byte(resp.Payload), err
 	}
 
 	return []byte(resp.Payload), nil
@@ -124,40 +102,6 @@ func (m *modem) AddService(name string, runner runner.Service) error {
 func (m *modem) initService(name string, svc runner.Service, log logger.Logger) error {
 	if err := svc.Run(); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (m *modem) isArgumentsValid(json []byte, schema string) error {
-	if schema == "" {
-		return nil // no schema given, no assertion required
-	}
-	schemaLoader := gojsonschema.NewStringLoader(schema)
-	jsonLoader := gojsonschema.NewBytesLoader(json)
-	return m.isJSONValid(jsonLoader, schemaLoader)
-}
-
-func (m *modem) isResponsePayloadValid(json string, schema string) error {
-	if schema == "" {
-		return nil // no schema given, no assertion required
-	}
-	schemaLoader := gojsonschema.NewStringLoader(schema)
-	jsonLoader := gojsonschema.NewStringLoader(json)
-	return m.isJSONValid(jsonLoader, schemaLoader)
-}
-
-func (m *modem) isJSONValid(json gojsonschema.JSONLoader, schema gojsonschema.JSONLoader) error {
-	result, err := gojsonschema.Validate(schema, json)
-	if err != nil {
-		return err
-	}
-
-	if !result.Valid() {
-		message := strings.Builder{}
-		for _, desc := range result.Errors() {
-			message.WriteString(desc.String())
-		}
-		return fmt.Errorf(message.String())
 	}
 	return nil
 }

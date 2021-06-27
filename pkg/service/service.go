@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 
 	api "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
@@ -22,9 +24,7 @@ type (
 	}
 
 	endpoint struct {
-		arguments string
-		returns   string
-		handler   endpointHandler
+		handler endpointHandler
 	}
 
 	endpointHandler func(ctx context.Context, lgr logger.Logger, svc *Service, req *api.CallRequest) (*api.CallResponse, error)
@@ -41,13 +41,9 @@ func New(port string) Service {
 }
 
 func (s *Service) Init(ctx context.Context, req *api.InitRequest) (*api.InitResponse, error) {
-	schemas := map[string]string{}
-	for k, v := range s.endpoints {
-		schemas[fmt.Sprintf("endpoints/%s/arguments.json", k)] = v.arguments
-		schemas[fmt.Sprintf("endpoints/%s/returns.json", k)] = v.returns
-	}
+	m := map[string]string{}
 	return &api.InitResponse{
-		JsonSchemas: schemas,
+		JsonSchemas: m,
 	}, nil
 }
 
@@ -104,12 +100,10 @@ func (s *Service) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) RegisterEndpoint(name string, handler endpointHandler, argumentsSchema string, returnsSchems string) error {
+func (s *Service) RegisterEndpoint(name string, handler endpointHandler) error {
 	if _, found := s.endpoints[name]; !found {
 		s.endpoints[name] = endpoint{
-			arguments: argumentsSchema,
-			returns:   returnsSchems,
-			handler:   handler,
+			handler: handler,
 		}
 		return nil
 	}
@@ -147,4 +141,35 @@ func (s *Service) buildErrorResponse(err error) *api.CallResponse {
 		}
 	}
 	return nil
+}
+
+func buildSchemasFSMap(fs embed.FS, prefix string, dir string) (map[string]string, error) {
+	res := map[string]string{}
+
+	d, err := fs.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range d {
+		fqn := filepath.Join(dir, f.Name())
+		if f.IsDir() {
+			d, err := buildSchemasFSMap(fs, prefix, fqn)
+			if err != nil {
+				return nil, err
+			}
+			for k, v := range d {
+				res[k] = v
+			}
+			continue
+		}
+		d, err := fs.ReadFile(fqn)
+		if err != nil {
+			return nil, err
+		}
+		res[fmt.Sprintf("%s:::%s", prefix, fqn)] = string(d)
+	}
+
+	return res, nil
+
 }
