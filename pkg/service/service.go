@@ -2,13 +2,11 @@ package service
 
 import (
 	"context"
-	"embed"
 	"encoding/json"
 	"fmt"
 	"net"
 	"os"
 	"os/signal"
-	"path/filepath"
 
 	api "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
@@ -139,35 +137,4 @@ func (s *Service) buildErrorResponse(err error) *api.CallResponse {
 		}
 	}
 	return nil
-}
-
-func buildSchemasFSMap(fs embed.FS, prefix string, dir string) (map[string]string, error) {
-	res := map[string]string{}
-
-	d, err := fs.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, f := range d {
-		fqn := filepath.Join(dir, f.Name())
-		if f.IsDir() {
-			d, err := buildSchemasFSMap(fs, prefix, fqn)
-			if err != nil {
-				return nil, err
-			}
-			for k, v := range d {
-				res[k] = v
-			}
-			continue
-		}
-		d, err := fs.ReadFile(fqn)
-		if err != nil {
-			return nil, err
-		}
-		res[fmt.Sprintf("%s:::%s", prefix, fqn)] = string(d)
-	}
-
-	return res, nil
-
 }
