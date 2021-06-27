@@ -16,6 +16,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {
 		return service.BuildErrorResponse(err)
 	}
+	lgr.Info("request", "app", args.Auth.App, "token", args.Auth.Token)
 	client := trello.NewClient(args.Auth.App, args.Auth.Token)
 	board, err := client.GetBoard(args.Board, trello.Defaults())
 	if err != nil {
@@ -44,7 +45,8 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}
-	res, err := types.UnmarshalGetCardsReturns(j)
+	res := []types.Card{}
+	err = json.Unmarshal(j, &res)
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}

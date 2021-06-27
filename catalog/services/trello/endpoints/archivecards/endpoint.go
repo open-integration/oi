@@ -35,5 +35,5 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 		}
 		lgr.Debug("Card archived", "Card", card.ID)
 	}
-	return service.BuildSuccessfullResponse(&types.ArchiveCardReturns{})
+	return service.BuildSuccessfullResponse(nil)
 }

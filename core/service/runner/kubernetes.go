@@ -171,10 +171,9 @@ func (_k *kubernetesService) dail() error {
 
 func (_k *kubernetesService) init() error {
 	_k.Logger.Debug("Calling service init endpoint one time")
-	resp, err := _k.client.Init(context.Background(), &v1.InitRequest{})
+	_, err := _k.client.Init(context.Background(), &v1.InitRequest{})
 	if err != nil {
 		return err
 	}
-	_k.tasksSchemas = resp.JsonSchemas
 	return nil
 }

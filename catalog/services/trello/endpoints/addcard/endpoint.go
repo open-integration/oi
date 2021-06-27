@@ -29,5 +29,5 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}
-	return service.BuildSuccessfullResponse(&types.AddCardReturns{})
+	return service.BuildSuccessfullResponse(nil)
 }

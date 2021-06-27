@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/go-github/v35/github"
+	"github.com/open-integration/oi/catalog/services/github/types"
 	api "github.com/open-integration/oi/pkg/api/v1"
 	"github.com/open-integration/oi/pkg/logger"
 	"github.com/open-integration/oi/pkg/service"
@@ -12,7 +13,7 @@ import (
 )
 
 func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *api.CallRequest) (*api.CallResponse, error) {
-	args := &IssueSearchArguments{}
+	args := &types.IssueSearchArguments{}
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {
 		return nil, err
 	}
@@ -26,7 +27,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}
-	issues := &[]Issue{}
+	issues := &[]types.Issue{}
 	b, err := json.Marshal(res.Issues)
 	if err != nil {
 		return service.BuildErrorResponse(err)
@@ -34,7 +35,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	if err := json.Unmarshal(b, issues); err != nil {
 		return service.BuildErrorResponse(err)
 	}
-	return service.BuildSuccessfullResponse(IssueSearchReturns{
+	return service.BuildSuccessfullResponse(types.IssueSearchReturns{
 		Issues: *issues,
 	})
 }

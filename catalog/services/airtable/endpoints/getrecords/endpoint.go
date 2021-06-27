@@ -16,6 +16,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	if err := service.UnmarshalRequestArgumentsInto(req, args); err != nil {
 		return service.BuildErrorResponse(err)
 	}
+	lgr.Info("requesting records", "token", args.Auth, "table", args.Auth.TableName, "db", args.Auth.DatabaseID)
 
 	table := airtable.GetTable(args.Auth.APIKey, args.Auth.DatabaseID, args.Auth.TableName)
 
@@ -24,7 +25,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 		return service.BuildErrorResponse(err)
 	}
 
-	return service.BuildSuccessfullResponse(types.GetRecordsReturns{records})
+	return service.BuildSuccessfullResponse(records)
 }
 
 func getRecords(table *at.Table, lgr logger.Logger, formula *string) ([]types.Record, error) {

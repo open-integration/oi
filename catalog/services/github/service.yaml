@@ -1,9 +1,0 @@
-name: github
-version: 0.0.2
-endpoints:
-- name: issuesearch
-  arguments: ./configs/endpoints/issuesearch/arguments.json
-  returns: ./configs/endpoints/issuesearch/returns.json
-- name: getissuecomments
-  arguments: ./configs/endpoints/getissuecomments/arguments.json
-  returns: ./configs/endpoints/getissuecomments/returns.json

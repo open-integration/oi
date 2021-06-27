@@ -16,15 +16,14 @@ import (
 type (
 	// Service implements the gRPC service to be used by the different catalog services
 	Service struct {
+		api.UnimplementedServiceServer
 		Logger    logger.Logger
 		Port      string
 		endpoints map[string]endpoint
 	}
 
 	endpoint struct {
-		arguments string
-		returns   string
-		handler   endpointHandler
+		handler endpointHandler
 	}
 
 	endpointHandler func(ctx context.Context, lgr logger.Logger, svc *Service, req *api.CallRequest) (*api.CallResponse, error)
@@ -41,14 +40,7 @@ func New(port string) Service {
 }
 
 func (s *Service) Init(ctx context.Context, req *api.InitRequest) (*api.InitResponse, error) {
-	schemas := map[string]string{}
-	for k, v := range s.endpoints {
-		schemas[fmt.Sprintf("endpoints/%s/arguments.json", k)] = v.arguments
-		schemas[fmt.Sprintf("endpoints/%s/returns.json", k)] = v.returns
-	}
-	return &api.InitResponse{
-		JsonSchemas: schemas,
-	}, nil
+	return &api.InitResponse{}, nil
 }
 
 func (s *Service) Call(ctx context.Context, req *api.CallRequest) (*api.CallResponse, error) {
@@ -104,12 +96,10 @@ func (s *Service) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) RegisterEndpoint(name string, handler endpointHandler, argumentsSchema string, returnsSchems string) error {
+func (s *Service) RegisterEndpoint(name string, handler endpointHandler) error {
 	if _, found := s.endpoints[name]; !found {
 		s.endpoints[name] = endpoint{
-			arguments: argumentsSchema,
-			returns:   returnsSchems,
-			handler:   handler,
+			handler: handler,
 		}
 		return nil
 	}

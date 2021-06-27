@@ -1,25 +1,26 @@
 {
-    "$id": "https://example.com/person.schema.json",
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "properties": {
-      "token": {
-        "type": "string"
-      },
-      "issue": {
-        "type": "number"
-      },
-      "owner": {
-        "type": "string"
-      },
-      "repo": {
-        "type": "string"
-      }
+  "$id": "https://example.com/person.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "get issue comments arguments",
+  "properties": {
+    "token": {
+      "type": "string"
     },
-    "required": [
-      "token",
-      "issue",
-      "owner",
-      "repo"
-    ]
-  }
+    "issue": {
+      "type": "number"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "repo": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "token",
+    "issue",
+    "owner",
+    "repo"
+  ]
+}

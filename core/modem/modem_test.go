@@ -153,35 +153,6 @@ func Test_modem_Call(t *testing.T) {
 				logger: buildBasicLoggerMock(&logger.MockLogger{}),
 			},
 			want: []byte{},
-		}, {
-			name: "Should call the service with the arguments in case they mached to the schema",
-			args: args{
-				endpoint: "endpoint",
-				service:  "service",
-				arguments: map[string]interface{}{
-					"key": "value",
-				},
-			},
-			fields: fields{
-				services: map[string]runner.Service{
-					"service": func() runner.Service {
-						s := buildMockService(func() *runner.MockService {
-							m := &runner.MockService{}
-							m.On("Schemas").Return(map[string]string{
-								"endpoint/arguments.json": "{\"properties\": { \"key\": { \"type\": \"string\" } } }",
-							})
-							m.On("Call", mock.Anything, &v1.CallRequest{
-								Endpoint:  "endpoint",
-								Arguments: "{\"key\":\"value\"}",
-							}).Return(&v1.CallResponse{}, nil)
-							return m
-						})
-						return s
-					}(),
-				},
-				logger: buildBasicLoggerMock(&logger.MockLogger{}),
-			},
-			want: []byte{},
 		},
 	}
 	for _, tt := range tests {

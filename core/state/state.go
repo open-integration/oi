@@ -1,7 +1,9 @@
 package state
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -105,6 +107,14 @@ func (s *state) Tasks() map[string]TaskState {
 }
 func (s *state) Services() []ServiceState {
 	return s.services
+}
+func (s *state) GetStepOutputInto(step string, target interface{}) error {
+	t := s.Tasks()
+	stepState, ok := t[step]
+	if !ok {
+		return fmt.Errorf("step not found")
+	}
+	return json.Unmarshal([]byte(stepState.Output), target)
 }
 
 func (s *state) StartProcess() {

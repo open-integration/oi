@@ -1,0 +1,1025 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "IssueComment": {
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "user": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/User"
+                },
+                "reactions": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Reactions"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "author_association": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "issue_url": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Match": {
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "indices": {
+                    "items": {
+                        "type": "integer"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Plan": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "space": {
+                    "type": "integer"
+                },
+                "collaborators": {
+                    "type": "integer"
+                },
+                "private_repos": {
+                    "type": "integer"
+                },
+                "filled_seats": {
+                    "type": "integer"
+                },
+                "seats": {
+                    "type": "integer"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Reactions": {
+            "properties": {
+                "total_count": {
+                    "type": "integer"
+                },
+                "+1": {
+                    "type": "integer"
+                },
+                "-1": {
+                    "type": "integer"
+                },
+                "laugh": {
+                    "type": "integer"
+                },
+                "confused": {
+                    "type": "integer"
+                },
+                "heart": {
+                    "type": "integer"
+                },
+                "hooray": {
+                    "type": "integer"
+                },
+                "rocket": {
+                    "type": "integer"
+                },
+                "eyes": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "TextMatch": {
+            "properties": {
+                "object_url": {
+                    "type": "string"
+                },
+                "object_type": {
+                    "type": "string"
+                },
+                "property": {
+                    "type": "string"
+                },
+                "fragment": {
+                    "type": "string"
+                },
+                "matches": {
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+                        "$ref": "#/definitions/Match"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Timestamp": {
+            "properties": {},
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "User": {
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "gravatar_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "blog": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "hireable": {
+                    "type": "boolean"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "twitter_username": {
+                    "type": "string"
+                },
+                "public_repos": {
+                    "type": "integer"
+                },
+                "public_gists": {
+                    "type": "integer"
+                },
+                "followers": {
+                    "type": "integer"
+                },
+                "following": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Timestamp"
+                },
+                "updated_at": {
+                    "$ref": "#/definitions/Timestamp"
+                },
+                "suspended_at": {
+                    "$ref": "#/definitions/Timestamp"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "site_admin": {
+                    "type": "boolean"
+                },
+                "total_private_repos": {
+                    "type": "integer"
+                },
+                "owned_private_repos": {
+                    "type": "integer"
+                },
+                "private_gists": {
+                    "type": "integer"
+                },
+                "disk_usage": {
+                    "type": "integer"
+                },
+                "collaborators": {
+                    "type": "integer"
+                },
+                "two_factor_authentication": {
+                    "type": "boolean"
+                },
+                "plan": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Plan"
+                },
+                "ldap_dn": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "events_url": {
+                    "type": "string"
+                },
+                "following_url": {
+                    "type": "string"
+                },
+                "followers_url": {
+                    "type": "string"
+                },
+                "gists_url": {
+                    "type": "string"
+                },
+                "organizations_url": {
+                    "type": "string"
+                },
+                "received_events_url": {
+                    "type": "string"
+                },
+                "repos_url": {
+                    "type": "string"
+                },
+                "starred_url": {
+                    "type": "string"
+                },
+                "subscriptions_url": {
+                    "type": "string"
+                },
+                "text_matches": {
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+                        "$ref": "#/definitions/TextMatch"
+                    },
+                    "type": "array"
+                },
+                "permissions": {
+                    "patternProperties": {
+                        ".*": {
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "CodeOfConduct": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "body": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Issue": {
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "locked": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "author_association": {
+                    "type": "string"
+                },
+                "user": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/User"
+                },
+                "labels": {
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+                        "$ref": "#/definitions/Label"
+                    },
+                    "type": "array"
+                },
+                "assignee": {
+                    "$ref": "#/definitions/User"
+                },
+                "comments": {
+                    "type": "integer"
+                },
+                "closed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "closed_by": {
+                    "$ref": "#/definitions/User"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "comments_url": {
+                    "type": "string"
+                },
+                "events_url": {
+                    "type": "string"
+                },
+                "labels_url": {
+                    "type": "string"
+                },
+                "repository_url": {
+                    "type": "string"
+                },
+                "milestone": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Milestone"
+                },
+                "pull_request": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/PullRequestLinks"
+                },
+                "repository": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Repository"
+                },
+                "reactions": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Reactions"
+                },
+                "assignees": {
+                    "items": {
+                        "$ref": "#/definitions/User"
+                    },
+                    "type": "array"
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "text_matches": {
+                    "items": {
+                        "$ref": "#/definitions/TextMatch"
+                    },
+                    "type": "array"
+                },
+                "active_lock_reason": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Label": {
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "default": {
+                    "type": "boolean"
+                },
+                "node_id": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "License": {
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "spdx_id": {
+                    "type": "string"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "featured": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "implementation": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "conditions": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "limitations": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "body": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Milestone": {
+            "properties": {
+                "url": {
+                    "type": "string"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "labels_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/User"
+                },
+                "open_issues": {
+                    "type": "integer"
+                },
+                "closed_issues": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "closed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "due_on": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "node_id": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Organization": {
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "blog": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "twitter_username": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "public_repos": {
+                    "type": "integer"
+                },
+                "public_gists": {
+                    "type": "integer"
+                },
+                "followers": {
+                    "type": "integer"
+                },
+                "following": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "total_private_repos": {
+                    "type": "integer"
+                },
+                "owned_private_repos": {
+                    "type": "integer"
+                },
+                "private_gists": {
+                    "type": "integer"
+                },
+                "disk_usage": {
+                    "type": "integer"
+                },
+                "collaborators": {
+                    "type": "integer"
+                },
+                "billing_email": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "plan": {
+                    "$ref": "#/definitions/Plan"
+                },
+                "two_factor_requirement_enabled": {
+                    "type": "boolean"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "has_organization_projects": {
+                    "type": "boolean"
+                },
+                "has_repository_projects": {
+                    "type": "boolean"
+                },
+                "default_repository_permission": {
+                    "type": "string"
+                },
+                "default_repository_settings": {
+                    "type": "string"
+                },
+                "members_can_create_repositories": {
+                    "type": "boolean"
+                },
+                "members_can_create_public_repositories": {
+                    "type": "boolean"
+                },
+                "members_can_create_private_repositories": {
+                    "type": "boolean"
+                },
+                "members_can_create_internal_repositories": {
+                    "type": "boolean"
+                },
+                "members_allowed_repository_creation_type": {
+                    "type": "string"
+                },
+                "members_can_create_pages": {
+                    "type": "boolean"
+                },
+                "members_can_create_public_pages": {
+                    "type": "boolean"
+                },
+                "members_can_create_private_pages": {
+                    "type": "boolean"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "events_url": {
+                    "type": "string"
+                },
+                "hooks_url": {
+                    "type": "string"
+                },
+                "issues_url": {
+                    "type": "string"
+                },
+                "members_url": {
+                    "type": "string"
+                },
+                "public_members_url": {
+                    "type": "string"
+                },
+                "repos_url": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "PullRequestLinks": {
+            "properties": {
+                "url": {
+                    "type": "string"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "diff_url": {
+                    "type": "string"
+                },
+                "patch_url": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Repository": {
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "owner": {
+                    "$ref": "#/definitions/User"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "homepage": {
+                    "type": "string"
+                },
+                "code_of_conduct": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/CodeOfConduct"
+                },
+                "default_branch": {
+                    "type": "string"
+                },
+                "master_branch": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "$ref": "#/definitions/Timestamp"
+                },
+                "pushed_at": {
+                    "$ref": "#/definitions/Timestamp"
+                },
+                "updated_at": {
+                    "$ref": "#/definitions/Timestamp"
+                },
+                "html_url": {
+                    "type": "string"
+                },
+                "clone_url": {
+                    "type": "string"
+                },
+                "git_url": {
+                    "type": "string"
+                },
+                "mirror_url": {
+                    "type": "string"
+                },
+                "ssh_url": {
+                    "type": "string"
+                },
+                "svn_url": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "fork": {
+                    "type": "boolean"
+                },
+                "forks_count": {
+                    "type": "integer"
+                },
+                "network_count": {
+                    "type": "integer"
+                },
+                "open_issues_count": {
+                    "type": "integer"
+                },
+                "stargazers_count": {
+                    "type": "integer"
+                },
+                "subscribers_count": {
+                    "type": "integer"
+                },
+                "watchers_count": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "auto_init": {
+                    "type": "boolean"
+                },
+                "parent": {
+                    "$ref": "#/definitions/Repository"
+                },
+                "source": {
+                    "$ref": "#/definitions/Repository"
+                },
+                "template_repository": {
+                    "$ref": "#/definitions/Repository"
+                },
+                "organization": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Organization"
+                },
+                "permissions": {
+                    "patternProperties": {
+                        ".*": {
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "allow_rebase_merge": {
+                    "type": "boolean"
+                },
+                "allow_squash_merge": {
+                    "type": "boolean"
+                },
+                "allow_merge_commit": {
+                    "type": "boolean"
+                },
+                "delete_branch_on_merge": {
+                    "type": "boolean"
+                },
+                "topics": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "archived": {
+                    "type": "boolean"
+                },
+                "disabled": {
+                    "type": "boolean"
+                },
+                "license": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/License"
+                },
+                "private": {
+                    "type": "boolean"
+                },
+                "has_issues": {
+                    "type": "boolean"
+                },
+                "has_wiki": {
+                    "type": "boolean"
+                },
+                "has_pages": {
+                    "type": "boolean"
+                },
+                "has_projects": {
+                    "type": "boolean"
+                },
+                "has_downloads": {
+                    "type": "boolean"
+                },
+                "is_template": {
+                    "type": "boolean"
+                },
+                "license_template": {
+                    "type": "string"
+                },
+                "gitignore_template": {
+                    "type": "string"
+                },
+                "team_id": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "archive_url": {
+                    "type": "string"
+                },
+                "assignees_url": {
+                    "type": "string"
+                },
+                "blobs_url": {
+                    "type": "string"
+                },
+                "branches_url": {
+                    "type": "string"
+                },
+                "collaborators_url": {
+                    "type": "string"
+                },
+                "comments_url": {
+                    "type": "string"
+                },
+                "commits_url": {
+                    "type": "string"
+                },
+                "compare_url": {
+                    "type": "string"
+                },
+                "contents_url": {
+                    "type": "string"
+                },
+                "contributors_url": {
+                    "type": "string"
+                },
+                "deployments_url": {
+                    "type": "string"
+                },
+                "downloads_url": {
+                    "type": "string"
+                },
+                "events_url": {
+                    "type": "string"
+                },
+                "forks_url": {
+                    "type": "string"
+                },
+                "git_commits_url": {
+                    "type": "string"
+                },
+                "git_refs_url": {
+                    "type": "string"
+                },
+                "git_tags_url": {
+                    "type": "string"
+                },
+                "hooks_url": {
+                    "type": "string"
+                },
+                "issue_comment_url": {
+                    "type": "string"
+                },
+                "issue_events_url": {
+                    "type": "string"
+                },
+                "issues_url": {
+                    "type": "string"
+                },
+                "keys_url": {
+                    "type": "string"
+                },
+                "labels_url": {
+                    "type": "string"
+                },
+                "languages_url": {
+                    "type": "string"
+                },
+                "merges_url": {
+                    "type": "string"
+                },
+                "milestones_url": {
+                    "type": "string"
+                },
+                "notifications_url": {
+                    "type": "string"
+                },
+                "pulls_url": {
+                    "type": "string"
+                },
+                "releases_url": {
+                    "type": "string"
+                },
+                "stargazers_url": {
+                    "type": "string"
+                },
+                "statuses_url": {
+                    "type": "string"
+                },
+                "subscribers_url": {
+                    "type": "string"
+                },
+                "subscription_url": {
+                    "type": "string"
+                },
+                "tags_url": {
+                    "type": "string"
+                },
+                "trees_url": {
+                    "type": "string"
+                },
+                "teams_url": {
+                    "type": "string"
+                },
+                "text_matches": {
+                    "items": {
+                        "$ref": "#/definitions/TextMatch"
+                    },
+                    "type": "array"
+                },
+                "visibility": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        }
+    },
+    "type": "object"
+}

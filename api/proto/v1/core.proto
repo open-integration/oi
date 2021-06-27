@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "pkg/api/v1";
+
 package v1;
 
 enum Status {
@@ -7,9 +9,7 @@ enum Status {
     Error = 1;
 }
 message InitRequest {}
-message InitResponse {
-    map<string,string> jsonSchemas = 1;
-}
+message InitResponse {}
 
 message CallRequest {
     string endpoint = 1; // name of the endpoint
