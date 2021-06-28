@@ -13,4 +13,4 @@ do
     export $FULL_NAME=$V
 done
 
-# goreleaser release --rm-dist
+goreleaser release --rm-dist
