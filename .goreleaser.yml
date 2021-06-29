@@ -98,6 +98,24 @@ dockers:
     dockerfile: catalog/shared/Dockerfile
     build_flag_templates:
     - "--build-arg=SERVICE=github"
+
+  - ids:
+    - catalog/trello
+    image_templates:
+    - openintegration/serivce-trello:latest
+    - openintegration/serivce-trello:{{ .Env.TRELLO_SERVICE_VERSION }}
+    dockerfile: catalog/shared/Dockerfile
+    build_flag_templates:
+    - "--build-arg=SERVICE=trello"
+
+  - ids:
+    - catalog/airtable
+    image_templates:
+    - openintegration/serivce-airtable:latest
+    - openintegration/serivce-airtable:{{ .Env.AIRTABLE_SERVICE_VERSION }}
+    dockerfile: catalog/shared/Dockerfile
+    build_flag_templates:
+    - "--build-arg=SERVICE=airtable"
 archives:
   - replacements:
       darwin: Darwin
