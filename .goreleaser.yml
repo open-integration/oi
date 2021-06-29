@@ -104,14 +104,14 @@ archives:
       linux: Linux
       386: i386
       amd64: x86_64
-brews:
-  - name: oictl
-    ids:
-    - oictl
-    tap:
-      owner: open-integration
-      name: homebrew-oi
-    folder: Formula
+# brews:
+#   - name: oictl
+#     ids:
+#     - oictl
+#     tap:
+#       owner: open-integration
+#       name: homebrew-oi
+#     folder: Formula
 checksum:
   name_template: 'checksums.txt'
 snapshot:
