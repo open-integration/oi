@@ -20,7 +20,6 @@ require (
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hairyhenderson/gomplate v3.5.0+incompatible
 	github.com/hairyhenderson/toml v0.3.0 // indirect
-	github.com/hashicorp/consul/api v1.6.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.1.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.4 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
@@ -28,19 +27,18 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/inconshreveable/log15 v0.0.0-20180818164646-67afb5ed74ec
 	github.com/joho/godotenv v1.3.0 // indirect
-	github.com/mehanizm/airtable v0.2.4
+	github.com/mehanizm/airtable v0.2.5
 	github.com/pierrec/lz4 v2.3.0+incompatible // indirect
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
-	github.com/spf13/viper v1.8.0
+	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/zealic/xignore v0.3.3 // indirect
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	google.golang.org/api v0.58.0
-	google.golang.org/grpc v1.40.0
+	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/hairyhenderson/yaml.v2 v2.2.2
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect
