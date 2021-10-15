@@ -14,16 +14,16 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Login to Docker Registry
+      - name: Login to Docker Registry
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | \
           docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Build Base Image
+        run: docker build -t openintegration/oi:base .
       - run: make release-binaries
         env:
           GITHUB_TOKEN: ${{ secrets.GT_RELEASE_TOKEN }}

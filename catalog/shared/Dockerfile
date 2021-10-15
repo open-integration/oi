@@ -1,14 +1,8 @@
-FROM golang:1.16-alpine as build
-
-WORKDIR /app
-
-RUN apk update && apk add make wget git
+FROM openintegration/oi:base as build
 
 ARG SERVICE
 
 COPY . .
-
-RUN go mod download
 
 RUN go build -o service cmd/catalog/${SERVICE}/main.go
 
