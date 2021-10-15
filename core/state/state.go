@@ -24,6 +24,7 @@ type (
 		StateBytes() ([]byte, error)
 		EventBytes() ([]byte, error)
 		StartProcess()
+		GetStepOutputInto(step string, target interface{}) error
 	}
 
 	state struct {

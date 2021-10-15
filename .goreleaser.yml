@@ -61,6 +61,15 @@ builds:
       - linux
       - darwin
 
+  - id: catalog/google-calendar
+    env:
+      - CGO_ENABLED=0
+    dir: cmd/catalog/google-calendar
+    binary: google-calendar-{{ .Env.GOOGLE_CALENDAR_SERVICE_VERSION }}
+    goos:
+      - linux
+      - darwin
+
 
 dockers:
   - ids:
@@ -116,6 +125,15 @@ dockers:
     dockerfile: catalog/shared/Dockerfile
     build_flag_templates:
     - "--build-arg=SERVICE=airtable"
+
+  - ids:
+    - catalog/google-calendar
+    image_templates:
+    - openintegration/serivce-google-calendar:latest
+    - openintegration/serivce-google-calendar:{{ .Env.GOOGLE_CALENDAR_SERVICE_VERSION }}
+    dockerfile: catalog/shared/Dockerfile
+    build_flag_templates:
+    - "--build-arg=SERVICE=google-calendar"
 archives:
   - replacements:
       darwin: Darwin
