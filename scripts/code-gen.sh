@@ -32,3 +32,12 @@ quicktype -l go \
     --src catalog/services/airtable/configs/endpoints/getrecords/arguments.json \
     --src catalog/services/airtable/configs/endpoints/getrecords/returns.json \
     -o catalog/services/airtable/types/types.go
+
+
+# Google Calendar
+quicktype -l go \
+    -s schema \
+    --package types \
+    --src catalog/services/google-calendar/configs/endpoints/getEvents/arguments.json \
+    --src catalog/services/google-calendar/configs/endpoints/getEvents/returns.json \
+    -o catalog/services/google-calendar/types/types.go

@@ -1,0 +1,619 @@
+{
+    "$id": "https://example.com/person.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "Calendar": {
+            "properties": {
+                "conferenceProperties": {
+                    "$ref": "#/definitions/ConferenceProperties",
+                    "description": "Conferencing properties for this calendar, for example what types of conferences are allowed."
+                },
+                "description": {
+                    "description": "Description of the calendar. Optional.",
+                    "type": "string"
+                },
+                "etag": {
+                    "description": "ETag of the resource.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Identifier of the calendar. To retrieve IDs call the calendarList.list() method.",
+                    "type": "string"
+                },
+                "kind": {
+                    "default": "calendar#calendar",
+                    "description": "Type of the resource (\"calendar#calendar\").",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "Geographic location of the calendar as free-form text. Optional.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "Title of the calendar.",
+                    "type": "string"
+                },
+                "timeZone": {
+                    "description": "The time zone of the calendar. (Formatted as an IANA Time Zone Database name, e.g. \"Europe/Zurich\".) Optional.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ConferenceData": {
+            "properties": {
+                "conferenceId": {
+                    "description": "The ID of the conference.\nCan be used by developers to keep track of conferences, should not be displayed to users.\nValues for solution types:  \n- \"eventHangout\": unset.\n- \"eventNamedHangout\": the name of the Hangout.\n- \"hangoutsMeet\": the 10-letter meeting code, for example \"aaa-bbbb-ccc\".\n- \"addOn\": defined by 3P conference provider.  Optional.",
+                    "type": "string"
+                },
+                "conferenceSolution": {
+                    "$ref": "#/definitions/ConferenceSolution",
+                    "description": "The conference solution, such as Hangouts or Google Meet.\nUnset for a conference with a failed create request.\nEither conferenceSolution and at least one entryPoint, or createRequest is required."
+                },
+                "createRequest": {
+                    "$ref": "#/definitions/CreateConferenceRequest",
+                    "description": "A request to generate a new conference and attach it to the event. The data is generated asynchronously. To see whether the data is present check the status field.\nEither conferenceSolution and at least one entryPoint, or createRequest is required."
+                },
+                "entryPoints": {
+                    "description": "Information about individual conference entry points, such as URLs or phone numbers.\nAll of them must belong to the same conference.\nEither conferenceSolution and at least one entryPoint, or createRequest is required.",
+                    "items": {
+                        "$ref": "#/definitions/EntryPoint"
+                    },
+                    "type": "array"
+                },
+                "notes": {
+                    "description": "Additional notes (such as instructions from the domain administrator, legal notices) to display to the user. Can contain HTML. The maximum length is 2048 characters. Optional.",
+                    "type": "string"
+                },
+                "parameters": {
+                    "$ref": "#/definitions/ConferenceParameters",
+                    "description": "Additional properties related to a conference. An example would be a solution-specific setting for enabling video streaming."
+                },
+                "signature": {
+                    "description": "The signature of the conference data.\nGenerated on server side. Must be preserved while copying the conference data between events, otherwise the conference data will not be copied.\nUnset for a conference with a failed create request.\nOptional for a conference with a pending create request.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ConferenceProperties": {
+            "properties": {
+                "allowedConferenceSolutionTypes": {
+                    "description": "The types of conference solutions that are supported for this calendar.\nThe possible values are:  \n- \"eventHangout\" \n- \"eventNamedHangout\" \n- \"hangoutsMeet\"  Optional.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "ConferenceSolution": {
+            "properties": {
+                "iconUri": {
+                    "description": "The user-visible icon for this solution.",
+                    "type": "string"
+                },
+                "key": {
+                    "$ref": "#/definitions/ConferenceSolutionKey",
+                    "description": "The key which can uniquely identify the conference solution for this event."
+                },
+                "name": {
+                    "description": "The user-visible name of this solution. Not localized.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "CreateConferenceRequest": {
+            "properties": {
+                "conferenceSolutionKey": {
+                    "$ref": "#/definitions/ConferenceSolutionKey",
+                    "description": "The conference solution, such as Hangouts or Google Meet."
+                },
+                "requestId": {
+                    "description": "The client-generated unique ID for this request.\nClients should regenerate this ID for every new request. If an ID provided is the same as for the previous request, the request is ignored.",
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/ConferenceRequestStatus",
+                    "description": "The status of the conference create request."
+                }
+            },
+            "type": "object"
+        },
+        "ConferenceRequestStatus": {
+            "properties": {
+              "statusCode": {
+                "description": "The current status of the conference create request. Read-only.\nThe possible values are:  \n- \"pending\": the conference create request is still being processed.\n- \"success\": the conference create request succeeded, the entry points are populated.\n- \"failure\": the conference create request failed, there are no entry points.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+        },
+        "ConferenceSolutionKey": {
+            "properties": {
+                "type": {
+                    "description": "The conference solution type.\nIf a client encounters an unfamiliar or empty type, it should still be able to display the entry points. However, it should disallow modifications.\nThe possible values are:  \n- \"eventHangout\" for Hangouts for consumers (http://hangouts.google.com)\n- \"eventNamedHangout\" for classic Hangouts for G Suite users (http://hangouts.google.com)\n- \"hangoutsMeet\" for Google Meet (http://meet.google.com)\n- \"addOn\" for 3P conference providers",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ConferenceParameters": {
+            "properties": {
+              "addOnParameters": {
+                "$ref": "#/definitions/ConferenceParametersAddOnParameters",
+                "description": "Additional add-on specific data."
+              }
+            },
+            "type": "object"
+        },
+        "ConferenceParametersAddOnParameters": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+        },
+        "EntryPoint": {
+            "properties": {
+                "accessCode": {
+                    "description": "The access code to access the conference. The maximum length is 128 characters.\nWhen creating new conference data, populate only the subset of {meetingCode, accessCode, passcode, password, pin} fields that match the terminology that the conference provider uses. Only the populated fields should be displayed.\nOptional.",
+                    "type": "string"
+                },
+                "entryPointFeatures": {
+                    "description": "Features of the entry point, such as being toll or toll-free. One entry point can have multiple features. However, toll and toll-free cannot be both set on the same entry point.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "entryPointType": {
+                    "description": "The type of the conference entry point.\nPossible values are:  \n- \"video\" - joining a conference over HTTP. A conference can have zero or one video entry point.\n- \"phone\" - joining a conference by dialing a phone number. A conference can have zero or more phone entry points.\n- \"sip\" - joining a conference over SIP. A conference can have zero or one sip entry point.\n- \"more\" - further conference joining instructions, for example additional phone numbers. A conference can have zero or one more entry point. A conference with only a more entry point is not a valid conference.",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "The label for the URI. Visible to end users. Not localized. The maximum length is 512 characters.\nExamples:  \n- for video: meet.google.com/aaa-bbbb-ccc\n- for phone: +1 123 268 2601\n- for sip: 12345678@altostrat.com\n- for more: should not be filled  \nOptional.",
+                    "type": "string"
+                },
+                "meetingCode": {
+                    "description": "The meeting code to access the conference. The maximum length is 128 characters.\nWhen creating new conference data, populate only the subset of {meetingCode, accessCode, passcode, password, pin} fields that match the terminology that the conference provider uses. Only the populated fields should be displayed.\nOptional.",
+                    "type": "string"
+                },
+                "passcode": {
+                    "description": "The passcode to access the conference. The maximum length is 128 characters.\nWhen creating new conference data, populate only the subset of {meetingCode, accessCode, passcode, password, pin} fields that match the terminology that the conference provider uses. Only the populated fields should be displayed.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "The password to access the conference. The maximum length is 128 characters.\nWhen creating new conference data, populate only the subset of {meetingCode, accessCode, passcode, password, pin} fields that match the terminology that the conference provider uses. Only the populated fields should be displayed.\nOptional.",
+                    "type": "string"
+                },
+                "pin": {
+                    "description": "The PIN to access the conference. The maximum length is 128 characters.\nWhen creating new conference data, populate only the subset of {meetingCode, accessCode, passcode, password, pin} fields that match the terminology that the conference provider uses. Only the populated fields should be displayed.\nOptional.",
+                    "type": "string"
+                },
+                "regionCode": {
+                    "description": "The CLDR/ISO 3166 region code for the country associated with this phone access. Example: \"SE\" for Sweden.\nCalendar backend will populate this field only for EntryPointType.PHONE.",
+                    "type": "string"
+                },
+                "uri": {
+                    "description": "The URI of the entry point. The maximum length is 1300 characters.\nFormat:  \n- for video, http: or https: schema is required.\n- for phone, tel: schema is required. The URI should include the entire dial sequence (e.g., tel:+12345678900,,,123456789;1234).\n- for sip, sip: schema is required, e.g., sip:12345678@myprovider.com.\n- for more, http: or https: schema is required.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "Event": {
+            "properties": {
+                "anyoneCanAddSelf": {
+                    "default": "false",
+                    "description": "Whether anyone can invite themselves to the event (currently works for Google+ events only). Optional. The default is False.",
+                    "type": "boolean"
+                },
+                "attachments": {
+                    "description": "File attachments for the event. Currently only Google Drive attachments are supported.\nIn order to modify attachments the supportsAttachments request parameter should be set to true.\nThere can be at most 25 attachments per event,",
+                    "items": {
+                        "$ref": "#/definitions/EventAttachment"
+                    },
+                    "type": "array"
+                },
+                "attendees": {
+                    "description": "The attendees of the event. See the Events with attendees guide for more information on scheduling events with other calendar users.",
+                    "items": {
+                        "$ref": "#/definitions/EventAttendee"
+                    },
+                    "type": "array"
+                },
+                "attendeesOmitted": {
+                    "default": "false",
+                    "description": "Whether attendees may have been omitted from the event's representation. When retrieving an event, this may be due to a restriction specified by the maxAttendee query parameter. When updating an event, this can be used to only update the participant's response. Optional. The default is False.",
+                    "type": "boolean"
+                },
+                "colorId": {
+                    "description": "The color of the event. This is an ID referring to an entry in the event section of the colors definition (see the  colors endpoint). Optional.",
+                    "type": "string"
+                },
+                "conferenceData": {
+                    "$ref": "#/definitions/ConferenceData",
+                    "description": "The conference-related information, such as details of a Google Meet conference. To create new conference details use the createRequest field. To persist your changes, remember to set the conferenceDataVersion request parameter to 1 for all event modification requests."
+                },
+                "created": {
+                    "description": "Creation time of the event (as a RFC3339 timestamp). Read-only.",
+                    "type": "string"
+                },
+                "creator": {
+                    "description": "The creator of the event. Read-only.",
+                    "properties": {
+                        "displayName": {
+                            "description": "The creator's name, if available.",
+                            "type": "string"
+                        },
+                        "email": {
+                            "description": "The creator's email address, if available.",
+                            "type": "string"
+                        },
+                        "id": {
+                            "description": "The creator's Profile ID, if available. It corresponds to the id field in the People collection of the Google+ API",
+                            "type": "string"
+                        },
+                        "self": {
+                            "default": "false",
+                            "description": "Whether the creator corresponds to the calendar on which this copy of the event appears. Read-only. The default is False.",
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "description": {
+                    "description": "Description of the event. Can contain HTML. Optional.",
+                    "type": "string"
+                },
+                "end": {
+                    "$ref": "#/definitions/EventDateTime",
+                    "description": "The (exclusive) end time of the event. For a recurring event, this is the end time of the first instance."
+                },
+                "endTimeUnspecified": {
+                    "default": "false",
+                    "description": "Whether the end time is actually unspecified. An end time is still provided for compatibility reasons, even if this attribute is set to True. The default is False.",
+                    "type": "boolean"
+                },
+                "etag": {
+                    "description": "ETag of the resource.",
+                    "type": "string"
+                },
+                "extendedProperties": {
+                    "description": "Extended properties of the event.",
+                    "properties": {
+                        "private": {
+                            "additionalProperties": {
+                                "description": "The name of the private property and the corresponding value.",
+                                "type": "string"
+                            },
+                            "description": "Properties that are private to the copy of the event that appears on this calendar.",
+                            "type": "object"
+                        },
+                        "shared": {
+                            "additionalProperties": {
+                                "description": "The name of the shared property and the corresponding value.",
+                                "type": "string"
+                            },
+                            "description": "Properties that are shared between copies of the event on other attendees' calendars.",
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                },
+                "gadget": {
+                    "description": "A gadget that extends this event.",
+                    "properties": {
+                        "display": {
+                            "description": "The gadget's display mode. Optional. Possible values are:  \n- \"icon\" - The gadget displays next to the event's title in the calendar view. \n- \"chip\" - The gadget displays when the event is clicked.",
+                            "type": "string"
+                        },
+                        "height": {
+                            "description": "The gadget's height in pixels. The height must be an integer greater than 0. Optional.",
+                            "type": "integer"
+                        },
+                        "iconLink": {
+                            "description": "The gadget's icon URL. The URL scheme must be HTTPS.",
+                            "type": "string"
+                        },
+                        "link": {
+                            "description": "The gadget's URL. The URL scheme must be HTTPS.",
+                            "type": "string"
+                        },
+                        "preferences": {
+                            "additionalProperties": {
+                                "description": "The preference name and corresponding value.",
+                                "type": "string"
+                            },
+                            "description": "Preferences.",
+                            "type": "object"
+                        },
+                        "title": {
+                            "description": "The gadget's title.",
+                            "type": "string"
+                        },
+                        "type": {
+                            "description": "The gadget's type.",
+                            "type": "string"
+                        },
+                        "width": {
+                            "description": "The gadget's width in pixels. The width must be an integer greater than 0. Optional.",
+                            "type": "integer"
+                        }
+                    },
+                    "type": "object"
+                },
+                "guestsCanInviteOthers": {
+                    "default": "true",
+                    "description": "Whether attendees other than the organizer can invite others to the event. Optional. The default is True.",
+                    "type": "boolean"
+                },
+                "guestsCanModify": {
+                    "default": "false",
+                    "description": "Whether attendees other than the organizer can modify the event. Optional. The default is False.",
+                    "type": "boolean"
+                },
+                "guestsCanSeeOtherGuests": {
+                    "default": "true",
+                    "description": "Whether attendees other than the organizer can see who the event's attendees are. Optional. The default is True.",
+                    "type": "boolean"
+                },
+                "hangoutLink": {
+                    "description": "An absolute link to the Google+ hangout associated with this event. Read-only.",
+                    "type": "string"
+                },
+                "htmlLink": {
+                    "description": "An absolute link to this event in the Google Calendar Web UI. Read-only.",
+                    "type": "string"
+                },
+                "iCalUID": {
+                    "description": "Event unique identifier as defined in RFC5545. It is used to uniquely identify events accross calendaring systems and must be supplied when importing events via the import method.\nNote that the icalUID and the id are not identical and only one of them should be supplied at event creation time. One difference in their semantics is that in recurring events, all occurrences of one event have different ids while they all share the same icalUIDs.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Opaque identifier of the event. When creating new single or recurring events, you can specify their IDs. Provided IDs must follow these rules:  \n- characters allowed in the ID are those used in base32hex encoding, i.e. lowercase letters a-v and digits 0-9, see section 3.1.2 in RFC2938 \n- the length of the ID must be between 5 and 1024 characters \n- the ID must be unique per calendar  Due to the globally distributed nature of the system, we cannot guarantee that ID collisions will be detected at event creation time. To minimize the risk of collisions we recommend using an established UUID algorithm such as one described in RFC4122.\nIf you do not specify an ID, it will be automatically generated by the server.\nNote that the icalUID and the id are not identical and only one of them should be supplied at event creation time. One difference in their semantics is that in recurring events, all occurrences of one event have different ids while they all share the same icalUIDs.",
+                    "type": "string"
+                },
+                "kind": {
+                    "default": "calendar#event",
+                    "description": "Type of the resource (\"calendar#event\").",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "Geographic location of the event as free-form text. Optional.",
+                    "type": "string"
+                },
+                "locked": {
+                    "default": "false",
+                    "description": "Whether this is a locked event copy where no changes can be made to the main event fields \"summary\", \"description\", \"location\", \"start\", \"end\" or \"recurrence\". The default is False. Read-Only.",
+                    "type": "boolean"
+                },
+                "organizer": {
+                    "description": "The organizer of the event. If the organizer is also an attendee, this is indicated with a separate entry in attendees with the organizer field set to True. To change the organizer, use the move operation. Read-only, except when importing an event.",
+                    "properties": {
+                        "displayName": {
+                            "description": "The organizer's name, if available.",
+                            "type": "string"
+                        },
+                        "email": {
+                            "description": "The organizer's email address, if available. It must be a valid email address as per RFC5322.",
+                            "type": "string"
+                        },
+                        "id": {
+                            "description": "The organizer's Profile ID, if available. It corresponds to the id field in the People collection of the Google+ API",
+                            "type": "string"
+                        },
+                        "self": {
+                            "default": "false",
+                            "description": "Whether the organizer corresponds to the calendar on which this copy of the event appears. Read-only. The default is False.",
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "originalStartTime": {
+                    "$ref": "#/definitions/EventDateTime",
+                    "description": "For an instance of a recurring event, this is the time at which this event would start according to the recurrence data in the recurring event identified by recurringEventId. It uniquely identifies the instance within the recurring event series even if the instance was moved to a different time. Immutable."
+                },
+                "privateCopy": {
+                    "default": "false",
+                    "description": "If set to True, Event propagation is disabled. Note that it is not the same thing as Private event properties. Optional. Immutable. The default is False.",
+                    "type": "boolean"
+                },
+                "recurrence": {
+                    "description": "List of RRULE, EXRULE, RDATE and EXDATE lines for a recurring event, as specified in RFC5545. Note that DTSTART and DTEND lines are not allowed in this field; event start and end times are specified in the start and end fields. This field is omitted for single events or instances of recurring events.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "recurringEventId": {
+                    "description": "For an instance of a recurring event, this is the id of the recurring event to which this instance belongs. Immutable.",
+                    "type": "string"
+                },
+                "reminders": {
+                    "description": "Information about the event's reminders for the authenticated user.",
+                    "properties": {
+                        "overrides": {
+                            "description": "If the event doesn't use the default reminders, this lists the reminders specific to the event, or, if not set, indicates that no reminders are set for this event. The maximum number of override reminders is 5.",
+                            "items": {
+                                "$ref": "#/definitions/EventReminder"
+                            },
+                            "type": "array"
+                        },
+                        "useDefault": {
+                            "description": "Whether the default reminders of the calendar apply to the event.",
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "sequence": {
+                    "description": "Sequence number as per iCalendar.",
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "Source from which the event was created. For example, a web page, an email message or any document identifiable by an URL with HTTP or HTTPS scheme. Can only be seen or modified by the creator of the event.",
+                    "properties": {
+                        "title": {
+                            "description": "Title of the source; for example a title of a web page or an email subject.",
+                            "type": "string"
+                        },
+                        "url": {
+                            "description": "URL of the source pointing to a resource. The URL scheme must be HTTP or HTTPS.",
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                "start": {
+                    "$ref": "#/definitions/EventDateTime",
+                    "description": "The (inclusive) start time of the event. For a recurring event, this is the start time of the first instance."
+                },
+                "status": {
+                    "description": "Status of the event. Optional. Possible values are:  \n- \"confirmed\" - The event is confirmed. This is the default status. \n- \"tentative\" - The event is tentatively confirmed. \n- \"cancelled\" - The event is cancelled (deleted). The list method returns cancelled events only on incremental sync (when syncToken or updatedMin are specified) or if the showDeleted flag is set to true. The get method always returns them.\nA cancelled status represents two different states depending on the event type:  \n- Cancelled exceptions of an uncancelled recurring event indicate that this instance should no longer be presented to the user. Clients should store these events for the lifetime of the parent recurring event.\nCancelled exceptions are only guaranteed to have values for the id, recurringEventId and originalStartTime fields populated. The other fields might be empty.  \n- All other cancelled events represent deleted events. Clients should remove their locally synced copies. Such cancelled events will eventually disappear, so do not rely on them being available indefinitely.\nDeleted events are only guaranteed to have the id field populated.   On the organizer's calendar, cancelled events continue to expose event details (summary, location, etc.) so that they can be restored (undeleted). Similarly, the events to which the user was invited and that they manually removed continue to provide details. However, incremental sync requests with showDeleted set to false will not return these details.\nIf an event changes its organizer (for example via the move operation) and the original organizer is not on the attendee list, it will leave behind a cancelled event where only the id field is guaranteed to be populated.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "Title of the event.",
+                    "type": "string"
+                },
+                "transparency": {
+                    "default": "opaque",
+                    "description": "Whether the event blocks time on the calendar. Optional. Possible values are:  \n- \"opaque\" - Default value. The event does block time on the calendar. This is equivalent to setting Show me as to Busy in the Calendar UI. \n- \"transparent\" - The event does not block time on the calendar. This is equivalent to setting Show me as to Available in the Calendar UI.",
+                    "type": "string"
+                },
+                "updated": {
+                    "description": "Last modification time of the event (as a RFC3339 timestamp). Read-only.",
+                    "type": "string"
+                },
+                "visibility": {
+                    "default": "default",
+                    "description": "Visibility of the event. Optional. Possible values are:  \n- \"default\" - Uses the default visibility for events on the calendar. This is the default value. \n- \"public\" - The event is public and event details are visible to all readers of the calendar. \n- \"private\" - The event is private and only event attendees may view event details. \n- \"confidential\" - The event is private. This value is provided for compatibility reasons.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "EventAttachment": {
+            "properties": {
+                "fileId": {
+                    "description": "ID of the attached file. Read-only.\nFor Google Drive files, this is the ID of the corresponding Files resource entry in the Drive API.",
+                    "type": "string"
+                },
+                "fileUrl": {
+                    "description": "URL link to the attachment.\nFor adding Google Drive file attachments use the same format as in alternateLink property of the Files resource in the Drive API.\nRequired when adding an attachment.",
+                    "type": "string"
+                },
+                "iconLink": {
+                    "description": "URL link to the attachment's icon. Read-only.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "Internet media type (MIME type) of the attachment.",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Attachment title.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "EventAttendee": {
+            "properties": {
+                "additionalGuests": {
+                    "default": "0",
+                    "description": "Number of additional guests. Optional. The default is 0.",
+                    "type": "integer"
+                },
+                "comment": {
+                    "description": "The attendee's response comment. Optional.",
+                    "type": "string"
+                },
+                "displayName": {
+                    "description": "The attendee's name, if available. Optional.",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "The attendee's email address, if available. This field must be present when adding an attendee. It must be a valid email address as per RFC5322.\nRequired when adding an attendee.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The attendee's Profile ID, if available. It corresponds to the id field in the People collection of the Google+ API",
+                    "type": "string"
+                },
+                "optional": {
+                    "default": "false",
+                    "description": "Whether this is an optional attendee. Optional. The default is False.",
+                    "type": "boolean"
+                },
+                "organizer": {
+                    "description": "Whether the attendee is the organizer of the event. Read-only. The default is False.",
+                    "type": "boolean"
+                },
+                "resource": {
+                    "default": "false",
+                    "description": "Whether the attendee is a resource. Can only be set when the attendee is added to the event for the first time. Subsequent modifications are ignored. Optional. The default is False.",
+                    "type": "boolean"
+                },
+                "responseStatus": {
+                    "description": "The attendee's response status. Possible values are:  \n- \"needsAction\" - The attendee has not responded to the invitation. \n- \"declined\" - The attendee has declined the invitation. \n- \"tentative\" - The attendee has tentatively accepted the invitation. \n- \"accepted\" - The attendee has accepted the invitation.",
+                    "type": "string"
+                },
+                "self": {
+                    "default": "false",
+                    "description": "Whether this entry represents the calendar on which this copy of the event appears. Read-only. The default is False.",
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "EventDateTime": {
+            "properties": {
+                "date": {
+                    "description": "The date, in the format \"yyyy-mm-dd\", if this is an all-day event.",
+                    "type": "string"
+                },
+                "dateTime": {
+                    "description": "The time, as a combined date-time value (formatted according to RFC3339). A time zone offset is required unless a time zone is explicitly specified in timeZone.",
+                    "type": "string"
+                },
+                "timeZone": {
+                    "description": "The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. \"Europe/Zurich\".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "EventReminder": {
+            "properties": {
+                "method": {
+                    "description": "The method used by this reminder. Possible values are:  \n- \"email\" - Reminders are sent via email. \n- \"popup\" - Reminders are sent via a UI popup.  \nRequired when adding a reminder.",
+                    "type": "string"
+                },
+                "minutes": {
+                    "description": "Number of minutes before the start of the event when the reminder should trigger. Valid values are between 0 and 40320 (4 weeks in minutes).\nRequired when adding a reminder.",
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "properties": {
+        "events": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Event"
+            }
+        }
+    },
+    "type": "object"
+}
