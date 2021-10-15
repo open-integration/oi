@@ -10,6 +10,7 @@ import (
 	"github.com/open-integration/oi/pkg/service"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
+	"google.golang.org/api/option"
 )
 
 func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *api.CallRequest) (*api.CallResponse, error) {
@@ -18,7 +19,7 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 		return nil, err
 	}
 
-	calendar, err := connect(args.ServiceAccount, lgr)
+	calendar, err := connect(ctx, args.ServiceAccount)
 	if err != nil {
 		return service.BuildErrorResponse(err)
 	}
@@ -37,8 +38,11 @@ func Handle(ctx context.Context, lgr logger.Logger, svc *service.Service, req *a
 	return service.BuildSuccessfullResponse(events.Items)
 }
 
-func connect(serviceAccount types.ServiceAccount, lgr logger.Logger) (*calendar.Service, error) {
+func connect(ctx context.Context, serviceAccount types.ServiceAccount) (*calendar.Service, error) {
 	b, err := json.Marshal(serviceAccount)
+	if err != nil {
+		return nil, err
+	}
 
 	scopes := []string{
 		calendar.CalendarScope,
@@ -50,5 +54,5 @@ func connect(serviceAccount types.ServiceAccount, lgr logger.Logger) (*calendar.
 		return nil, err
 	}
 	client := config.Client(context.Background())
-	return calendar.New(client)
+	return calendar.NewService(ctx, option.WithHTTPClient(client))
 }
