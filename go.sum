@@ -399,8 +399,8 @@ github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Ky
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/maxaudron/yaml v0.0.0-20190411130442-27c13492fe3c h1:rtuJ8a6iWabjilzeJfxv97h1ehQ5dU/TsAlocYS0j9w=
 github.com/maxaudron/yaml v0.0.0-20190411130442-27c13492fe3c/go.mod h1:OPXrgJkAhxgEtdyxUProD+DF2ukckdPjhKelFTGj18Y=
-github.com/mehanizm/airtable v0.2.4 h1:D4vSdtAWaAnjCkjFMEvU2QwEo6z6zLEbOpc6/kK9Np0=
-github.com/mehanizm/airtable v0.2.4/go.mod h1:VcLiruKmStKYMtX9o77Dq+GHpVuJzMa9wjJcHKdgQNs=
+github.com/mehanizm/airtable v0.2.5 h1:DfAUx0+TOYRvqcaW0y0s6JdgIqs1IaiNvzsWxsR/8pQ=
+github.com/mehanizm/airtable v0.2.5/go.mod h1:VcLiruKmStKYMtX9o77Dq+GHpVuJzMa9wjJcHKdgQNs=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.26 h1:gPxPSwALAeHJSjarOs00QjVdV9QoBvc1D2ujQUr5BzU=
 github.com/miekg/dns v1.1.26/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=

@@ -27,7 +27,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/inconshreveable/log15 v0.0.0-20180818164646-67afb5ed74ec
 	github.com/joho/godotenv v1.3.0 // indirect
-	github.com/mehanizm/airtable v0.2.4
+	github.com/mehanizm/airtable v0.2.5
 	github.com/pierrec/lz4 v2.3.0+incompatible // indirect
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
