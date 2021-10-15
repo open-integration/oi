@@ -14,6 +14,7 @@ require (
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/docker/libkv v0.2.1 // indirect
 	github.com/frankban/quicktest v1.10.0 // indirect
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/google/go-github/v35 v35.3.0
 	github.com/gosimple/slug v1.9.0 // indirect
@@ -30,7 +31,7 @@ require (
 	github.com/mehanizm/airtable v0.2.5
 	github.com/pierrec/lz4 v2.3.0+incompatible // indirect
 	github.com/spf13/afero v1.6.0
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
