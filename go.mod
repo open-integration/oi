@@ -15,7 +15,7 @@ require (
 	github.com/docker/libkv v0.2.1 // indirect
 	github.com/frankban/quicktest v1.10.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/gofrs/uuid v3.4.0+incompatible
+	github.com/gofrs/uuid v4.1.0+incompatible
 	github.com/google/go-github/v35 v35.3.0
 	github.com/gosimple/slug v1.9.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
