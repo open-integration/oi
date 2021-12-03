@@ -37,8 +37,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/zealic/xignore v0.3.3 // indirect
-	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
-	google.golang.org/api v0.60.0
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	google.golang.org/api v0.61.0
 	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/hairyhenderson/yaml.v2 v2.2.2
