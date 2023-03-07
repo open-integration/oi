@@ -3,7 +3,7 @@ module github.com/open-integration/oi
 go 1.16
 
 require (
-	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Shopify/ejson v1.2.2 // indirect
 	github.com/adlio/trello v1.9.0
 	github.com/alecthomas/jsonschema v0.0.0-20210413112511-5c9c23bdc720
